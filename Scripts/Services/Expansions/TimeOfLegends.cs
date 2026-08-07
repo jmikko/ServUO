@@ -3,9 +3,7 @@ using Server;
 using Server.Commands;
 using Server.Items;
 using Server.Mobiles;
-using Server.Engines.Quests;
 using Server.Engines.CannedEvil;
-using Server.Engines.Shadowguard;
 using Server.Gumps;
 using Server.Spells;
 
@@ -75,8 +73,6 @@ namespace Server
             PublicMoongate gate = new PublicMoongate();
             gate.MoveToWorld(new Point3D(719, 1863, 40), Map.TerMur);
 
-            ShadowguardController.SetupShadowguard(e.Mobile);
-            Server.Engines.MyrmidexInvasion.GenerateMyrmidexQuest.Generate();
 
             MacawSpawner.Generate();
 

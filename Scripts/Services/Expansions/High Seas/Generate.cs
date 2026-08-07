@@ -33,9 +33,6 @@ namespace Server.Items
 
             if (CharydbisSpawner.SpawnInstance != null)
                 CharydbisSpawner.SpawnInstance.Active = false;
-
-            if (BountyQuestSpawner.Instance != null)
-                BountyQuestSpawner.Instance.Active = false;
         }
 
         public static void GenerateDeco(CommandEventArgs e)
@@ -43,7 +40,6 @@ namespace Server.Items
             string name = "highseas";
 
             CharydbisSpawner.GenerateCharydbisSpawner();
-            BountyQuestSpawner.GenerateShipSpawner();
 
             CorgulAltar altar;
 
@@ -54,16 +50,6 @@ namespace Server.Items
             altar = new CorgulAltar();
             altar.MoveToWorld(new Point3D(2453, 865, 0), Map.Trammel);
             WeakEntityCollection.Add(name, altar);
-
-            ProfessionalBountyBoard board;
-            
-            board = new ProfessionalBountyBoard();
-            board.MoveToWorld(new Point3D(4544, 2298, -1), Map.Trammel);
-            WeakEntityCollection.Add(name, board);
-
-            board = new ProfessionalBountyBoard();
-            board.MoveToWorld(new Point3D(4544, 2298, -1), Map.Felucca);
-            WeakEntityCollection.Add(name, board);
 
             LocalizedSign sign;
 

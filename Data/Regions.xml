@@ -678,6 +678,41 @@
       <music name="Dungeon9" />
       <entrance x="1296" y="1082" />
     </region>
+    <!-- Phase 1 D&D 5.5e vertical slice test spawns, nested inside Despise -->
+    <region priority="60" name="SRD Test Grounds">
+      <rect x="5377" y="516" width="254" height="506" />
+      <spawning>
+        <object id="9001" type="SrdGoblin" minSpawnTime="PT5M" maxSpawnTime="PT10M" amount="3" />
+        <object id="9002" type="SrdWolf" minSpawnTime="PT5M" maxSpawnTime="PT10M" amount="2" />
+        <object id="9003" type="SrdSkeleton" minSpawnTime="PT5M" maxSpawnTime="PT10M" amount="2" />
+        <object id="9004" type="SrdOrc" minSpawnTime="PT5M" maxSpawnTime="PT10M" amount="2" />
+        <object id="9005" type="SrdZombie" minSpawnTime="PT5M" maxSpawnTime="PT10M" amount="2" />
+        <object id="9006" type="SrdGhoul" minSpawnTime="PT8M" maxSpawnTime="PT15M" amount="1" />
+        <object id="9007" type="SrdGiantRat" minSpawnTime="PT3M" maxSpawnTime="PT8M" amount="3" />
+        <object id="9008" type="SrdGiantSpider" minSpawnTime="PT8M" maxSpawnTime="PT15M" amount="1" />
+        <object id="9009" type="SrdOgre" minSpawnTime="PT15M" maxSpawnTime="PT25M" amount="1" />
+        <object id="9010" type="SrdTroll" minSpawnTime="PT20M" maxSpawnTime="PT30M" amount="1" />
+        <object id="9011" type="SrdMinotaur" minSpawnTime="PT20M" maxSpawnTime="PT30M" amount="1" />
+        <object id="9012" type="SrdEttin" minSpawnTime="PT20M" maxSpawnTime="PT30M" amount="1" />
+        <object id="9013" type="SrdHarpy" minSpawnTime="PT8M" maxSpawnTime="PT15M" amount="1" />
+        <object id="9014" type="SrdGiantScorpion" minSpawnTime="PT10M" maxSpawnTime="PT18M" amount="1" />
+        <object id="9015" type="SrdWight" minSpawnTime="PT10M" maxSpawnTime="PT18M" amount="1" />
+        <object id="9016" type="SrdWorg" minSpawnTime="PT6M" maxSpawnTime="PT12M" amount="2" />
+        <object id="9017" type="SrdDireWolf" minSpawnTime="PT8M" maxSpawnTime="PT15M" amount="1" />
+        <object id="9018" type="SrdWinterWolf" minSpawnTime="PT20M" maxSpawnTime="PT30M" amount="1" />
+        <object id="9019" type="SrdGnoll" minSpawnTime="PT6M" maxSpawnTime="PT12M" amount="2" />
+        <object id="9020" type="SrdHobgoblin" minSpawnTime="PT6M" maxSpawnTime="PT12M" amount="2" />
+        <object id="9021" type="SrdGoblinBoss" minSpawnTime="PT10M" maxSpawnTime="PT18M" amount="1" />
+        <object id="9022" type="SrdBugbear" minSpawnTime="PT8M" maxSpawnTime="PT15M" amount="1" />
+        <object id="9023" type="SrdHillGiant" minSpawnTime="PT25M" maxSpawnTime="PT35M" amount="1" />
+        <object id="9024" type="SrdGhast" minSpawnTime="PT10M" maxSpawnTime="PT18M" amount="1" />
+        <object id="9025" type="SrdShadow" minSpawnTime="PT6M" maxSpawnTime="PT12M" amount="1" />
+        <object id="9026" type="SrdSpecter" minSpawnTime="PT10M" maxSpawnTime="PT18M" amount="1" />
+        <object id="9027" type="SrdOgreZombie" minSpawnTime="PT15M" maxSpawnTime="PT25M" amount="1" />
+        <object id="9028" type="SrdGiantWolfSpider" minSpawnTime="PT3M" maxSpawnTime="PT8M" amount="2" />
+        <object id="9029" type="SrdWraith" minSpawnTime="PT25M" maxSpawnTime="PT35M" amount="1" />
+      </spawning>
+    </region>
     <region type="DungeonRegion" priority="50" name="Destard">
       <rect x="5120" y="770" width="251" height="258" />
       <go x="5243" y="1004" z="0" />

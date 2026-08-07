@@ -2352,9 +2352,6 @@ namespace Server.Multis
                         if (message && Order == BoatOrder.Course && TillerMan != null)
                             TillerManSay(502515); // The course is completed, sir.
 
-                        if (Owner is BaseShipCaptain)
-                            Engines.Quests.BountyQuestSpawner.ResetNavPoints(this);
-
                         return false;
                     }
                 }

@@ -241,32 +241,7 @@ namespace Server.Misc
                 }
 				else if (info.Harrower > 0)
                     title.AppendFormat(": {0} of Evil", HarrowerTitles[Math.Min(HarrowerTitles.Length, info.Harrower) - 1]);
-                else
-                {
-                    int highestValue = 0, highestType = 0;
-                    for (int i = 0; i < ChampionSpawnInfo.Table.Length; i++)
-                    {
-                        int v = info.GetValue(i);
-
-                        if (v > highestValue)
-                        {
-                            highestValue = v;
-                            highestType = i;
-                        }
-                    }
-
-                    int offset = 0;
-                    if (highestValue > 800)
-                        offset = 3;
-                    else if (highestValue > 300)
-                        offset = (int)(highestValue / 300);
-
-                    if (offset > 0)
-                    {
-                        ChampionSpawnInfo champInfo = ChampionSpawnInfo.GetInfo((ChampionSpawnType)highestType);
-                        title.AppendFormat(": {0} of the {1}", champInfo.LevelNames[Math.Min(offset, champInfo.LevelNames.Length) - 1], champInfo.Name);
-                    }
-                }
+                // Champion spawn titles removed along with the champion spawn system (no D&D equivalent).
             }
 
             string customTitle = beheld.Title;

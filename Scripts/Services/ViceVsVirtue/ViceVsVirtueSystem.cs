@@ -10,7 +10,6 @@ using Server.Network;
 using Server.Guilds;
 using Server.Engines.Points;
 using Server.Factions;
-using Server.Engines.CityLoyalty;
 using Server.Regions;
 using Server.Accounting;
 using Server.Engines.ArenaSystem;

@@ -1,5 +1,4 @@
 using System;
-using Server.Engines.Quests.Haven;
 using Server.Engines.VeteranRewards;
 using Server.Gumps;
 using Server.Network;
@@ -7,6 +6,14 @@ using Server.Targeting;
 
 namespace Server.Items
 {
+    public enum CannonDirection
+    {
+        North,
+        East,
+        South,
+        West
+    }
+
     public class CannonAddonComponent : AddonComponent
     {
         public CannonAddonComponent(int itemID)

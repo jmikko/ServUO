@@ -1,4 +1,4 @@
-#region References
+﻿#region References
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,14 +8,11 @@ using Server.Accounting;
 using Server.ContextMenus;
 using Server.Engines.BulkOrders;
 using Server.Engines.CannedEvil;
-using Server.Engines.CityLoyalty;
 using Server.Engines.Craft;
 using Server.Engines.Help;
 using Server.Engines.PartySystem;
 using Server.Engines.Points;
 using Server.Engines.Quests;
-using Server.Engines.Shadowguard;
-using Server.Engines.VoidPool;
 using Server.Engines.VvV;
 using Server.Engines.XmlSpawner2;
 using Server.Ethics;
@@ -46,7 +43,6 @@ using Server.Engines.VendorSearching;
 using Server.Targeting;
 
 using RankDefinition = Server.Guilds.RankDefinition;
-using Server.Engines.Fellowship;
 #endregion
 
 namespace Server.Mobiles
@@ -123,7 +119,7 @@ namespace Server.Mobiles
 	}
 	#endregion
 
-	public partial class PlayerMobile : Mobile, IHonorTarget
+	public partial class PlayerMobile : Mobile, IHonorTarget, IDnDCharacter
 	{
 		public static List<PlayerMobile> Instances { get; private set; }
 
@@ -230,6 +226,11 @@ namespace Server.Mobiles
         private ExtendedPlayerFlag m_ExtendedFlags;
 		private int m_Profession;
 
+		private bool m_DnDInitialized;
+		private AbilityScores m_AbilityScores;
+		private CharacterClass m_CharacterClass;
+		private int m_CharacterLevel;
+
 		private int m_NonAutoreinsuredItems;
 		// number of items that could not be automaitically reinsured because gold in bank was not enough
 
@@ -255,59 +256,6 @@ namespace Server.Mobiles
         public bool UseSummoningRite { get; set; }
 
         #region Points System
-        private PointsSystemProps _PointsSystemProps;
-        private BODProps _BODProps;
-        private AccountGoldProps _AccountGold;
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public PointsSystemProps PointSystems
-        {
-            get
-            {
-                if (_PointsSystemProps == null)
-                    _PointsSystemProps = new PointsSystemProps(this);
-
-                return _PointsSystemProps;
-            }
-            set
-            {
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public BODProps BODData
-        {
-            get
-            {
-                if (_BODProps == null)
-                {
-                    _BODProps = new BODProps(this);
-                }
-
-                return _BODProps;
-            }
-            set
-            {
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public AccountGoldProps AccountGold
-        {
-            get
-            {
-                if (_AccountGold == null)
-                {
-                    _AccountGold = new AccountGoldProps(this);
-                }
-
-                return _AccountGold;
-            }
-            set
-            {
-            }
-        }
-
         [CommandProperty(AccessLevel.GameMaster)]
         public int AccountSovereigns
         {
@@ -403,6 +351,78 @@ namespace Server.Mobiles
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int Profession { get { return m_Profession; } set { m_Profession = value; } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool DnDInitialized { get { return m_DnDInitialized; } }
+
+		public AbilityScores AbilityScores { get { return m_AbilityScores; } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public CharacterClass CharacterClass { get { return m_CharacterClass; } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int CharacterLevel { get { return m_CharacterLevel; } }
+
+		public void ApplyDnDSetup(AbilityScores scores, CharacterClass characterClass)
+		{
+			if (m_DnDInitialized)
+			{
+				return;
+			}
+
+			m_AbilityScores = scores;
+			m_CharacterClass = characterClass;
+			m_CharacterLevel = 1;
+			m_DnDInitialized = true;
+
+			Hits = HitsMax; // HitsMax getter derives from CharacterClass.HitDie + ConMod once DnDInitialized
+		}
+
+		/// <summary>
+		/// Armor Class under D&amp;D 5.5e combat rules: 10 + Dex modifier + equipped armor's ArmorBonus.
+		/// Meaningless (returns the unarmored baseline) until DnDInitialized is true.
+		/// </summary>
+		public int ArmorClass
+		{
+			get
+			{
+				int baseAC = 10;
+				int dexCap = int.MaxValue;
+				int shieldBonus = 0;
+
+				for (int i = 0; i < Items.Count; ++i)
+				{
+					IDnDEquipment equip = Items[i] as IDnDEquipment;
+
+					if (equip == null || equip.ArmorCategory == ArmorCategory.None)
+					{
+						continue;
+					}
+
+					if (equip.ArmorCategory == ArmorCategory.Shield)
+					{
+						shieldBonus += equip.ArmorBonus;
+						continue;
+					}
+
+					// Body armor's base AC replaces the unarmored base of 10, per SRD.
+					baseAC = equip.ArmorBonus;
+
+					if (equip.ArmorCategory == ArmorCategory.Medium)
+					{
+						dexCap = Math.Min(dexCap, 2);
+					}
+					else if (equip.ArmorCategory == ArmorCategory.Heavy)
+					{
+						dexCap = Math.Min(dexCap, 0);
+					}
+				}
+
+				int effectiveDexMod = Math.Min(m_AbilityScores.DexMod, dexCap);
+
+				return baseAC + effectiveDexMod + shieldBonus;
+			}
+		}
 
 		public int StepsTaken { get; set; }
 
@@ -1114,7 +1134,11 @@ namespace Server.Mobiles
 
 			bool racialNightSight = (Core.ML && Race == Race.Elf);
 
-			if (LightLevel < 21 && (AosAttributes.GetValue(this, AosAttribute.NightSight) > 0 || racialNightSight))
+			// D&D 5.5e darkvision: generalizes the racialNightSight check above to any species
+			// (not just the hardcoded Elf case) via IDnDSpecies, for D&D-initialized characters.
+			bool dndDarkvision = m_DnDInitialized && (Race as IDnDSpecies)?.HasDarkvision == true;
+
+			if (LightLevel < 21 && (AosAttributes.GetValue(this, AosAttribute.NightSight) > 0 || racialNightSight || dndDarkvision))
 			{
 				personal = 21;
 			}
@@ -1192,7 +1216,7 @@ namespace Server.Mobiles
         {
             int resistance = base.GetResistance(type) + SphynxFortune.GetResistanceBonus(this, type);
 
-            if (CityLoyaltySystem.HasTradeDeal(this, TradeDeal.SocietyOfClothiers))
+            if (false)
             {
                 resistance++;
                  return Math.Min(resistance, GetMaxResistance(type));
@@ -1263,13 +1287,6 @@ namespace Server.Mobiles
             else if (Siege.SiegeShard && from.Map == Map.Trammel && from.AccessLevel == AccessLevel.Player)
             {
                 from.Map = Map.Felucca;
-            }
-
-            if (((from.Map == Map.Trammel && from.Region.IsPartOf("Blackthorn Castle")) || PointsSystem.FellowshipData.Enabled && from.Region.IsPartOf("BlackthornDungeon") || from.Region.IsPartOf("Ver Lor Reg")) && from.Player && from.AccessLevel == AccessLevel.Player && from.CharacterOut)
-            {
-                StormLevelGump menu = new StormLevelGump(from);
-                menu.BeginClose();
-                from.SendGump(menu);
             }
 
             if (from.NetState != null && from.NetState.IsEnhancedClient && from.Mount is EtherealMount)
@@ -1637,15 +1654,6 @@ namespace Server.Mobiles
 			{
 				pm.m_SessionStart = DateTime.UtcNow;
 
-				if (pm.m_Quest != null)
-				{
-					pm.m_Quest.StartTimer();
-				}
-
-				#region Mondain's Legacy
-				QuestHelper.StartTimer(pm);
-				#endregion
-
 				pm.BedrollLogout = false;
                 pm.BlanketOfDarknessLogout = false;
                 pm.LastOnline = DateTime.UtcNow;
@@ -1700,15 +1708,6 @@ namespace Server.Mobiles
 			if (pm != null)
 			{
 				pm.m_GameTime += (DateTime.UtcNow - pm.m_SessionStart);
-
-				if (pm.m_Quest != null)
-				{
-					pm.m_Quest.StopTimer();
-				}
-
-				#region Mondain's Legacy
-				QuestHelper.StopTimer(pm);
-				#endregion
 
 				pm.m_SpeechLog = null;
 				pm.LastOnline = DateTime.UtcNow;
@@ -1951,6 +1950,13 @@ namespace Server.Mobiles
 		{
 			get
 			{
+				if (m_DnDInitialized && m_CharacterClass != null)
+				{
+					// D&D 5.5e level 1 HP: hit die max + Con modifier. Parallel to legacy UO's
+					// Str-based formula below, which stays untouched for non-D&D characters.
+					return Math.Max(1, m_CharacterClass.HitDie + m_AbilityScores.ConMod);
+				}
+
 				int strBase;
 				int strOffs = GetStatOffset(StatType.Str);
 
@@ -2378,17 +2384,10 @@ namespace Server.Mobiles
 
                 if (Core.ML && Alive)
                 {
-                    QuestHelper.GetContextMenuEntries(list);
-
                     if (!Core.SA && m_RewardTitles.Count > 0)
                     {
                         list.Add(new CallbackEntry(6229, ShowChangeTitle));
                     }
-                }
-
-                if (m_Quest != null)
-                {
-                    m_Quest.GetContextMenuEntries(list);
                 }
 
 				if (house != null)
@@ -2430,13 +2429,6 @@ namespace Server.Mobiles
                     }
                 }
                 #endregion
-
-                #region TOL Shadowguard
-				if (ShadowguardController.GetInstance(Location, Map) != null)
-				{
-					list.Add(new ExitEntry(this));
-				}
-				#endregion
 
                 if (Core.UOR && !Core.SA && Alive)
 				{
@@ -4186,15 +4178,9 @@ namespace Server.Mobiles
 
 			m_AutoStabled = new List<Mobile>();
 
-			#region Mondain's Legacy
-			//m_Quests = new List<BaseQuest>();
-			//m_Chains = new Dictionary<QuestChain, BaseChain>();
-			m_DoneQuests = new List<QuestRestartInfo>();
-			m_Collections = new Dictionary<Collection, int>();
 			m_RewardTitles = new List<object>();
 
 			m_PeacedUntil = DateTime.UtcNow;
-			#endregion
 
 			m_VisList = new List<Mobile>();
 			m_PermaFlags = new List<Mobile>();
@@ -4502,6 +4488,19 @@ namespace Server.Mobiles
 
 			switch (version)
 			{
+                case 41: // Version 41, added D&D 5.5e AbilityScores/CharacterClass/CharacterLevel
+                    {
+                        m_DnDInitialized = reader.ReadBool();
+
+                        if (m_DnDInitialized)
+                        {
+                            m_AbilityScores = AbilityScores.Deserialize(reader);
+                            m_CharacterClass = CharacterClass.Parse(reader.ReadString());
+                            m_CharacterLevel = reader.ReadInt();
+                        }
+
+                        goto case 40;
+                    }
                 case 40: // Version 40, moved gauntlet points, virtua artys and TOT turn ins to PointsSystem
                 case 39: // Version 39, removed ML quest save/load
                 case 38:
@@ -4520,7 +4519,7 @@ namespace Server.Mobiles
                 case 34:
                 case 33:
                     {
-                        ExploringTheDeepQuest = (ExploringTheDeepQuestChain)reader.ReadInt();
+                        ExploringTheDeepQuest = reader.ReadInt();
                         goto case 31;
                     }
                 case 32:
@@ -4539,57 +4538,27 @@ namespace Server.Mobiles
                 case 30: goto case 29;
 				case 29:
 					{
-                        if (version < 40)
-                        {
-                            PointsSystem.DoomGauntlet.SetPoints(this, reader.ReadDouble());
-                        }
-
 						m_SSNextSeed = reader.ReadDateTime();
 						m_SSSeedExpire = reader.ReadDateTime();
 						m_SSSeedLocation = reader.ReadPoint3D();
 						m_SSSeedMap = reader.ReadMap();
 
-                        if (version < 30)
-                        {
-                            reader.ReadLong(); // Old m_LevelExp
-                            int points = (int)reader.ReadLong();
-                            if (points > 0)
-                            {
-                                Server.Engines.Points.PointsSystem.QueensLoyalty.ConvertFromOldSystem(this, points);
-                            }
-
-                            reader.ReadInt(); // Old m_Level
-                            reader.ReadString(); // Old m_ExpTitle
-                        }
-
-                        if (version < 40)
-                        {
-                            PointsSystem.VirtueArtifacts.SetPoints(this, reader.ReadInt());
-                        }
-
-                        if (version < 39)
-                        {
-                            List<BaseQuest> quests = QuestReader.Quests(reader, this);
-                            Dictionary<QuestChain, BaseChain> dic = QuestReader.Chains(reader);
-
-                            if (quests != null && quests.Count > 0)
-                                MondainQuestData.QuestData[this] = quests;
-
-                            if (dic != null && dic.Count > 0)
-                                MondainQuestData.ChainData[this] = dic;
-                        }
-
-                        m_Collections = new Dictionary<Collection, int>();
 						m_RewardTitles = new List<object>();
 
+						// Community-collection donation point tallies (museum/zoo/library reward
+						// economy) removed - no D&D equivalent; still drained for save compatibility.
 						for (int i = reader.ReadInt(); i > 0; i--)
 						{
-							m_Collections.Add((Collection)reader.ReadInt(), reader.ReadInt());
+							reader.ReadInt();
+							reader.ReadInt();
 						}
 
 						for (int i = reader.ReadInt(); i > 0; i--)
 						{
-							m_RewardTitles.Add(QuestReader.Object(reader));
+							if (reader.ReadBool())
+								m_RewardTitles.Add(reader.ReadString());
+							else
+								m_RewardTitles.Add(reader.ReadInt());
 						}
 
 						m_SelectedTitle = reader.ReadInt();
@@ -4650,10 +4619,6 @@ namespace Server.Mobiles
 					}
 				case 21:
 					{
-                        if (version < 40)
-                        {
-                            PointsSystem.TreasuresOfTokuno.Convert(this, reader.ReadEncodedInt(), reader.ReadInt());
-                        }
 						goto case 20;
 					}
 				case 20:
@@ -4685,37 +4650,6 @@ namespace Server.Mobiles
 				case 17: // changed how DoneQuests is serialized
 				case 16:
 					{
-						m_Quest = QuestSerializer.DeserializeQuest(reader);
-
-						if (m_Quest != null)
-						{
-							m_Quest.From = this;
-						}
-
-						int count = reader.ReadEncodedInt();
-
-						if (count > 0)
-						{
-							m_DoneQuests = new List<QuestRestartInfo>();
-
-							for (int i = 0; i < count; ++i)
-							{
-								Type questType = QuestSerializer.ReadType(QuestSystem.QuestTypes, reader);
-								DateTime restartTime;
-
-								if (version < 17)
-								{
-									restartTime = DateTime.MaxValue;
-								}
-								else
-								{
-									restartTime = reader.ReadDateTime();
-								}
-
-								m_DoneQuests.Add(new QuestRestartInfo(questType, restartTime));
-							}
-						}
-
 						m_Profession = reader.ReadEncodedInt();
 						goto case 15;
 					}
@@ -4861,16 +4795,6 @@ namespace Server.Mobiles
 				m_Chains = new Dictionary<QuestChain, BaseChain>();
 			}*/
 
-			if (m_DoneQuests == null)
-			{
-				m_DoneQuests = new List<QuestRestartInfo>();
-			}
-
-			if (m_Collections == null)
-			{
-				m_Collections = new Dictionary<Collection, int>();
-			}
-
 			if (m_RewardTitles == null)
 			{
 				m_RewardTitles = new List<object>();
@@ -4968,7 +4892,16 @@ namespace Server.Mobiles
 
 			base.Serialize(writer);
 
-			writer.Write(40); // version
+			writer.Write(41); // version
+
+			writer.Write(m_DnDInitialized);
+
+			if (m_DnDInitialized)
+			{
+				m_AbilityScores.Serialize(writer);
+				writer.Write(m_CharacterClass == null ? "" : m_CharacterClass.Name);
+				writer.Write(m_CharacterLevel);
+			}
 
             writer.Write((DateTime)NextGemOfSalvationUse);
 
@@ -5005,20 +4938,7 @@ namespace Server.Mobiles
 
             #region Mondain's Legacy
 
-            if (m_Collections == null)
-			{
-				writer.Write(0);
-			}
-			else
-			{
-				writer.Write(m_Collections.Count);
-
-				foreach (var pair in m_Collections)
-				{
-					writer.Write((int)pair.Key);
-					writer.Write(pair.Value);
-				}
-			}
+            writer.Write(0); // was m_Collections (community-collection points, removed)
 
 			if (m_RewardTitles == null)
 			{
@@ -5030,7 +4950,17 @@ namespace Server.Mobiles
 
 				for (int i = 0; i < m_RewardTitles.Count; i++)
 				{
-					QuestWriter.Object(writer, m_RewardTitles[i]);
+					object title = m_RewardTitles[i];
+					if (title is string)
+					{
+						writer.Write(true);
+						writer.Write((string)title);
+					}
+					else
+					{
+						writer.Write(false);
+						writer.Write((int)title);
+					}
 				}
 			}
 
@@ -5070,25 +5000,6 @@ namespace Server.Mobiles
 			writer.Write(m_LastOnline);
 
 			writer.WriteEncodedInt((int)m_SolenFriendship);
-
-			QuestSerializer.Serialize(m_Quest, writer);
-
-			if (m_DoneQuests == null)
-			{
-				writer.WriteEncodedInt(0);
-			}
-			else
-			{
-				writer.WriteEncodedInt(m_DoneQuests.Count);
-
-				for (int i = 0; i < m_DoneQuests.Count; ++i)
-				{
-					QuestRestartInfo restartInfo = m_DoneQuests[i];
-
-					QuestSerializer.Write(restartInfo.QuestType, QuestSystem.QuestTypes, writer);
-					writer.Write(restartInfo.RestartTime);
-				}
-			}
 
 			writer.WriteEncodedInt(m_Profession);
 
@@ -5292,7 +5203,7 @@ namespace Server.Mobiles
 					{
                         string cust = null;
 
-                        if ((int)m_RewardTitles[m_SelectedTitle] == 1154017 && CityLoyaltySystem.HasCustomTitle(this, out cust))
+                        if (false)
                         {
                             list.Add(1154017, cust); // ~1_TITLE~ of ~2_CITY~
                         }
@@ -5357,11 +5268,6 @@ namespace Server.Mobiles
 
             if (TestCenter.Enabled && Core.TOL)
             {
-                Server.Engines.VvV.VvVPlayerEntry entry = Server.Engines.Points.PointsSystem.ViceVsVirtue.GetPlayerEntry<Server.Engines.VvV.VvVPlayerEntry>(this);
-
-                list.Add(String.Format("Kills: {0} / Deaths: {1} / Assists: {2}", // no cliloc for this!
-                    entry == null ? "0" : entry.Kills.ToString(), entry == null ? "0" : entry.Deaths.ToString(), entry == null ? "0" : entry.Assists.ToString()));
-
                 list.Add(1060415, AosAttributes.GetValue(this, AosAttribute.AttackChance).ToString()); // hit chance increase ~1_val~%
                 list.Add(1060408, AosAttributes.GetValue(this, AosAttribute.DefendChance).ToString()); // defense chance increase ~1_val~%
                 list.Add(1060486, AosAttributes.GetValue(this, AosAttribute.WeaponSpeed).ToString()); // swing speed increase ~1_val~%
@@ -5513,39 +5419,16 @@ namespace Server.Mobiles
 		#endregion
         
 		#region Quests
-		private QuestSystem m_Quest;
-		private List<QuestRestartInfo> m_DoneQuests;
 		private SolenFriendship m_SolenFriendship;
-
-		public QuestSystem Quest { get { return m_Quest; } set { m_Quest = value; } }
-
-		public List<QuestRestartInfo> DoneQuests { get { return m_DoneQuests; } set { m_DoneQuests = value; } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public SolenFriendship SolenFriendship { get { return m_SolenFriendship; } set { m_SolenFriendship = value; } }
+
+		// The quest system was removed (no D&D equivalent); this stays as a permanently-empty list
+		// so the surviving "does the player have quest X active" checks still compile and read false.
+		public List<Server.Engines.Quests.BaseQuest> Quests { get { return m_Quests; } }
+		private readonly List<Server.Engines.Quests.BaseQuest> m_Quests = new List<Server.Engines.Quests.BaseQuest>();
         #endregion
-
-        #region Mondain's Legacy
-        /*private List<BaseQuest> m_Quests;
-		private Dictionary<QuestChain, BaseChain> m_Chains;
-
-		public List<BaseQuest> Quests { get { return m_Quests; } }
-        public Dictionary<QuestChain, BaseChain> Chains { get { return m_Chains; } }*/
-        public List<BaseQuest> Quests
-        {
-            get
-            {
-                return MondainQuestData.GetQuests(this);
-            }
-        }
-
-        public Dictionary<QuestChain, BaseChain> Chains
-        {
-            get
-            {
-                return MondainQuestData.GetChains(this);
-            }
-        }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Peaced
@@ -5561,11 +5444,8 @@ namespace Server.Mobiles
 			}
 		}
 
-		private Dictionary<Collection, int> m_Collections;
 		private List<object> m_RewardTitles;
 		private int m_SelectedTitle;
-
-		public Dictionary<Collection, int> Collections { get { return m_Collections; } }
 
 		public List<object> RewardTitles { get { return m_RewardTitles; } }
 
@@ -5589,40 +5469,6 @@ namespace Server.Mobiles
 
             return false;
         }
-
-		public int GetCollectionPoints(Collection collection)
-		{
-			if (m_Collections == null)
-			{
-				m_Collections = new Dictionary<Collection, int>();
-			}
-
-			int points = 0;
-
-			if (m_Collections.ContainsKey(collection))
-			{
-				m_Collections.TryGetValue(collection, out points);
-			}
-
-			return points;
-		}
-
-		public void AddCollectionPoints(Collection collection, int points)
-		{
-			if (m_Collections == null)
-			{
-				m_Collections = new Dictionary<Collection, int>();
-			}
-
-			if (m_Collections.ContainsKey(collection))
-			{
-				m_Collections[collection] += points;
-			}
-			else
-			{
-				m_Collections.Add(collection, points);
-			}
-		}
 
 		public void SelectRewardTitle(int num, bool silent = false)
 		{
@@ -5678,9 +5524,8 @@ namespace Server.Mobiles
 
 		public void ShowChangeTitle()
 		{
-			SendGump(new SelectTitleGump(this, m_SelectedTitle));
+			// Reward-title picker gump removed with the community-collection reward economy.
 		}
-		#endregion
 
         #region Titles
         private string m_FameKarmaTitle;
@@ -5774,8 +5619,6 @@ namespace Server.Mobiles
 
                     if (loc > 0)
                     {
-                        if (CityLoyaltySystem.ApplyCityTitle(this, list, prefix, loc))
-                            return;
                     }
                     else if (suffix.Length > 0)
                     {
@@ -6401,6 +6244,15 @@ namespace Server.Mobiles
 		[PropertyObject]
 		public class ChampionTitleInfo
 		{
+			// Champion spawn system removed (no D&D equivalent); title tracking kept as
+			// inert flavor data using a fixed slot count instead of the deleted ChampionSpawnType/ChampionSpawnInfo types.
+			public enum ChampionSpawnType
+			{
+				Abyss, Arachnid, ColdBlood, ForestLord, SleepingDragon, UnholyTerror, VerminHorde, Glade, Corrupt
+			}
+
+			private const int SpawnTypeCount = 9;
+
 			public static TimeSpan LossDelay = TimeSpan.FromDays(1.0);
 			public const int LossAmount = 90;
 
@@ -6492,7 +6344,7 @@ namespace Server.Mobiles
 			{
 				if (m_Values == null)
 				{
-					m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+					m_Values = new TitleInfo[SpawnTypeCount];
 				}
 
 				if (value < 0)
@@ -6517,7 +6369,7 @@ namespace Server.Mobiles
 			{
 				if (m_Values == null)
 				{
-					m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+					m_Values = new TitleInfo[SpawnTypeCount];
 				}
 
 				if (index < 0 || index >= m_Values.Length || value <= 0)
@@ -6537,7 +6389,7 @@ namespace Server.Mobiles
 			{
 				if (m_Values == null)
 				{
-					m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+					m_Values = new TitleInfo[SpawnTypeCount];
 				}
 
 				if (index < 0 || index >= m_Values.Length || value <= 0)
@@ -6625,10 +6477,10 @@ namespace Server.Mobiles
 								m_Values[i] = new TitleInfo(reader);
 							}
 
-							if (m_Values.Length != ChampionSpawnInfo.Table.Length)
+							if (m_Values.Length != SpawnTypeCount)
 							{
 								var oldValues = m_Values;
-								m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+								m_Values = new TitleInfo[SpawnTypeCount];
 
 								for (int i = 0; i < m_Values.Length && i < oldValues.Length; i++)
 								{
@@ -6670,7 +6522,7 @@ namespace Server.Mobiles
 
 				if (t.m_Values == null)
 				{
-					t.m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+					t.m_Values = new TitleInfo[SpawnTypeCount];
 				}
 
 				for (int i = 0; i < t.m_Values.Length; i++)
@@ -6693,7 +6545,7 @@ namespace Server.Mobiles
 
 				if (t.m_Values == null)
 				{
-					t.m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+					t.m_Values = new TitleInfo[SpawnTypeCount];
 				}
 
 				int count = 1;
@@ -6875,7 +6727,8 @@ namespace Server.Mobiles
         #endregion
 
         [CommandProperty(AccessLevel.GameMaster)]
-        public ExploringTheDeepQuestChain ExploringTheDeepQuest { get; set; }
+        // ExploringTheDeep quest chain removed (legacy UO quest content, no D&D equivalent).
+        public int ExploringTheDeepQuest { get; set; }
 
         public static bool PetAutoStable { get { return Core.SE; } }
 

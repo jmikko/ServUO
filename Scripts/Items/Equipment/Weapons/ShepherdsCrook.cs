@@ -135,14 +135,9 @@ namespace Server.Items
 
         private class HerdingTarget : Target
         {
-            private static readonly Type[] m_ChampTamables = new Type[]
-            {
-                typeof(StrongMongbat), typeof(Imp), typeof(Scorpion), typeof(GiantSpider),
-                typeof(Snake), typeof(LavaLizard), typeof(Drake), typeof(Dragon),
-                typeof(Kirin), typeof(Unicorn), typeof(GiantRat), typeof(Slime),
-                typeof(DireWolf), typeof(HellHound), typeof(DeathwatchBeetle),
-                typeof(LesserHiryu), typeof(Hiryu)
-            };
+            // Herdable-creature roster removed along with the legacy monster roster; Herding
+            // is not a D&D skill, so this stays empty and the crook is permanently inert.
+            private static readonly Type[] m_ChampTamables = new Type[0];
 
             private ShepherdsCrook m_Crook;
 

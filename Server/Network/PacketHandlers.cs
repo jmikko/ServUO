@@ -166,6 +166,8 @@ namespace Server.Network
 			RegisterEncoded(0x28, true, GuildGumpRequest);
 
 			RegisterEncoded(0x32, true, QuestGumpRequest);
+
+			RegisterEncoded(0x40, true, DnDCharacterSetup);
 		}
 
 		public static void Register(int packetID, int length, bool ingame, OnPacketReceive onReceive)
@@ -308,6 +310,63 @@ namespace Server.Network
 		public static void QuestGumpRequest(NetState state, IEntity e, EncodedReader reader)
 		{
 			EventSink.InvokeQuestGumpRequest(new QuestGumpRequestArgs(state.Mobile));
+		}
+
+		/// <summary>
+		/// Receives the D&amp;D 5.5e ability-score/class choices from a D&amp;D-aware client's post-creation
+		/// setup screen (sent in response to DnDCreationPrompt). Encoded (0xD7) subcommand 0x40.
+		/// Payload: seven ReadInt32() fields in order - str, dex, con, int, wis, cha, classIndex
+		/// (index into CharacterClass.AllClasses).
+		///
+		/// This handler only parses and validates the wire data; applying it to the character (and
+		/// granting starting equipment) is content-layer work delegated to Scripts/ via
+		/// EventSink.InvokeDnDCharacterSetup, matching how CreateCharacter delegates to
+		/// Scripts/Misc/CharacterCreation.cs - Server.csproj has no visibility into Scripts-layer
+		/// types like PlayerMobile or the starting-kit items.
+		/// </summary>
+		public static void DnDCharacterSetup(NetState state, IEntity e, EncodedReader reader)
+		{
+			IDnDCharacter dnd = state.Mobile as IDnDCharacter;
+
+			if (dnd == null || dnd.DnDInitialized)
+			{
+				return;
+			}
+
+			int str = reader.ReadInt32();
+			int dex = reader.ReadInt32();
+			int con = reader.ReadInt32();
+			int intl = reader.ReadInt32();
+			int wis = reader.ReadInt32();
+			int cha = reader.ReadInt32();
+			int classIndex = reader.ReadInt32();
+			int speciesIndex = reader.ReadInt32();
+
+			int[] scores = { str, dex, con, intl, wis, cha };
+
+			for (int i = 0; i < scores.Length; ++i)
+			{
+				if (scores[i] < 3 || scores[i] > 20)
+				{
+					return; // out of SRD point-buy/standard-array bounds, reject silently
+				}
+			}
+
+			if (classIndex < 0 || classIndex >= CharacterClass.AllClasses.Count)
+			{
+				return;
+			}
+
+			// speciesIndex is a Race.RaceIndex value, not a sequential list position - see
+			// DnDCharacterSetupEventArgs.SpeciesIndex for why.
+			if (speciesIndex < 0 || speciesIndex >= Race.Races.Length || Race.Races[speciesIndex] == null)
+			{
+				return;
+			}
+
+			EventSink.InvokeDnDCharacterSetup(
+				new DnDCharacterSetupEventArgs(
+					state.Mobile, new AbilityScores(str, dex, con, intl, wis, cha), classIndex, speciesIndex));
 		}
 
 		public static void EncodedCommand(NetState state, PacketReader pvSrc)

@@ -2,7 +2,7 @@ using System;
 
 namespace Server.Items
 {
-    public class FeyLeggings : ChainLegs, ICanBeElfOrHuman
+    public class FeyLeggings : ChainLegs
 	{
 		public override bool IsArtifact { get { return true; } }
 

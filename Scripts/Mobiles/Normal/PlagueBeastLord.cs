@@ -103,9 +103,6 @@ namespace Server.Mobiles
 
         public override bool OnDragDrop(Mobile from, Item dropped)
         {
-            if (this.IsAccessibleTo(from) && (dropped is PlagueBeastInnard || dropped is PlagueBeastGland))
-                return base.OnDragDrop(from, dropped);
-
             return false;
         }
 
@@ -119,9 +116,6 @@ namespace Server.Mobiles
 
         public override void OnDelete()
         {
-            if (this.m_OpenedBy != null && this.m_OpenedBy.Holding is PlagueBeastInnard)
-                this.m_OpenedBy.Holding.Delete();
-
             if (this.Backpack != null)
             {
                 for (int i = this.Backpack.Items.Count - 1; i >= 0; i--)
@@ -209,36 +203,7 @@ namespace Server.Mobiles
 
         public virtual bool Carve(Mobile from, Item item)
         {
-            if (this.m_OpenedBy == null && this.IsAccessibleTo(from))
-            {
-                this.m_OpenedBy = from;
-				
-                if (this.m_Timer == null)
-                    this.m_Timer = new DecayTimer(this);
-				
-                if (!this.m_Timer.Running)
-                    this.m_Timer.Start();
-
-                this.m_Timer.StartDissolving();
-
-                PlagueBeastBackpack pack = new PlagueBeastBackpack();
-                this.AddItem(pack);
-                pack.Initialize();
-
-                foreach (NetState state in this.GetClientsInRange(12))
-                {
-                    Mobile m = state.Mobile;
-
-                    if (m != null && m.Player && m != from)
-                        this.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1071919, from.Name, m.NetState); // * ~1_VAL~ slices through the plague beast's amorphous tissue *
-                }
-
-                from.LocalOverheadMessage(MessageType.Regular, 0x21, 1071904); // * You slice through the plague beast's amorphous tissue *
-                Timer.DelayCall<Mobile>(TimeSpan.Zero, new TimerStateCallback<Mobile>(pack.Open), from);
-
-                return true;
-            }
-
+            // Body-part puzzle backpack removed (no D&D equivalent).
             return false;
         }
 

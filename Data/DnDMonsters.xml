@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  D&D 5.5e SRD monster stat blocks, consumed by Scripts/Mobiles/DnD/SrdMonster.cs at server boot.
+  Body/sound values are reused verbatim from ServUO's original monster art for the same creature
+  (see the Configure() comment in SrdMonster.cs for provenance). ac/hp/attackBonus/damageDice are
+  SRD-based approximations from memory - close to the published stat blocks for these well-known
+  monsters, not a guaranteed byte-for-byte transcription. Treat as a tunable starting point.
+-->
+<DnDMonsters>
+  <monster id="Goblin" name="a goblin" corpse="a goblin corpse" body="334" sound="0x3F7"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="7" attackBonus="4" damageDice="1d6+2"
+           fame="200" karma="-200" />
+
+  <monster id="Wolf" name="a wolf" corpse="a wolf corpse" body="25" sound="0xE5"
+           ai="AI_Animal" fightMode="Aggressor" ac="13" hp="11" attackBonus="4" damageDice="2d4+2"
+           fame="200" karma="0" />
+
+  <monster id="Skeleton" name="a skeleton" corpse="a skeletal corpse" body="50" sound="0x48D"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="13" attackBonus="4" damageDice="1d6+2"
+           fame="200" karma="-200" />
+
+  <monster id="Orc" name="an orc" corpse="an orcish corpse" body="17" sound="0x45A"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="15" attackBonus="5" damageDice="1d12+3"
+           fame="300" karma="-300" />
+
+  <monster id="Zombie" name="a zombie" corpse="a rotting corpse" body="3" sound="471"
+           ai="AI_Melee" fightMode="Closest" ac="8" hp="22" attackBonus="3" damageDice="1d6+1"
+           fame="250" karma="-250" />
+
+  <monster id="Ghoul" name="a ghoul" corpse="a ghostly corpse" body="153" sound="0x482"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="22" attackBonus="2" damageDice="2d4"
+           fame="300" karma="-300" />
+
+  <monster id="Ogre" name="an ogre" corpse="an ogre corpse" body="1" sound="427"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="59" attackBonus="6" damageDice="2d8+4"
+           fame="700" karma="-700" />
+
+  <monster id="Troll" name="a troll" corpse="a troll corpse" body="53" sound="461"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="84" attackBonus="7" damageDice="2d6+4"
+           fame="1200" karma="-1200" />
+
+  <monster id="GiantRat" name="a giant rat" corpse="a giant rat corpse" body="0xD7" sound="0x188"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="7" attackBonus="4" damageDice="1d4+2"
+           fame="100" karma="-100" />
+
+  <monster id="GiantSpider" name="a giant spider" corpse="a giant spider corpse" body="28" sound="0x388"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="26" attackBonus="5" damageDice="1d8+3"
+           fame="400" karma="-400" />
+
+  <monster id="Minotaur" name="a minotaur" corpse="a minotaur corpse" body="263" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="76" attackBonus="6" damageDice="2d8+4"
+           fame="1100" karma="-1100" />
+
+  <monster id="Ettin" name="an ettin" corpse="an ettins corpse" body="18" sound="367"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="85" attackBonus="7" damageDice="2d8+4"
+           fame="1200" karma="-1200" />
+
+  <monster id="Harpy" name="a harpy" corpse="a harpy corpse" body="30" sound="402"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="38" attackBonus="3" damageDice="2d4+2"
+           fame="200" karma="-200" />
+
+  <monster id="GiantScorpion" name="a giant scorpion" corpse="a scorpion corpse" body="48" sound="397"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="52" attackBonus="4" damageDice="1d10+2"
+           fame="500" karma="-500" />
+
+  <monster id="Wight" name="a wight" corpse="a wight corpse" body="252" sound="0x482"
+           ai="AI_NecroMage" fightMode="Closest" ac="14" hp="45" attackBonus="4" damageDice="1d8+2"
+           fame="600" karma="-600" />
+
+  <!--
+    The following reuse the body/sound art of a verified monster above (noted per entry) with a
+    distinct hue, rather than introducing unverified body IDs - see SrdMonster.cs Configure()
+    remarks. ac/hp/attackBonus/damageDice are SRD-based approximations as above.
+  -->
+
+  <monster id="Worg" name="a worg" corpse="a worg corpse" body="25" hue="1815" sound="0xE5"
+           ai="AI_Animal" fightMode="Aggressor" ac="13" hp="26" attackBonus="5" damageDice="2d6+3"
+           fame="450" karma="0" />
+
+  <monster id="DireWolf" name="a dire wolf" corpse="a dire wolf corpse" body="25" hue="1"
+           sound="0xE5" ai="AI_Animal" fightMode="Aggressor" ac="14" hp="37" attackBonus="5"
+           damageDice="2d6+3" fame="600" karma="0" />
+
+  <monster id="WinterWolf" name="a winter wolf" corpse="a winter wolf corpse" body="25" hue="1153"
+           sound="0xE5" ai="AI_Animal" fightMode="Aggressor" ac="13" hp="75" attackBonus="6"
+           damageDice="2d6+4" fame="1500" karma="0" />
+
+  <monster id="Gnoll" name="a gnoll" corpse="a gnoll corpse" body="17" hue="1102" sound="0x45A"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="22" attackBonus="4" damageDice="2d4+2"
+           fame="450" karma="-450" />
+
+  <monster id="Hobgoblin" name="a hobgoblin" corpse="a hobgoblin corpse" body="334" hue="1109"
+           sound="0x3F7" ai="AI_Melee" fightMode="Closest" ac="18" hp="11" attackBonus="3"
+           damageDice="1d8+1" fame="250" karma="-250" />
+
+  <monster id="GoblinBoss" name="a goblin boss" corpse="a goblin corpse" body="334" hue="1358"
+           sound="0x3F7" ai="AI_Melee" fightMode="Closest" ac="17" hp="21" attackBonus="4"
+           damageDice="1d6+2" fame="500" karma="-500" />
+
+  <monster id="Bugbear" name="a bugbear" corpse="a bugbear corpse" body="334" hue="1362"
+           sound="0x3F7" ai="AI_Melee" fightMode="Closest" ac="16" hp="27" attackBonus="4"
+           damageDice="2d8+2" fame="500" karma="-500" />
+
+  <monster id="HillGiant" name="a hill giant" corpse="a giant corpse" body="18" hue="1109"
+           sound="367" ai="AI_Melee" fightMode="Closest" ac="13" hp="105" attackBonus="8"
+           damageDice="3d8+5" fame="1800" karma="-1800" />
+
+  <monster id="Ghast" name="a ghast" corpse="a ghastly corpse" body="153" hue="1273" sound="0x482"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="36" attackBonus="5" damageDice="2d8+3"
+           fame="700" karma="-700" />
+
+  <monster id="Shadow" name="a shadow" corpse="a pool of darkness" body="50" hue="1"
+           sound="0x48D" ai="AI_Melee" fightMode="Closest" ac="12" hp="16" attackBonus="4"
+           damageDice="2d6+2" fame="400" karma="-400" />
+
+  <monster id="Specter" name="a specter" corpse="a ghostly residue" body="50" hue="2101"
+           sound="0x48D" ai="AI_Melee" fightMode="Closest" ac="12" hp="22" attackBonus="4"
+           damageDice="3d6" fame="500" karma="-500" />
+
+  <monster id="OgreZombie" name="an ogre zombie" corpse="a bloated corpse" body="3" hue="1272"
+           sound="471" ai="AI_Melee" fightMode="Closest" ac="8" hp="85" attackBonus="6"
+           damageDice="1d8+4" fame="700" karma="-700" />
+
+  <monster id="GiantWolfSpider" name="a giant wolf spider" corpse="a spider corpse" body="28"
+           hue="1102" sound="0x388" ai="AI_Melee" fightMode="Closest" ac="13" hp="11"
+           attackBonus="3" damageDice="1d6+1" fame="150" karma="-150" />
+
+  <monster id="Wraith" name="a wraith" corpse="a wraiths corpse" body="252" hue="1"
+           sound="0x482" ai="AI_NecroMage" fightMode="Closest" ac="13" hp="67" attackBonus="6"
+           damageDice="4d8+4" fame="1800" karma="-1800" />
+</DnDMonsters>

@@ -32,32 +32,6 @@ namespace Server.Mobiles.MannequinProperty
         }
     }
 
-    public abstract class TalismanSlayerProperty : ValuedProperty
-    {
-        public override Catalog Catalog { get { return Catalog.HitEffects; } }
-        public abstract TalismanSlayerName Slayer { get; }
-        public override int Hue { get { return 0x43FF; } }
-        public override bool IsBoolen { get { return true; } }
-        public override int SpriteW { get { return 270; } }
-        public override int SpriteH { get { return 180; } }
-
-        public override bool Matches(Item item)
-        {
-            return item is BaseTalisman talisman ? talisman.Slayer == Slayer : false;
-        }
-
-        public override bool Matches(List<Item> items)
-        {
-            foreach (var item in items)
-            {
-                if (item is BaseTalisman talisman)
-                    return talisman.Slayer == Slayer;
-            }
-
-            return false;
-        }
-    }
-
     public class ReptileSlayerProperty : SlayerProperty
     {
         public override int LabelNumber { get { return 1079751; } } // Reptile Slayer        
@@ -118,60 +92,6 @@ namespace Server.Mobiles.MannequinProperty
         public override SlayerName Slayer { get { return SlayerName.Repond; } }
     }
 
-    public class BatSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072506; } } // Bat Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Bat; } }
-    }
-
-    public class BearSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072504; } } // Bear Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Bear; } }
-    }
-
-    public class BeetleSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072508; } } // Beetle Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Beetle; } }
-    }
-
-    public class BirdSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072509; } } // Bird Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Bird; } }
-    }
-
-    public class BovineSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072512; } } // Bovine Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Bovine; } }
-    }
-
-    public class FlameSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072511; } } // Flame Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Flame; } }
-    }
-
-    public class GoblinSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1095010; } } // Goblin Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Goblin; } }
-    }
-
-    public class IceSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072510; } } // Ice Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Ice; } }
-    }
-
-    public class MageSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072507; } } // Mage Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Mage; } }
-    }
-
     public class OgreSlayerProperty : SlayerProperty
     {
         public override int LabelNumber { get { return 1079739; } } // Ogre Slayer
@@ -190,23 +110,11 @@ namespace Server.Mobiles.MannequinProperty
         public override SlayerName Slayer { get { return SlayerName.TrollSlaughter; } }
     }
 
-    public class VerminSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1072505; } } // Vermin Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Vermin; } }
-    }
-
     public class UndeadSlayerProperty : SlayerProperty
     {
         public override int LabelNumber { get { return 1079752; } } // Undead Slayer
         public override int Description { get { return 1152467; } } // This property provides increased effectiveness against specific monsters or specific groups of monsters.  When the property is found on weapons or talisman it increases damage inflicted by weapons.  When this property is found on spellbooks it increases spell damage.  <br>When this property is found on instruments it increases the success chances for barding attempts (peacemaking, provocation or discordance); it also increases damage inflicted when using the discordance bard mastery abilities.  When a character uses slayer items they will be more vulnerable to opposing groups of monsters.  This vulnerability ranges from taking more damage from opposing monsters to less effective barding attempts.
         public override SlayerName Slayer { get { return SlayerName.Silver; } }
-    }
-
-    public class WolfSlayerProperty : TalismanSlayerProperty
-    {
-        public override int LabelNumber { get { return 1075462; } } // Wolf Slayer
-        public override TalismanSlayerName Slayer { get { return TalismanSlayerName.Wolf; } }
     }
 
     public class DemonSlayerProperty : SlayerProperty

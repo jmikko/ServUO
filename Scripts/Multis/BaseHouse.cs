@@ -14,7 +14,6 @@ using Server.Network;
 using Server.Regions;
 using Server.Targeting;
 using Server.Engines.Auction;
-using Server.Engines.NewMagincia;
 
 namespace Server.Multis
 {

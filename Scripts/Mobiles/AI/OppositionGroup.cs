@@ -8,44 +8,10 @@ namespace Server
 {
 	public class OppositionGroup
 	{
-		private static readonly OppositionGroup m_TerathansAndOphidians = new OppositionGroup(
-			new[]
-			{
-				new[] {typeof(TerathanAvenger), typeof(TerathanDrone), typeof(TerathanMatriarch), typeof(TerathanWarrior)},
-				new[]
-				{
-					typeof(OphidianArchmage), typeof(OphidianKnight), typeof(OphidianMage), typeof(OphidianMatriarch),
-					typeof(OphidianWarrior)
-				}
-			});
-
-		private static readonly OppositionGroup m_SavagesAndOrcs = new OppositionGroup(
-			new[]
-			{
-				new[]
-				{
-					typeof(Orc), typeof(OrcBomber), typeof(OrcBrute), typeof(OrcCaptain), typeof(OrcChopper), typeof(OrcishLord),
-					typeof(OrcishMage), typeof(OrcScout), typeof(SpawnedOrcishLord)
-				},
-				new[] {typeof(Savage), typeof(SavageRider), typeof(SavageRidgeback), typeof(SavageShaman)}
-			});
-
-		private static readonly OppositionGroup m_FeyAndUndead = new OppositionGroup(
-			new[]
-			{
-				new[]
-				{
-					typeof(Centaur), typeof(EtherealWarrior), typeof(Kirin), typeof(LordOaks), typeof(Pixie), typeof(Silvani),
-					typeof(Unicorn), typeof(Wisp), typeof(Treefellow), typeof(MLDryad), typeof(Satyr)
-				},
-				new[]
-				{
-					typeof(AncientLich), typeof(Bogle), typeof(BoneKnight), typeof(BoneMagi), typeof(DarknightCreeper), typeof(Ghoul),
-					typeof(LadyOfTheSnow), typeof(Lich), typeof(LichLord), typeof(Mummy), typeof(RevenantLion), typeof(RottingCorpse),
-					typeof(Shade), typeof(ShadowKnight), typeof(SkeletalDragon), typeof(SkeletalDrake), typeof(SkeletalKnight),
-					typeof(SkeletalMage), typeof(Skeleton), typeof(Spectre), typeof(Wraith), typeof(Zombie)
-				}
-			});
+		// Faction opposition tables removed along with the legacy monster roster (no D&D equivalent) - always inert.
+		private static readonly OppositionGroup m_TerathansAndOphidians = new OppositionGroup(new Type[0][]);
+		private static readonly OppositionGroup m_SavagesAndOrcs = new OppositionGroup(new Type[0][]);
+		private static readonly OppositionGroup m_FeyAndUndead = new OppositionGroup(new Type[0][]);
 
 		private readonly Type[][] m_Types;
 

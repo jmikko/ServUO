@@ -806,6 +806,60 @@ namespace Server.Network
 		}
 	}
 
+	/// <summary>
+	/// Sent to the client right after vanilla character creation finishes, telling a D&amp;D-aware
+	/// client to show its ability-score/class setup screen. Extended (0xBF) subcommand 0x40. See
+	/// PacketHandlers.DnDCharacterSetup for the client's response (0xD7 encoded subcommand 0x40).
+	/// </summary>
+	public sealed class DnDCreationPrompt : Packet
+	{
+		public DnDCreationPrompt()
+			: base(0xBF)
+		{
+			EnsureCapacity(5);
+
+			m_Stream.Write((short)0x40);
+		}
+	}
+
+	/// <summary>
+	/// Syncs D&amp;D 5.5e character-sheet data (ability scores, class, level, proficiency bonus, AC,
+	/// current/max HP) to the client. Extended (0xBF) subcommand 0x41. Sent once after character
+	/// setup completes, and again whenever those values change (damage, level-up, equipment swap).
+	/// </summary>
+	public sealed class DnDStatSync : Packet
+	{
+		public DnDStatSync(Mobile m)
+			: base(0xBF)
+		{
+			EnsureCapacity(20);
+
+			m_Stream.Write((short)0x41);
+
+			IDnDCharacter dnd = m as IDnDCharacter;
+
+			AbilityScores scores = dnd == null ? new AbilityScores() : dnd.AbilityScores;
+			CharacterClass charClass = dnd == null ? null : dnd.CharacterClass;
+
+			m_Stream.Write((byte)scores.Str);
+			m_Stream.Write((byte)scores.Dex);
+			m_Stream.Write((byte)scores.Con);
+			m_Stream.Write((byte)scores.Int);
+			m_Stream.Write((byte)scores.Wis);
+			m_Stream.Write((byte)scores.Cha);
+
+			int classId = charClass == null ? -1 : CharacterClass.AllClasses.IndexOf(charClass);
+			int level = dnd == null ? 0 : dnd.CharacterLevel;
+
+			m_Stream.Write((byte)classId);
+			m_Stream.Write((byte)level);
+			m_Stream.Write((byte)(charClass == null ? 0 : charClass.GetProficiencyBonus(level)));
+			m_Stream.Write((byte)(dnd == null ? 10 : dnd.ArmorClass));
+			m_Stream.Write((short)m.Hits);
+			m_Stream.Write((short)m.HitsMax);
+		}
+	}
+
 	public sealed class DisplayItemListMenu : Packet
 	{
 		public DisplayItemListMenu(ItemListMenu menu)

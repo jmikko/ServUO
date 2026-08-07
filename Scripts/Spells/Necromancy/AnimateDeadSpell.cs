@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Server.Engines.Quests;
-using Server.Engines.Quests.Necro;
 using Server.Items;
 using Server.Mobiles;
 using Server.Targeting;
@@ -94,112 +92,10 @@ namespace Server.Spells.Necromancy
             return null;
         }
 
-        private static readonly CreatureGroup[] m_Groups = new CreatureGroup[]
-        {
-            // Undead group--empty
-            new CreatureGroup(SlayerGroup.GetEntryByName(SlayerName.Silver).Types, new SummonEntry[0]),
-            // Insects
-            new CreatureGroup(new Type[]
-            {
-                typeof(DreadSpider), typeof(FrostSpider), typeof(GiantSpider), typeof(GiantBlackWidow),
-                typeof(BlackSolenInfiltratorQueen), typeof(BlackSolenInfiltratorWarrior),
-                typeof(BlackSolenQueen), typeof(BlackSolenWarrior), typeof(BlackSolenWorker),
-                typeof(RedSolenInfiltratorQueen), typeof(RedSolenInfiltratorWarrior),
-                typeof(RedSolenQueen), typeof(RedSolenWarrior), typeof(RedSolenWorker),
-                typeof(TerathanAvenger), typeof(TerathanDrone), typeof(TerathanMatriarch),
-                typeof(TerathanWarrior)
-                // TODO: Giant beetle? Ant lion? Ophidians?
-            },
-                new SummonEntry[]
-                {
-                    new SummonEntry(0, typeof(MoundOfMaggots))
-                }),
-            // Mounts
-            new CreatureGroup(new Type[]
-            {
-                typeof(Horse), typeof(Nightmare), typeof(FireSteed),
-                typeof(Kirin), typeof(Unicorn)
-            }, new SummonEntry[]
-               {
-                   new SummonEntry(10000, typeof(HellSteed)),
-                   new SummonEntry(0, typeof(SkeletalMount))
-               }),
-            // Elementals
-            new CreatureGroup(new Type[]
-            {
-                typeof(BloodElemental), typeof(EarthElemental), typeof(SummonedEarthElemental),
-                typeof(AgapiteElemental), typeof(BronzeElemental), typeof(CopperElemental),
-                typeof(DullCopperElemental), typeof(GoldenElemental), typeof(ShadowIronElemental),
-                typeof(ValoriteElemental), typeof(VeriteElemental), typeof(PoisonElemental),
-                typeof(FireElemental), typeof(SummonedFireElemental), typeof(SnowElemental),
-                typeof(AirElemental), typeof(SummonedAirElemental), typeof(WaterElemental),
-                typeof(SummonedAirElemental), typeof (ToxicElemental)
-            }, new SummonEntry[]
-               {
-                   new SummonEntry(5000, typeof(WailingBanshee)),
-                   new SummonEntry(0, typeof(Wraith))
-               }),
-            // Dragons
-            new CreatureGroup(new Type[]
-            {
-                typeof(AncientWyrm), typeof(Dragon), typeof(GreaterDragon), typeof(SerpentineDragon),
-                typeof(ShadowWyrm), typeof(SkeletalDragon), typeof(WhiteWyrm),
-                typeof(Drake), typeof(Wyvern), typeof(LesserHiryu), typeof(Hiryu)
-            }, new SummonEntry[]
-               {
-                   new SummonEntry(18000, typeof(SkeletalDragon)),
-                   new SummonEntry(10000, typeof(FleshGolem)),
-                   new SummonEntry(5000, typeof(Lich)),
-                   new SummonEntry(3000, typeof(SkeletalKnight), typeof(BoneKnight)),
-                   new SummonEntry(2000, typeof(Mummy)),
-                   new SummonEntry(1000, typeof(SkeletalMage), typeof(BoneMagi)),
-                   new SummonEntry(0, typeof(PatchworkSkeleton))
-               }),
-            // Default group
-            new CreatureGroup(new Type[0], new SummonEntry[]
-            {
-                new SummonEntry(18000, typeof(LichLord)),
-                new SummonEntry(10000, typeof(FleshGolem)),
-                new SummonEntry(5000, typeof(Lich)),
-                new SummonEntry(3000, typeof(SkeletalKnight), typeof(BoneKnight)),
-                new SummonEntry(2000, typeof(Mummy)),
-                new SummonEntry(1000, typeof(SkeletalMage), typeof(BoneMagi)),
-                new SummonEntry(0, typeof(PatchworkSkeleton))
-            }),
-        };
+        private static readonly CreatureGroup[] m_Groups = new CreatureGroup[0];
 
         public void Target(object obj)
         {
-            MaabusCoffinComponent comp = obj as MaabusCoffinComponent;
-
-            if (comp != null)
-            {
-                MaabusCoffin addon = comp.Addon as MaabusCoffin;
-
-                if (addon != null)
-                {
-                    PlayerMobile pm = this.Caster as PlayerMobile;
-
-                    if (pm != null)
-                    {
-                        QuestSystem qs = pm.Quest;
-
-                        if (qs is DarkTidesQuest)
-                        {
-                            QuestObjective objective = qs.FindObjective(typeof(AnimateMaabusCorpseObjective));
-
-                            if (objective != null && !objective.Completed)
-                            {
-                                addon.Awake(this.Caster);
-                                objective.Complete();
-                            }
-                        }
-                    }
-
-                    return;
-                }
-            }
-
             Corpse c = obj as Corpse;
 
             if (c == null)
@@ -225,7 +121,7 @@ namespace Server.Spells.Necromancy
 
                     if (group != null)
                     {
-                        if (group.m_Entries.Length == 0 || type == typeof(DemonKnight))
+                        if (group.m_Entries.Length == 0)
                         {
                             this.Caster.SendLocalizedMessage(1061086); // You cannot animate undead remains.
                         }
@@ -344,16 +240,6 @@ namespace Server.Spells.Necromancy
 
             Type toSummon = null;
             SummonEntry[] entries = group.m_Entries;
-
-            #region Mondain's Legacy
-            BaseCreature creature = caster as BaseCreature;
-
-            if (creature != null)
-            {
-                if (creature.AIObject is NecroMageAI)
-                    toSummon = typeof(FleshGolem);
-            }
-            #endregion
 
             for (int i = 0; toSummon == null && i < entries.Length; ++i)
             {

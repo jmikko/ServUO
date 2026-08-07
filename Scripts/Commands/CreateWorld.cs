@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Server.Commands;
@@ -67,9 +67,9 @@ namespace Server.Commands
 			new CommandEntry("Solen Hives",         "SHTelGen",         "SHTelGenDelete",		Category.Dungeon,         Expansion.LBR,    109),
 			new CommandEntry("Malas Secrets",       "SecretLocGen",     "SecretLocDelete",		Category.System,          Expansion.AOS,    110),
 			new CommandEntry("Factions",            "GenerateFactions",	"DeleteFactions",		Category.System,          Expansion.None,   111),
-			new CommandEntry("Decorations",         "Decorate",         "DecorateDelete",		Category.Decoration,      Expansion.None,   113),
+			new CommandEntry("Decorations",         "Decorate",         null,		Category.Decoration,      Expansion.None,   113),
 			new CommandEntry("ML Decorations",      "DecorateML",		"DecorateMLDelete",		Category.Decoration,      Expansion.ML,     114),
-			new CommandEntry("SA Decorations",      "DecorateSA",		"DecorateSADelete",		Category.Decoration,      Expansion.SA,     115),
+			new CommandEntry("SA Decorations",      "DecorateSA",		null,		Category.Decoration,      Expansion.SA,     115),
 			new CommandEntry("Spawners",		    "XmlLoad Spawns",	"WipeAllXmlSpawners",	Category.Spawn,           Expansion.None,   116),
             new CommandEntry("New Despise",         "SetupDespise",     "DeleteDespise",        Category.RevampedDungeon, Expansion.SA,     117),
             new CommandEntry("New Covetous",        "SetupNewCovetous", "DeleteCovetous",       Category.RevampedDungeon, Expansion.SA,     118),
@@ -542,22 +542,22 @@ namespace Server.Gumps
                 case 119:
                     return WeakEntityCollection.HasCollection("newshame");
                 case 120:
-                    return Server.Engines.NewMagincia.MaginciaBazaar.Instance != null;
+                    return false;
                 case 121:
                     return WeakEntityCollection.HasCollection("highseas") || CharydbisSpawner.SpawnInstance != null;
                 case 122:
-                    return Server.Engines.CityLoyalty.CityLoyaltySystem.Cities != null && Server.Engines.CityLoyalty.CityLoyaltySystem.Cities.Count > 0 && Server.Engines.CityLoyalty.CityLoyaltySystem.Cities[0].Stone != null;
+                    return false;
                 case 123:
                     return HasItem(typeof(DungeonHitchingPost), new Point3D(6428, 2677, 0), Map.Trammel) &&
                            HasItem(typeof(DungeonHitchingPost), new Point3D(6428, 2677, 0), Map.Felucca);
                 case 124:
                     return WeakEntityCollection.HasCollection("tol");
                 case 125:
-                    return BedrollSpawner.Instances != null && BedrollSpawner.Instances.Count > 0;
+                    return false;
                 case 126:
-                    return Server.Engines.TreasuresOfKotlCity.KotlBattleSimulator.Instance != null;
+                    return false;
                 case 128:
-                    return Server.Engines.CannedEvil.ChampionSystem.AllSpawns.Count > 0;
+                    return false;
             }
 
             return false;

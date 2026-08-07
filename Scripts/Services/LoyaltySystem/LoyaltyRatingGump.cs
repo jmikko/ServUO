@@ -3,7 +3,6 @@ using Server.Gumps;
 using Server.Mobiles;
 using System.Linq;
 using Server.Network;
-using Server.Engines.CityLoyalty;
 
 namespace Server.Engines.Points
 {
@@ -49,19 +48,10 @@ namespace Server.Engines.Points
             AddHtmlLocalized(50, 285, 150, 20, 1115129, pm.Fame.ToString(), 0, false, false); // Fame: ~1_AMT~
             AddHtmlLocalized(50, 305, 150, 20, 1115130, pm.Karma.ToString(), 0, false, false); // Karma: ~1_AMT~}
 
-            if (CityLoyaltySystem.Enabled && CityLoyaltySystem.Cities != null)
-            {
-                AddHtmlLocalized(60, 395, 150, 20, 1152190, false, false);  // City Loyalty
-                AddButton(40, 400, 2103, 2104, 1, GumpButtonType.Reply, 0);
-            }
         }
 
         public override void OnResponse(NetState state, RelayInfo info)
         {
-            PlayerMobile pm = state.Mobile as PlayerMobile;
-
-            if (CityLoyaltySystem.Enabled && CityLoyaltySystem.Cities != null && pm != null && info.ButtonID == 1)
-                BaseGump.SendGump(new CityLoyaltyGump(pm));
         }
     }
 }

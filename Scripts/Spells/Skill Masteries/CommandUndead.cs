@@ -121,19 +121,8 @@ namespace Server.Spells.SkillMasteries
             typeof(SkeletalDragon)
         };
 
-        private static Type[] _NoCommandTypes =
-        {
-
-            typeof(UnfrozenMummy),
-            typeof(RedDeath),
-            typeof(SirPatrick),
-            typeof(LadyJennifyr),
-            typeof(MasterMikael),
-            typeof(MasterJonath),
-            typeof(LadyMarai),
-            typeof(Niporailem),
-            typeof(PestilentBandage),
-        };
+        // Per-monster command exclusions removed along with the legacy monster roster.
+        private static Type[] _NoCommandTypes = new Type[0];
 
         public static bool ValidateTarget(BaseCreature bc)
         {

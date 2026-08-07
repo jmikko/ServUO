@@ -66,7 +66,6 @@ namespace Server.Multis
 
         private ShipWheel _Wheel;
         private GalleonHold _Hold;
-        private BindingPole _Pole;
 
         [CommandProperty(AccessLevel.GameMaster)]
         public ShipWheel Wheel { get { return _Wheel ?? (_Wheel = Fixtures.FirstOrDefault(f => f.GetType() == typeof(ShipWheel)) as ShipWheel); } }
@@ -74,9 +73,6 @@ namespace Server.Multis
         [CommandProperty(AccessLevel.GameMaster)]
         public GalleonHold GalleonHold
         { get { return _Hold ?? (_Hold = Fixtures.FirstOrDefault(f => f.GetType() == typeof(GalleonHold)) as GalleonHold); } }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public BindingPole Pole { get { return _Pole ?? (_Pole = Fixtures.FirstOrDefault(f => f.GetType() == typeof(BindingPole)) as BindingPole); } }
 
         [CommandProperty(AccessLevel.GameMaster)]
         public Mobile CapturedCaptain { get; set; }

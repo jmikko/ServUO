@@ -429,26 +429,10 @@ namespace Server.Spells.Ninjitsu
 			}
 		}
 
-		private static readonly AnimalFormEntry[] m_Entries = new[]
-		{
-			new AnimalFormEntry(typeof(Kirin), "kirin", 9632, 0, 1070811, 100.0, 0x84, 0, 0, false, true, false),
-			new AnimalFormEntry(typeof(Unicorn), "unicorn", 9678, 0, 1070812, 100.0, 0x7A, 0, 0, false, true, false),
-			new AnimalFormEntry(typeof(BakeKitsune), "bake-kitsune", 10083, 0, 1070810, 82.5, 0xF6, 0, 0, false, true, false),
-			new AnimalFormEntry(typeof(GreyWolf), "wolf", 9681, 2309, 1070810, 82.5, 0x19, 0x8FD, 0x90E, false, true, false),
-			new AnimalFormEntry(typeof(Llama), "llama", 8438, 0, 1070809, 70.0, 0xDC, 0, 0, false, true, false),
-			new AnimalFormEntry(typeof(ForestOstard), "ostard", 8503, 2212, 1070809, 70.0, 0xDB, 0x899, 0x8B0, false, true, false),
-			new AnimalFormEntry(typeof(BullFrog), "bullfrog", 8496, 2003, 1070807, 50.0, 0x51, 0x7D1, 0x7D6, false, false, false),
-			new AnimalFormEntry(typeof(GiantSerpent), "giant serpent", 9663, 2009, 1070808, 50.0, 0x15, 0x7D1, 0x7E2, false, false, false),
-			new AnimalFormEntry(typeof(Dog), "dog", 8476, 2309, 1070806, 40.0, 0xD9, 0x8FD, 0x90E, false, false, false),
-			new AnimalFormEntry(typeof(Cat), "cat", 8475, 2309, 1070806, 40.0, 0xC9, 0x8FD, 0x90E, false, false, false),
-			new AnimalFormEntry(typeof(Rat), "rat", 8483, 2309, 1070805, 20.0, 0xEE, 0x8FD, 0x90E, true, false, false),
-			new AnimalFormEntry(typeof(Rabbit), "rabbit", 8485, 2309, 1070805, 20.0, 0xCD, 0x8FD, 0x90E, true, false, false),
-			new AnimalFormEntry(typeof(Squirrel), "squirrel", 11671, 0, 0, 20.0, 0x116, 0, 0, false, false, false),
-			new AnimalFormEntry(typeof(Ferret), "ferret", 11672, 0, 1075220, 40.0, 0x117, 0, 0, false, false, true),
-			new AnimalFormEntry(typeof(CuSidhe), "cu sidhe", 11670, 0, 1075221, 60.0, 0x115, 0, 0, false, false, false),
-			new AnimalFormEntry(typeof(Reptalon), "reptalon", 11669, 0, 1075222, 90.0, 0x114, 0, 0, false, false, false),
-            new AnimalFormEntry(typeof(WildWhiteTiger), "white tiger", 38980, 2500, 0, 0, 0x4E7, 0, 0, false, false, false),
-		};
+		// Animal-form shapeshift roster removed: every entry was a legacy UO creature type
+		// (kirin, cu sidhe, reptalon, ...) with no D&D equivalent. Ninjitsu itself is not a
+		// D&D skill - the form list stays empty so the ability is permanently inert.
+		private static readonly AnimalFormEntry[] m_Entries = new AnimalFormEntry[0];
 
 		public static AnimalFormEntry[] Entries { get { return m_Entries; } }
 

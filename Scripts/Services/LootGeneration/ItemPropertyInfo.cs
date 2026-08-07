@@ -961,18 +961,6 @@ namespace Server.Items
             return -1;
         }
 
-        public static int GetIDForAttribute(TalismanSlayerName attr)
-        {
-            foreach (var kvp in Table)
-            {
-                var info = kvp.Value;
-
-                if (info.Attribute is TalismanSlayerName && (TalismanSlayerName)info.Attribute == attr)
-                    return kvp.Key;
-            }
-
-            return -1;
-        }
 
         public static int GetIDForAttribute(AosElementAttribute type)
         {

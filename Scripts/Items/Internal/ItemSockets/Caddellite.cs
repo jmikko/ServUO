@@ -4,8 +4,6 @@ using Server;
 using Server.Mobiles;
 using Server.Engines.Craft;
 using Server.Spells;
-using Server.Engines.Points;
-using Server.Engines.Khaldun;
 using Server.Engines.Harvest;
 
 namespace Server.Items
@@ -33,11 +31,6 @@ namespace Server.Items
         {
             if (from is BaseCreature)
             {
-                if (KhaldunTastyTreat.UnderInfluence((BaseCreature)from))
-                {
-                    return true;
-                }
-
                 return false;
             }
             else if (from.Player)
@@ -67,39 +60,12 @@ namespace Server.Items
 
         public static bool IsCaddellite(Mobile from, Item item)
         {
-            return PointsSystem.Khaldun.InSeason && item is ICaddelliteTool && SpellHelper.IsAnyT2A(from.Map, from.Location);
+            // Khaldun seasonal event removed (no D&D equivalent) - always inert.
+            return false;
         }
 
         public static void OnHarvest(Mobile from, Item tool, HarvestSystem system, Item resource)
         {
-            if(IsCaddellite(from, tool))
-            {
-                if (resource != null)
-                {
-                    resource.AttachSocket(new Caddellite());
-                }
-
-                if (0.005 > Utility.RandomDouble())
-                {
-                    if (from != null)
-                    {
-                        if (system == Fishing.System)
-                        {
-                            from.SendLocalizedMessage(1158664); // You discover a meteorite entangled in your line!
-                        }
-                        else if (system == Mining.System)
-                        {
-                            from.SendLocalizedMessage(1158663); // You discover a meteorite in the dirt!
-                        }
-                        else if (system == Lumberjacking.System)
-                        {
-                            from.SendLocalizedMessage(1158665); // You discover a meteorite in the tree!
-                        }
-
-                        from.AddToBackpack(new Meteorite());
-                    }
-                }
-            }
         }
 
         private static Rectangle2D _CraftRec = new Rectangle2D(6017, 3743, 8, 8);
@@ -108,18 +74,6 @@ namespace Server.Items
 
         public static void CheckWaterSource(Mobile from, BaseBeverage beverage, Item item)
         {
-            if (from.Region.IsPartOf<KhaldunCampRegion>())
-            {
-                beverage.Content = BeverageType.Water;
-                beverage.Poison = null;
-                beverage.Poisoner = null;
-
-                beverage.Quantity = beverage.MaxQuantity;
-
-                from.SendLocalizedMessage(1010089); // You fill the container with water.
-
-                beverage.AttachSocket(new Caddellite());
-            }
         }
 
         public static void TryInfuse(Mobile from, Item item, CraftSystem system)
@@ -147,7 +101,7 @@ namespace Server.Items
 
         public static void UpdateBuff(Mobile m)
         {
-            BaseCreature pet = KhaldunTastyTreat.GetPetUnderEffects(m);
+            BaseCreature pet = null;
             Caddellite equipped = null;
             var item = m.FindItemOnLayer(Layer.TwoHanded);
             

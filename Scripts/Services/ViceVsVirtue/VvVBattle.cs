@@ -9,7 +9,6 @@ using Server.Gumps;
 using Server.Network;
 using Server.Guilds;
 using Server.Engines.Points;
-using Server.Engines.CityLoyalty;
 using Server.SkillHandlers;
 using Server.Multis;
 using Server.Regions;

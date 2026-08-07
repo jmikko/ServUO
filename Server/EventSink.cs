@@ -99,6 +99,8 @@ namespace Server
 
     public delegate void SetAbilityEventHandler(SetAbilityEventArgs e);
 
+    public delegate void DnDCharacterSetupEventHandler(DnDCharacterSetupEventArgs e);
+
 	public delegate void FastWalkEventHandler(FastWalkEventArgs e);
 
 	public delegate void ServerStartedEventHandler();
@@ -331,6 +333,33 @@ namespace Server
 		{
 			m_Mobile = mobile;
 			m_Index = index;
+		}
+	}
+
+	public class DnDCharacterSetupEventArgs : EventArgs
+	{
+		private readonly Mobile m_Mobile;
+		private readonly AbilityScores m_Scores;
+		private readonly int m_ClassIndex;
+		private readonly int m_SpeciesIndex;
+
+		public Mobile Mobile { get { return m_Mobile; } }
+		public AbilityScores Scores { get { return m_Scores; } }
+		public int ClassIndex { get { return m_ClassIndex; } }
+
+		/// <summary>
+		/// A Race.RaceIndex value (not a sequential list position) - stable regardless of the
+		/// undefined relative ordering between ScriptCompiler.Invoke("Configure") calls across
+		/// different race-registration files.
+		/// </summary>
+		public int SpeciesIndex { get { return m_SpeciesIndex; } }
+
+		public DnDCharacterSetupEventArgs(Mobile mobile, AbilityScores scores, int classIndex, int speciesIndex)
+		{
+			m_Mobile = mobile;
+			m_Scores = scores;
+			m_ClassIndex = classIndex;
+			m_SpeciesIndex = speciesIndex;
 		}
 	}
 
@@ -1732,6 +1761,7 @@ namespace Server
         public static event BeforeWorldSaveEventHandler BeforeWorldSave;
         public static event AfterWorldSaveEventHandler AfterWorldSave;
         public static event SetAbilityEventHandler SetAbility;
+        public static event DnDCharacterSetupEventHandler DnDCharacterSetup;
 		public static event FastWalkEventHandler FastWalk;
 		public static event CreateGuildHandler CreateGuild;
 		public static event ServerStartedEventHandler ServerStarted;
@@ -1845,6 +1875,14 @@ namespace Server
 			if (CreateGuild != null)
 			{
 				CreateGuild(e);
+			}
+		}
+
+		public static void InvokeDnDCharacterSetup(DnDCharacterSetupEventArgs e)
+		{
+			if (DnDCharacterSetup != null)
+			{
+				DnDCharacterSetup(e);
 			}
 		}
 

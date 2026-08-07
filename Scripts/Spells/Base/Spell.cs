@@ -735,6 +735,12 @@ namespace Server.Spells
 			{
 				return false;
 			}
+			else if (m_Caster is IDnDCharacter && ((IDnDCharacter)m_Caster).DnDInitialized &&
+				((IDnDCharacter)m_Caster).CharacterClass != null && !((IDnDCharacter)m_Caster).CharacterClass.CanCastSpells)
+			{
+				m_Caster.SendMessage("Your class cannot cast spells.");
+				return false;
+			}
 			else if (m_Caster is PlayerMobile && ((PlayerMobile)m_Caster).Peaced)
 			{
 				m_Caster.SendLocalizedMessage(1072060); // You cannot cast a spell while calmed.

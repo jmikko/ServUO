@@ -228,10 +228,6 @@ namespace Server.Items
 		private SlayerName m_Slayer;
 		private SlayerName m_Slayer2;
 
-		#region Mondain's Legacy
-		private TalismanSlayerName m_Slayer3;
-		#endregion
-
 		private SkillMod m_SkillMod, m_MageMod, m_MysticMod;
 		private CraftResource m_Resource;
 		private bool m_PlayerConstructed;
@@ -513,17 +509,6 @@ namespace Server.Items
 			set
 			{
 				m_Slayer2 = value;
-				InvalidateProperties();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public TalismanSlayerName Slayer3
-		{
-			get { return m_Slayer3; }
-			set
-			{
-				m_Slayer3 = value;
 				InvalidateProperties();
 			}
 		}
@@ -1123,7 +1108,12 @@ namespace Server.Items
 				return false;
 			}
 				#endregion
-
+			else if (from is IDnDCharacter && ((IDnDCharacter)from).DnDInitialized &&
+				((IDnDCharacter)from).CharacterClass != null && !((IDnDCharacter)from).CharacterClass.IsProficientWith(this))
+			{
+				from.SendMessage("Your class is not proficient with this weapon.");
+				return false;
+			}
 			else
 			{
 				return base.CanEquip(from);
@@ -1412,6 +1402,13 @@ namespace Server.Items
 			return AnimalForm.UnderTransformation(m, type);
 		}
 
+		/// <summary>
+		/// D&amp;D 5.5e attack roll: d20 + attack bonus vs. the defender's AC. This is the only combat
+		/// resolution path - the legacy skill-based hit-chance formula (GetAttackSkillValue vs.
+		/// GetDefendSkillValue, AOS/pre-AOS branches) has been retired. GetAttackSkillValue and
+		/// GetDefendSkillValue themselves are kept (see Fists.cs, NinjaWeapons.cs) since weapon
+		/// special-move code still computes its own chances from them independently of this method.
+		/// </summary>
 		public virtual bool CheckHit(Mobile attacker, IDamageable damageable)
 		{
             Mobile defender = damageable as Mobile;
@@ -1424,118 +1421,89 @@ namespace Server.Items
                 return true;
             }
 
-			BaseWeapon atkWeapon = attacker.Weapon as BaseWeapon;
-			BaseWeapon defWeapon = defender.Weapon as BaseWeapon;
+			int roll = Utility.RandomMinMax(1, 20);
+			int attackBonus = GetDnDAttackBonus(attacker);
+			int ac = GetDnDArmorClass(defender);
+			int total = roll + attackBonus;
 
-			Skill atkSkill = attacker.Skills[atkWeapon.Skill];
-			Skill defSkill = defender.Skills[defWeapon.Skill];
+			bool hit;
+			string outcome;
 
-			double atkValue = atkWeapon.GetAttackSkillValue(attacker, defender);
-			double defValue = defWeapon.GetDefendSkillValue(attacker, defender);
-
-			double ourValue, theirValue;
-
-			int bonus = GetHitChanceBonus();
-
-			if (Core.AOS)
+			if (roll == 20)
 			{
-                if (atkValue <= -20.0)
-                    atkValue = -19.9;
-
-                if (defValue <= -20.0)
-                    defValue = -19.9;
-
-                bonus += AosAttributes.GetValue(attacker, AosAttribute.AttackChance);
-
-                //SA Gargoyle cap is 50, else 45
-                bonus = Math.Min(attacker.Race == Race.Gargoyle ? 50 : 45, bonus);
-
-                ourValue = (atkValue + 20.0) * (100 + bonus);
-
-                bonus = AosAttributes.GetValue(defender, AosAttribute.DefendChance);
-
-                ForceArrow.ForceArrowInfo info = ForceArrow.GetInfo(attacker, defender);
-
-                if (info != null && info.Defender == defender)
-                    bonus -= info.DefenseChanceMalus;
-
-                int max = 45 + BaseArmor.GetRefinedDefenseChance(defender);
-
-                // Defense Chance Increase = 45%
-                if (bonus > max)
-                    bonus = max;
-
-                theirValue = (defValue + 20.0) * (100 + bonus);
-
-                bonus = 0;
+				hit = true;
+				outcome = "CRITICAL HIT!";
+			}
+			else if (roll == 1)
+			{
+				hit = false;
+				outcome = "CRITICAL MISS!";
 			}
 			else
 			{
-				if (atkValue <= -50.0)
-				{
-					atkValue = -49.9;
-				}
-
-				if (defValue <= -50.0)
-				{
-					defValue = -49.9;
-				}
-
-				ourValue = (atkValue + 50.0);
-				theirValue = (defValue + 50.0);
+				hit = total >= ac;
+				outcome = hit ? "Hit!" : "Miss!";
 			}
 
-			double chance = ourValue / (theirValue * 2.0);
+			int hue = hit ? 0x40 : 0x21;
 
-			chance *= 1.0 + ((double)bonus / 100);
+			attacker.SendMessage(
+				hue, "[D&D] Attack vs {0}: d20({1}) + {2} = {3} vs AC {4} - {5}",
+				defender.Name, roll, attackBonus, total, ac, outcome);
 
-            if (Core.SA)
-            {
-                if (atkWeapon is BaseThrown)
-                {
-                    //Distance malas
-                    if (attacker.InRange(defender, 1))	//Close Quarters
-                    {
-                        chance -= (.12 - (double)Math.Min(12, (attacker.Skills[SkillName.Throwing].Value + (double)attacker.RawDex) / 20) / 100);
-                    }
-                    else if (attacker.GetDistanceToSqrt(defender) < ((BaseThrown)atkWeapon).MinThrowRange) 	//too close
-                    {
-                        chance -= .12;
-                    }
+			if (defender != attacker)
+			{
+				defender.SendMessage(
+					hue, "[D&D] {0} attacks you: d20({1}) + {2} = {3} vs your AC {4} - {5}",
+					attacker.Name, roll, attackBonus, total, ac, outcome);
+			}
 
-                    //shield penalty
-                    BaseShield shield = attacker.FindItemOnLayer(Layer.TwoHanded) as BaseShield;
+			return hit;
+		}
 
-                    if (shield != null)
-                    {
-                        double malus = Math.Min(90, 1200 / Math.Max(1.0, attacker.Skills[SkillName.Parry].Value));
+		public static int GetDnDAttackBonus(Mobile attacker)
+		{
+			IDnDCreature creature = attacker as IDnDCreature;
 
-                        chance = chance - (chance * (malus / 100));
-                    }
-                }
+			if (creature != null)
+			{
+				return creature.AttackBonus;
+			}
 
-                if (defWeapon is BaseThrown)
-                {
-                    BaseShield shield = defender.FindItemOnLayer(Layer.TwoHanded) as BaseShield;
+			IDnDCharacter character = attacker as IDnDCharacter;
 
-                    if (shield != null)
-                    {
-                        double malus = Math.Min(90, 1200 / Math.Max(1.0, defender.Skills[SkillName.Parry].Value));
+			if (character != null && character.CharacterClass != null)
+			{
+				BaseWeapon weapon = attacker.Weapon as BaseWeapon;
 
-                        chance = chance + (chance * (malus / 100));
-                    }
-                }
-            }
+				bool ranged = weapon != null && (weapon.Skill == SkillName.Archery || weapon.Skill == SkillName.Throwing);
 
-            if (Core.AOS && chance < 0.02)
-            {
-                chance = 0.02;
-            }
+				int abilityMod = ranged ? character.AbilityScores.DexMod : character.AbilityScores.StrMod;
+				int profBonus = character.CharacterClass.GetProficiencyBonus(character.CharacterLevel);
 
-            if (Core.AOS && m_AosWeaponAttributes.MageWeapon > 0 && attacker.Skills[SkillName.Magery].Value > atkSkill.Value)
-                return attacker.CheckSkill(SkillName.Magery, chance);
+				return abilityMod + profBonus;
+			}
 
-			return attacker.CheckSkill(atkSkill.SkillName, chance);
+			return 0;
+		}
+
+		public static int GetDnDArmorClass(Mobile defender)
+		{
+			IDnDCreature creature = defender as IDnDCreature;
+
+			if (creature != null)
+			{
+				return creature.ArmorClass;
+			}
+
+			IDnDCharacter character = defender as IDnDCharacter;
+
+			if (character != null)
+			{
+				return character.ArmorClass;
+			}
+
+			return 10;
 		}
 
 		public virtual TimeSpan GetDelay(Mobile m)
@@ -3400,17 +3368,7 @@ namespace Server.Items
 
         public CheckSlayerResult CheckTalismanSlayer(Mobile attacker, Mobile defender)
         {
-            BaseTalisman talisman = attacker.Talisman as BaseTalisman;
-
-            if (talisman != null && TalismanSlayer.Slays(talisman.Slayer, defender))
-            {
-                return CheckSlayerResult.Slayer;
-            }
-            else if (Slayer3 != TalismanSlayerName.None && TalismanSlayer.Slays(Slayer3, defender))
-            {
-                return CheckSlayerResult.Slayer;
-            }
-
+            // Talisman slayer system removed along with the legacy monster roster (no D&D equivalent).
             return CheckSlayerResult.None;
         }
 
@@ -3817,11 +3775,6 @@ namespace Server.Items
 
 		public virtual int VirtualDamageBonus { get { return 0; } }
 
-		public virtual int ComputeDamageAOS(Mobile attacker, Mobile defender)
-		{
-			return (int)ScaleDamageAOS(attacker, GetBaseDamage(attacker), true);
-		}
-
 		public virtual double ScaleDamageOld(Mobile attacker, double damage, bool checkSkills)
 		{
 			if (checkSkills)
@@ -3911,19 +3864,40 @@ namespace Server.Items
 			return AOS.Scale(damage, scale);
 		}
 
+		/// <summary>
+		/// D&amp;D 5.5e-style weapon damage: roll this weapon's damage dice (via its IDnDEquipment
+		/// DamageDiceExpression, e.g. "1d8") plus the attacker's relevant ability modifier. Falls back
+		/// to a flat 1 point of damage if the weapon carries no D&amp;D damage-dice data yet. This is the
+		/// only damage path now - the legacy AOS/pre-AOS formulas have been retired (ScaleDamageAOS/
+		/// ScaleDamageOld themselves are kept, since item tooltip/display code still calls them
+		/// directly to show a weapon's legacy damage range independent of actual combat resolution).
+		/// </summary>
 		public virtual int ComputeDamage(Mobile attacker, Mobile defender)
 		{
-			if (Core.AOS)
+			IDnDEquipment dndWeapon = this as IDnDEquipment;
+
+			string diceExpression = dndWeapon != null ? dndWeapon.DamageDiceExpression : null;
+			int diceDamage = diceExpression != null ? CombatRules.RollDice(diceExpression) : 0;
+
+			int abilityMod = GetDnDAttackBonus(attacker);
+
+			IDnDCharacter character = attacker as IDnDCharacter;
+
+			if (character != null)
 			{
-				return ComputeDamageAOS(attacker, defender);
+				bool ranged = Skill == SkillName.Archery || Skill == SkillName.Throwing;
+				abilityMod = ranged ? character.AbilityScores.DexMod : character.AbilityScores.StrMod;
 			}
 
-			int damage = (int)ScaleDamageOld(attacker, GetBaseDamage(attacker), true);
+			int damage = Math.Max(1, diceDamage + abilityMod);
 
-			// pre-AOS, halve damage if the defender is a player or the attacker is not a player
-			if (defender is PlayerMobile || !(attacker is PlayerMobile))
+			attacker.SendMessage(
+				0x40, "[D&D] Damage vs {0}: {1} + {2} = {3}",
+				defender.Name, diceExpression ?? "0", abilityMod, damage);
+
+			if (defender != attacker)
 			{
-				damage = (int)(damage / 2.0);
+				defender.SendMessage(0x21, "[D&D] You take {0} damage from {1}.", damage, attacker.Name);
 			}
 
 			return damage;
@@ -4130,7 +4104,7 @@ namespace Server.Items
 			#endregion
 
 			#region Mondain's Legacy
-			writer.Write((int)m_Slayer3);
+			writer.Write(0); // was m_Slayer3 (TalismanSlayerName, removed)
 			#endregion
 
 			#region Mondain's Legacy Sets
@@ -4559,7 +4533,7 @@ namespace Server.Items
 					{
 						m_BlessedBy = reader.ReadMobile();
 						m_EngravedText = reader.ReadString();
-						m_Slayer3 = (TalismanSlayerName)reader.ReadInt();
+						reader.ReadInt(); // was m_Slayer3 (TalismanSlayerName, removed)
 
 						SetFlag flags = (SetFlag)reader.ReadEncodedInt();
                         if (GetSaveFlag(flags, SetFlag.PhysicalBonus))
@@ -5598,28 +5572,6 @@ namespace Server.Items
 					list.Add(entry.Title);
 				}
 			}
-
-			#region Mondain's Legacy
-			if (m_Slayer3 != TalismanSlayerName.None)
-			{
-				if (m_Slayer3 == TalismanSlayerName.Wolf)
-				{
-					list.Add(1075462);
-				}
-				else if (m_Slayer3 == TalismanSlayerName.Goblin)
-				{
-					list.Add(1095010);
-				}
-				else if (m_Slayer3 == TalismanSlayerName.Undead)
-				{
-					list.Add(1060479);
-				}
-				else
-				{
-					list.Add(1072503 + (int)m_Slayer3);
-				}
-			}
-			#endregion
 
             if (HasSocket<Caddellite>())
             {

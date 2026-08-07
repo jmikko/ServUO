@@ -1,4 +1,4 @@
-#region References
+﻿#region References
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 using Server.ContextMenus;
 using Server.Engines.PartySystem;
 using Server.Engines.Points;
-using Server.Engines.Quests;
-using Server.Engines.Quests.Doom;
-using Server.Engines.Quests.Haven;
 using Server.Engines.VvV;
 using Server.Engines.XmlSpawner2;
 using Server.Ethics;
@@ -389,9 +386,6 @@ namespace Server.Mobiles
 
                 regen += HumilityVirtue.GetRegenBonus(this);
 
-                if (AbilityProfile != null)
-                    regen += AbilityProfile.RegenHits;
-
                 return regen;
             }
         }
@@ -407,9 +401,6 @@ namespace Server.Mobiles
                 if (IsParagon)
                     regen += 40;
 
-                if (AbilityProfile != null)
-                    regen += AbilityProfile.RegenStam;
-
                 return regen;
             }
         }
@@ -422,9 +413,6 @@ namespace Server.Mobiles
 
                 if (IsParagon)
                     regen += 40;
-
-                if (AbilityProfile != null)
-                    regen += AbilityProfile.RegenMana;
 
                 return regen;
             }
@@ -572,109 +560,57 @@ namespace Server.Mobiles
         #endregion
 
         #region Pet Training
+        // Pet Training / ability-profile system removed (no D&D equivalent); kept as
+        // no-op stubs so surviving creature subclasses calling these still compile.
         public static double MaxTameRequirement = 108.0;
-
-        private AbilityProfile _Profile;
-        private TrainingProfile _TrainingProfile;
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public AbilityProfile AbilityProfile { get { return _Profile; } set { _Profile = value; } }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TrainingProfile TrainingProfile { get { return _TrainingProfile; } set { _TrainingProfile = value; } }
 
         [CommandProperty(AccessLevel.GameMaster)]
         public double BardingDifficulty { get { return BaseInstrument.GetBaseDifficulty(this); } }
 
         public virtual WeaponAbility TryGetWeaponAbility()
         {
-            if (_Profile != null && _Profile.WeaponAbilities != null && _Profile.WeaponAbilities.Length > 0)
-            {
-                return _Profile.WeaponAbilities[Utility.Random(_Profile.WeaponAbilities.Length)];
-            }
-            else
-            {
-                return GetWeaponAbility();
-            }
-        }
-
-        public virtual TrainingDefinition TrainingDefinition
-        {
-            get { return null; }
+            return GetWeaponAbility();
         }
 
         public virtual void InitializeAbilities()
         {
-            switch (AI)
-            {
-                case AIType.AI_Mage: SetMagicalAbility(MagicalAbility.Magery); break;
-                case AIType.AI_NecroMage: SetMagicalAbility(!Controlled ? MagicalAbility.Necromancy : MagicalAbility.Necromage); break;
-                case AIType.AI_Necro: SetMagicalAbility(MagicalAbility.Necromancy); break;
-                case AIType.AI_Spellweaving: SetMagicalAbility(MagicalAbility.Spellweaving); break;
-                case AIType.AI_Mystic: SetMagicalAbility(MagicalAbility.Mysticism); break;
-                case AIType.AI_Samurai: SetMagicalAbility(MagicalAbility.Bushido); break;
-                case AIType.AI_Ninja: SetMagicalAbility(MagicalAbility.Ninjitsu); break;
-                case AIType.AI_Paladin: SetMagicalAbility(MagicalAbility.Chivalry); break;
-            }
-
-            if (HealChance > 0.0 && HealChance >= Utility.RandomDouble())
-            {
-                SetSpecialAbility(SpecialAbility.Heal);
-            }
-
-            if (PetTrainingHelper.Enabled)
-            {
-                if (Skills[SkillName.Focus].Value == 0)
-                    SetSkill(SkillName.Focus, 2, 20);
-
-                if (Skills[SkillName.DetectHidden].Value == 0 && !(this is BaseVendor))
-                    SetSkill(SkillName.DetectHidden, Utility.RandomList(10, 60));
-            }
-        }
-
-        public void SetMagicalAbility(MagicalAbility ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).AddAbility(ability, false);
-        }
-
-        public void SetSpecialAbility(SpecialAbility ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).AddAbility(ability, false);
-        }
-
-        public void SetAreaEffect(AreaEffect ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).AddAbility(ability, false);
         }
 
         public void SetWeaponAbility(WeaponAbility ability)
         {
-            PetTrainingHelper.GetAbilityProfile(this, true).AddAbility(ability, false);
-        }
-
-        public void RemoveMagicalAbility(MagicalAbility ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).RemoveAbility(ability);
-        }
-
-        public void RemoveSpecialAbility(SpecialAbility ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).RemoveAbility(ability);
-        }
-
-        public void RemoveAreaEffect(AreaEffect ability)
-        {
-            PetTrainingHelper.GetAbilityProfile(this, true).RemoveAbility(ability);
         }
 
         public void RemoveWeaponAbility(WeaponAbility ability)
         {
-            PetTrainingHelper.GetAbilityProfile(this, true).RemoveAbility(ability);
+        }
+
+        public void SetMagicalAbility(MagicalAbility ability)
+        {
+        }
+
+        public void SetSpecialAbility(SpecialAbility ability)
+        {
+        }
+
+        public void SetAreaEffect(AreaEffect ability)
+        {
+        }
+
+        public void RemoveMagicalAbility(MagicalAbility ability)
+        {
+        }
+
+        public void RemoveSpecialAbility(SpecialAbility ability)
+        {
+        }
+
+        public void RemoveAreaEffect(AreaEffect ability)
+        {
         }
 
         public bool HasAbility(object o)
         {
-            return PetTrainingHelper.GetAbilityProfile(this, true).HasAbility(o);
+            return false;
         }
 
         public virtual double AverageThreshold { get { return 0.33; } }
@@ -683,7 +619,7 @@ namespace Server.Mobiles
 
         private void SetAverage(double min, double max, double value)
         {
-            if (PetTrainingHelper.Enabled && CanLowerSlot() && max > min)
+            if (false && CanLowerSlot() && max > min)
             {
                 if (_InitAverage == null)
                     _InitAverage = new List<double>();
@@ -693,13 +629,7 @@ namespace Server.Mobiles
         }
 
         public static Type[] SlotLowerables { get { return _SlotLowerables; } }
-        private static Type[] _SlotLowerables =
-        {
-            typeof(Nightmare), typeof(Najasaurus), typeof(RuneBeetle), typeof(GreaterDragon), typeof(FrostDragon),
-            typeof(WhiteWyrm), typeof(Reptalon), typeof(DragonTurtleHatchling), typeof(Phoenix), typeof(FrostMite),
-            typeof(DireWolf), typeof(Skree), typeof(HighPlainsBoura), typeof(LesserHiryu), typeof(DragonWolf),
-            typeof(BloodFox)
-        };
+        private static Type[] _SlotLowerables = new Type[0];
 
         private bool CanLowerSlot()
         {
@@ -708,32 +638,8 @@ namespace Server.Mobiles
 
         public void CalculateSlots(int slots)
         {
-            var def = PetTrainingHelper.GetTrainingDefinition(this);
-
-            if (def == null)
-            {
-                ControlSlotsMin = slots;
-                ControlSlotsMax = slots;
-                return;
-            }
-            else
-            {
-                ControlSlotsMin = def.ControlSlotsMin;
-                ControlSlotsMax = def.ControlSlotsMax;
-            }
-
-            if (_InitAverage == null)
-                return;
-
-            double total = _InitAverage.Sum(d => d);
-
-            if (total / (double)_InitAverage.Count <= AverageThreshold)
-            {
-                ControlSlotsMin = Math.Max(1, ControlSlotsMin - 1);
-            }
-
-            ColUtility.Free(_InitAverage);
-            _InitAverage = null;
+            ControlSlotsMin = slots;
+            ControlSlotsMax = slots;
         }
 
         public void AdjustTameRequirements()
@@ -1434,11 +1340,6 @@ namespace Server.Mobiles
                 }
             }
 
-            if (c is Server.Engines.Quests.Haven.MilitiaFighter)
-			{
-				return true;
-			}
-
 			BaseCreature t = this;
 
 			// Summons should have same rules as their master
@@ -1525,10 +1426,7 @@ namespace Server.Mobiles
 
             double dMinTameSkill = m_CurrentTameSkill;
 
-            if (dMinTameSkill > -24.9 && DarkWolfFamiliar.CheckMastery(m, this))
-            {
-                dMinTameSkill = -24.9;
-            }
+            // DarkWolfFamiliar mastery check removed (UO-specific summon, deleted for D&D conversion).
 
             int taming = (int)((useBaseSkill ? m.Skills[SkillName.AnimalTaming].Base : m.Skills[SkillName.AnimalTaming].Value) * 10);
             int lore =   (int)((useBaseSkill ? m.Skills[SkillName.AnimalLore].Base : m.Skills[SkillName.AnimalLore].Value) * 10);
@@ -1597,12 +1495,8 @@ namespace Server.Mobiles
             return true;
         }
 
-        private static readonly Type[] m_AnimateDeadTypes = new[]
-        {
-            typeof(MoundOfMaggots), typeof(HellSteed), typeof(SkeletalMount), typeof(WailingBanshee), typeof(Wraith),
-            typeof(SkeletalDragon), typeof(LichLord), typeof(FleshGolem), typeof(Lich), typeof(SkeletalKnight),
-            typeof(BoneKnight), typeof(Mummy), typeof(SkeletalMage), typeof(BoneMagi), typeof(PatchworkSkeleton)
-        };
+        // Animate Dead undead-type lookup emptied: source monster types deleted for D&D conversion.
+        private static readonly Type[] m_AnimateDeadTypes = new Type[0];
 
         public virtual bool IsAnimatedDead
         {
@@ -2590,25 +2484,9 @@ namespace Server.Mobiles
 
             writer.Write((int)Mastery);
 
-            if (_Profile != null)
-            {
-                writer.Write(1);
-                _Profile.Serialize(writer);
-            }
-            else
-            {
-                writer.Write(0);
-            }
-
-            if (_TrainingProfile != null)
-            {
-                writer.Write(1);
-                _TrainingProfile.Serialize(writer);
-            }
-            else
-            {
-                writer.Write(0);
-            }
+            // AbilityProfile/TrainingProfile (Pet Training) removed - no D&D equivalent.
+            writer.Write(0);
+            writer.Write(0);
 
             // Version 25 Current Tame Skill
             writer.Write(m_CurrentTameSkill);
@@ -2944,15 +2822,9 @@ namespace Server.Mobiles
 
                 Mastery = (SkillName)reader.ReadInt();
 
-                if (reader.ReadInt() == 1)
-                {
-                    _Profile = new AbilityProfile(this, reader);
-                }
-
-                if (reader.ReadInt() == 1)
-                {
-                    _TrainingProfile = new TrainingProfile(this, reader);
-                }
+                // AbilityProfile/TrainingProfile (Pet Training) removed - no D&D equivalent.
+                reader.ReadInt();
+                reader.ReadInt();
             }
             else
             {
@@ -3629,10 +3501,7 @@ namespace Server.Mobiles
                         ns.Send(new PetWindow(pm, this));
                     }
 
-                    if (KhaldunTastyTreat.UnderInfluence(this))
-                    {
-                        Caddellite.UpdateBuff(m_ControlMaster);
-                    }
+                    // KhaldunTastyTreat removed (UO-specific consumable, deleted for D&D conversion).
                 }
             }
             else if (m_SummonMaster != null)
@@ -3673,10 +3542,7 @@ namespace Server.Mobiles
                         ns.Send(new PetWindow((PlayerMobile)m_ControlMaster, this));
                     }
 
-                    if (KhaldunTastyTreat.UnderInfluence(this))
-                    {
-                        Caddellite.UpdateBuff(m_ControlMaster);
-                    }
+                    // KhaldunTastyTreat removed (UO-specific consumable, deleted for D&D conversion).
                 }
             }
             else if (m_SummonMaster != null)
@@ -3843,7 +3709,7 @@ namespace Server.Mobiles
             get { return m_iControlSlots; }
             set
             {
-                if (PetTrainingHelper.Enabled && ControlSlotsMin == 0 && ControlSlotsMax == 0)
+                if (false && ControlSlotsMin == 0 && ControlSlotsMax == 0)
                 {
                     m_iControlSlots = value;
 
@@ -3950,10 +3816,7 @@ namespace Server.Mobiles
 
                 if (Controlled)
                 {
-                    if (!PetTrainingHelper.Enabled || (AbilityProfile != null && AbilityProfile.HasAbility(MagicalAbility.Poisoning)))
-                    {
-                        CheckSkill(SkillName.Poisoning, 0, Skills[SkillName.Poisoning].Cap);
-                    }
+                    CheckSkill(SkillName.Poisoning, 0, Skills[SkillName.Poisoning].Cap);
                 }
             }
 
@@ -3963,54 +3826,17 @@ namespace Server.Mobiles
                 Dispel(defender);
             }
 
-            if (ColossalRage.HasRage(this) && 0.33 >= Utility.RandomDouble())
-            {
-                DoRageHit(defender);
-            }
+            // ColossalRage removed (deleted UO boss mechanic).
         }
 
         public virtual Poison GetHitPoison()
         {
-            if (!PetTrainingHelper.Enabled || !Controlled)
-                return HitPoison;
-
-            int current = 0;
-
-            if (HitPoison != null)
-                current = HitPoison.Level;
-
-            var profile = AbilityProfile;
-
-            if (profile == null || !profile.HasAbility(MagicalAbility.Poisoning) || current >= 4)
-                return HitPoison;
-
-            int level = 1;
-            double total = Skills[SkillName.Poisoning].Value;
-
-            // natural poisoner retains their poison level. Added spell school is capped at level 2.
-            if (total >= 100)
-                level = 4;
-            else if (total > 85)
-                level = 3;
-            else if (total > 65)
-                level = 2;
-            else if (total > 35)
-                level = 1;
-                
-            return Poison.GetPoison(Math.Max(current, level));
+            return HitPoison;
         }
 
         private bool TryHitPoison()
         {
-            if(!PetTrainingHelper.Enabled || !Controlled)
-                return HitPoisonChance >= Utility.RandomDouble();
-
-            var profile = AbilityProfile;
-
-            if (profile == null || !profile.HasAbility(MagicalAbility.Poisoning))
-                return false;
-
-            return Skills[SkillName.Poisoning].Value >= Utility.Random(300);
+            return HitPoisonChance >= Utility.RandomDouble();
         }
 
         public override void OnAfterDelete()
@@ -4911,8 +4737,6 @@ namespace Server.Mobiles
                 ForceReacquire();
             }
 
-            SpecialAbility.CheckApproachTrigger(this, m, oldLocation);
-
             InhumanSpeech speechType = SpeechType;
 
             if (speechType != null)
@@ -5207,21 +5031,6 @@ namespace Server.Mobiles
                 Skills[name].Cap = Skills[name].Base;
             }
 
-            if (name == SkillName.Poisoning && Skills[name].Base > 0 && 
-                !Controlled &&
-                (AbilityProfile == null || !AbilityProfile.HasAbility(MagicalAbility.Poisoning)))
-            {
-                SetMagicalAbility(MagicalAbility.Poisoning);
-            }
-
-            if (!Controlled && name == SkillName.Magery && 
-                (AbilityProfile == null || !AbilityProfile.HasAbility(MagicalAbility.Magery)) && 
-                Skills[SkillName.Magery].Base > 0 && 
-                (AI == AIType.AI_Mage || AI == AIType.AI_Necro || AI == AIType.AI_NecroMage || AI == AIType.AI_Mystic || AI == AIType.AI_Spellweaving))
-
-            {
-                SetMagicalAbility(MagicalAbility.Magery);
-            }
         }
 
         public void SetSkill(SkillName name, double min, double max)
@@ -5243,21 +5052,6 @@ namespace Server.Mobiles
                 Skills[name].Cap = Skills[name].Base;
             }
 
-            if (name == SkillName.Poisoning && Skills[name].Base > 0 && 
-                !Controlled &&
-                (AbilityProfile == null || !AbilityProfile.HasAbility(MagicalAbility.Poisoning)))
-            {
-                SetMagicalAbility(MagicalAbility.Poisoning);
-            }
-
-            if (!Controlled && name == SkillName.Magery &&
-                (AbilityProfile == null || !AbilityProfile.HasAbility(MagicalAbility.Magery)) && 
-                Skills[SkillName.Magery].Base > 0 && 
-                (AI == AIType.AI_Mage || AI == AIType.AI_Necro || AI == AIType.AI_NecroMage || AI == AIType.AI_Mystic || AI == AIType.AI_Spellweaving))
-
-            {
-                SetMagicalAbility(MagicalAbility.Magery);
-            }
         }
 
         public void SetFameLevel(int level)
@@ -5732,59 +5526,9 @@ namespace Server.Mobiles
                 }
             }
 
-            if (DeathAdderCharmable && from.CanBeHarmful(this, false))
-            {
-                DeathAdder da = SummonFamiliarSpell.Table[from] as DeathAdder;
-
-                if (da != null && !da.Deleted)
-                {
-                    from.SendAsciiMessage("You charm the snake.  Select a target to attack.");
-                    from.Target = new DeathAdderCharmTarget(this);
-                }
-            }
+            // DeathAdder charm mechanic removed (deleted UO familiar creature).
 
             base.OnDoubleClick(from);
-        }
-
-        private class DeathAdderCharmTarget : Target
-        {
-            private readonly BaseCreature m_Charmed;
-
-            public DeathAdderCharmTarget(BaseCreature charmed)
-                : base(-1, false, TargetFlags.Harmful)
-            {
-                m_Charmed = charmed;
-            }
-
-            protected override void OnTarget(Mobile from, object targeted)
-            {
-                if (!m_Charmed.DeathAdderCharmable || m_Charmed.Combatant != null || !from.CanBeHarmful(m_Charmed, false))
-                {
-                    return;
-                }
-
-                DeathAdder da = SummonFamiliarSpell.Table[from] as DeathAdder;
-                if (da == null || da.Deleted)
-                {
-                    return;
-                }
-
-                Mobile targ = targeted as Mobile;
-                if (targ == null || !from.CanBeHarmful(targ, false))
-                {
-                    return;
-                }
-
-                from.RevealingAction();
-                from.DoHarmful(targ, true);
-
-                m_Charmed.Combatant = targ;
-
-                if (m_Charmed.AIObject != null)
-                {
-                    m_Charmed.AIObject.Action = ActionType.Combat;
-                }
-            }
         }
 
         public override void AddNameProperties(ObjectPropertyList list)
@@ -5863,33 +5607,18 @@ namespace Server.Mobiles
             base.OnSingleClick(from);
         }
 
-        public virtual double TreasureMapChance { get { return TreasureMap.LootChance; } }
+        public virtual double TreasureMapChance { get { return 0.0; } } // Treasure maps removed for D&D conversion
         public virtual int TreasureMapLevel { get { return -1; } }
 
         public virtual bool IgnoreYoungProtection { get { return false; } }
 
         public bool IsSoulbound { get; set; }
-        public bool IsSoulboundEnemies { get { return Core.EJ && PointsSystem.FellowshipData.Enabled; } }
+        public bool IsSoulboundEnemies { get { return Core.EJ && FellowshipPoints.Enabled; } }
 
         public override bool OnBeforeDeath()
         {
-            int treasureLevel = TreasureMapInfo.ConvertLevel(TreasureMapLevel);
+            int treasureLevel = TreasureMapLevel; // TreasureMapInfo removed for D&D conversion
             GetLootingRights();
-
-            if (treasureLevel == 1 && Map == Map.Trammel && TreasureMap.IsInHavenIsland(this))
-            {
-                Mobile killer = LastKiller;
-
-                if (killer is BaseCreature)
-                {
-                    killer = ((BaseCreature)killer).GetMaster();
-                }
-
-                if (killer is PlayerMobile && ((PlayerMobile)killer).Young)
-                {
-                    treasureLevel = 0;
-                }
-            }
 
             if (!Summoned && !NoKillAwards && !IsBonded && !NoLootOnDeath)
             {
@@ -5899,15 +5628,7 @@ namespace Server.Mobiles
 					{
 						PackItem( new ParagonChest( this.Name, treasureLevel ) );
 					}
-                    else if (TreasureMapChance >= Utility.RandomDouble())
-                    {
-                        Map map = Map;
-
-                        if (map == Map.Trammel && Siege.SiegeShard)
-                            map = Map.Felucca;
-
-                        PackItem(new TreasureMap(treasureLevel, map, SpellHelper.IsEodon(map, Location)));
-                    }
+                    // TreasureMap generation removed for D&D conversion.
                 }
 
                 if (m_Paragon && Paragon.ChocolateIngredientChance > Utility.RandomDouble())
@@ -5936,15 +5657,7 @@ namespace Server.Mobiles
                 GenerateLoot(false);
             }
 
-            if (!NoKillAwards && Region.IsPartOf("Doom"))
-            {
-                int bones = TheSummoningQuest.GetDaemonBonesFor(this);
-
-                if (bones > 0)
-                {
-                    PackItem(new DaemonBone(bones));
-                }
-            }
+            // TheSummoningQuest (Doom quest) removed for D&D conversion.
 
             if (IsAnimatedDead)
             {
@@ -6266,7 +5979,7 @@ namespace Server.Mobiles
 
         public override void OnDeath(Container c)
         {
-            MeerMage.StopEffect(this, false);
+            // MeerMage.StopEffect removed (deleted UO mobile).
 
             if (IsBonded)
             {
@@ -6401,7 +6114,7 @@ namespace Server.Mobiles
                             }
                             else
                             {
-                                if (PetTrainingHelper.Enabled && ds.m_Mobile is PlayerMobile)
+                                if (false && ds.m_Mobile is PlayerMobile)
                                 {
                                     foreach (var pet in ((PlayerMobile)ds.m_Mobile).AllFollowers.Where(p => DamageEntries.Any(de => de.Damager == p)))
                                     {
@@ -6585,7 +6298,7 @@ namespace Server.Mobiles
                 return false;
             }
 
-            if ((target is BaseVendor && ((BaseVendor)target).IsInvulnerable) || target is PlayerVendor || target is TownCrier)
+            if ((target is BaseVendor && ((BaseVendor)target).IsInvulnerable) || target is PlayerVendor) // TownCrier removed (deleted UO NPC)
             {
                 return false;
             }
@@ -6687,7 +6400,7 @@ namespace Server.Mobiles
 
         public virtual void OnAfterTame(Mobile tamer)
         {
-            if (StatLossAfterTame && (!PetTrainingHelper.Enabled || Owners.Count == 0))
+            if (StatLossAfterTame && (!false || Owners.Count == 0))
             {
                 AnimalTaming.ScaleStats(this, 0.5);
             }
@@ -6922,7 +6635,7 @@ namespace Server.Mobiles
                     CheckSkill(SkillName.Healing, 0.0, Skills[SkillName.Healing].Cap);
                     CheckSkill(SkillName.Anatomy, 0.0, Skills[SkillName.Anatomy].Cap);
                 }
-                else if (PetTrainingHelper.Enabled && Controlled)
+                else if (false && Controlled)
                 {
                     CheckSkill(SkillName.Healing, 0.0, 10);
                     CheckSkill(SkillName.Anatomy, 0.0, 10);
@@ -7032,12 +6745,6 @@ namespace Server.Mobiles
         #region Rage
         public virtual void DoRageHit(Mobile defender)
         {
-            if (defender != null && defender.Alive)
-            {
-                var damage = 0;
-
-                SpecialAbility.ColossalBlow.DoEffects(this, defender, ref damage);
-            }
         }
         #endregion
 
@@ -7046,18 +6753,7 @@ namespace Server.Mobiles
         private long m_NextPeace;
         private long m_NextProvoke;
 
-        public virtual bool CanDiscord 
-        { 
-            get 
-            {
-                if (Controlled && AbilityProfile != null)
-                {
-                    return AbilityProfile.HasAbility(MagicalAbility.Discordance);
-                }
-
-                return false; 
-            } 
-        }
+        public virtual bool CanDiscord { get { return false; } }
 
         public virtual bool CanPeace { get { return false; } }
         public virtual bool CanProvoke { get { return false; } }
@@ -7072,14 +6768,7 @@ namespace Server.Mobiles
                 return false;
 
             // TODO: get mana
-            if (AbilityProfile != null && AbilityProfile.HasAbility(MagicalAbility.Discordance) && Mana < 25)
-            {
-                return false;
-            }
-            else
-            {
-                Mana -= 25;
-            }
+            Mana -= 25;
 
             if (Spell != null)
                 Spell = null;
@@ -7411,12 +7100,6 @@ namespace Server.Mobiles
             if (Paralyzed || Frozen)
             {
                 return;
-            }
-
-            if (!Summoned && _Profile != null)
-            {
-                SpecialAbility.CheckThinkTrigger(this);
-                AreaEffect.CheckThinkTrigger(this);
             }
 
             if (Combatant != null && Core.TOL)

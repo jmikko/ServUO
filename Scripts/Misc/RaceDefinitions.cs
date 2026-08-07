@@ -27,12 +27,16 @@ namespace Server.Misc
             Race.AllRaces.Add(race);
         }
 
-        private class Human : Race
+        private class Human : Race, IDnDSpecies
         {
             public Human(int raceID, int raceIndex)
                 : base(raceID, raceIndex, "Human", "Humans", 400, 401, 402, 403, Expansion.None)
             {
             }
+
+            // D&D 5.5e: versatile, +1 to every ability score, no darkvision.
+            public int GetAbilityScoreBonus(AbilityScoreType type) { return 1; }
+            public bool HasDarkvision { get { return false; } }
 
             public override bool ValidateHair(bool female, int itemID)
             {
@@ -162,7 +166,7 @@ namespace Server.Misc
             }
         }
 
-        private class Elf : Race
+        private class Elf : Race, IDnDSpecies
         {
             private static readonly int[] m_SkinHues = new int[]
             {
@@ -187,6 +191,11 @@ namespace Server.Misc
                 : base(raceID, raceIndex, "Elf", "Elves", 605, 606, 607, 608, Expansion.ML)
             {
             }
+
+            // D&D 5.5e: +2 Dex, darkvision (matches the pre-existing racialNightSight check in
+            // PlayerMobile.ComputeBaseLightLevels, generalized to any IDnDSpecies).
+            public int GetAbilityScoreBonus(AbilityScoreType type) { return type == AbilityScoreType.Dex ? 2 : 0; }
+            public bool HasDarkvision { get { return true; } }
 
             public override bool ValidateHair(bool female, int itemID)
             {
@@ -295,12 +304,23 @@ namespace Server.Misc
         }
 
         #region SA
-        private class Gargoyle : Race
+        private class Gargoyle : Race, IDnDSpecies
         {
             public Gargoyle(int raceID, int raceIndex)
                 : base(raceID, raceIndex, "Gargoyle", "Gargoyles", 666, 667, 695, 694, Expansion.SA)
             {
             }
+
+            // D&D 5.5e: no direct SRD equivalent - homebrew bonuses matching this ServUO-native
+            // species' strong/watchful flavor, plus darkvision (dungeon/cave dwelling).
+            public int GetAbilityScoreBonus(AbilityScoreType type)
+            {
+                if (type == AbilityScoreType.Str) { return 2; }
+                if (type == AbilityScoreType.Wis) { return 1; }
+                return 0;
+            }
+
+            public bool HasDarkvision { get { return true; } }
 
             public override bool ValidateHair(bool female, int itemID)
             {

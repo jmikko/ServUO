@@ -8,7 +8,6 @@ using Server.Misc;
 using Server.Engines.CannedEvil;
 using Server.Guilds;
 using Server.ContextMenus;
-using Server.Engines.CityLoyalty;
 using Server.Spells.SkillMasteries;
 
 namespace Server.Gumps
@@ -389,35 +388,7 @@ namespace Server.Gumps
                         index++;
                     }
 
-                    for (int i = 0; i < ChampionSpawnInfo.Table.Length; i++)
-                    {
-                        int v = info.GetValue(i);
-
-                        if (v == 0)
-                            continue;
-
-                        int offset = 0;
-                        if (v > 800)
-                            offset = 3;
-                        else if (v > 300)
-                            offset = (int)(v / 300);
-
-                        if (offset <= 0)
-                            continue;
-
-                        ChampionSpawnInfo champInfo = ChampionSpawnInfo.GetInfo((ChampionSpawnType)i);
-
-                        AddHtml(260, y + (index * 22), 245, 16, Color("#FFFFFF", String.Format(": {0} of the {1}", champInfo.LevelNames[Math.Min(offset, champInfo.LevelNames.Length) - 1], champInfo.Name)), false, false);
-                        AddCallbackButton(225, y + (index * 22), 4005, 4007, i + 251, GumpButtonType.Reply, 0, b =>
-                        {
-                            TitleSelected = b.ButtonID - 251;
-                            ShowingDescription = true;
-                            Refresh();
-                        });
-
-                        index++;
-                        CheckPage(ref index, ref page);
-                    }
+                    // Champion spawn titles removed along with the champion spawn system (no D&D equivalent).
                 }
                 else
                 {
@@ -639,9 +610,9 @@ namespace Server.Gumps
 
                     AddHtmlLocalized(225, 220, 160, 16, 1115029, 0xFFFF, false, false); // Subtitle
 
-                    string cust;
+                    string cust = null;
 
-                    if (title == 1154017 && CityLoyaltySystem.HasCustomTitle(User, out cust))
+                    if (false)
                         AddHtmlLocalized(275, 240, 245, 16, title, cust, 0xFFFF, false, false);
                     else if(title != 1154017)
                         AddHtmlLocalized(275, 240, 160, 32, title, 0xFFFF, false, false);
@@ -831,7 +802,7 @@ namespace Server.Gumps
                         {
                             string cust = null;
 
-                            if ((int)title == 1154017 && CityLoyaltySystem.HasCustomTitle(User, out cust))
+                            if (false)
                             {
                                 AddHtmlLocalized(260, 70 + (index * 22), 245, 16, 1154017, cust, 0xFFFF, false, false);
                             }
@@ -868,7 +839,7 @@ namespace Server.Gumps
                     {
                         string cust = null;
 
-                        if ((int)title == 1154017 && CityLoyaltySystem.HasCustomTitle(User, out cust))
+                        if (false)
                         {
                             AddHtmlLocalized(275, 240, 245, 16, 1154017, cust, 0xFFFF, false, false);
                         } 
@@ -1024,19 +995,6 @@ namespace Server.Gumps
             else
             {
                 v = info.GetValue(TitleSelected);
-
-                ChampionSpawnInfo champInfo = ChampionSpawnInfo.GetInfo((ChampionSpawnType)TitleSelected);
-
-                int offset = 0;
-                if (v > 800)
-                    offset = 3;
-                else if (v > 300)
-                    offset = (int)(v / 300);
-
-                if (offset > 0)
-                {
-                    str = String.Format(": {0} of the {1}", champInfo.LevelNames[Math.Min(offset, champInfo.LevelNames.Length) - 1], champInfo.Name);
-                }
             }
 
             return str;

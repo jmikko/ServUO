@@ -43,8 +43,8 @@ namespace Server.Items
             if (!this.Validate(attacker))
                 return;
 
-            if (defender is ChaosDragoon || defender is ChaosDragoonElite)
-                return;
+            // ChaosDragoon/ChaosDragoonElite dismount immunity removed along with the legacy
+            // monster roster - no D&D equivalent to special-case here.
 
             if (CheckMountedNoLance(attacker, defender)) // TODO: Should there be a message here?
                 return;
@@ -64,10 +64,7 @@ namespace Server.Items
                 return;
             }
 
-            if (Core.ML && attacker is LesserHiryu && 0.8 >= Utility.RandomDouble())
-            {
-                return; //Lesser Hiryu have an 80% chance of missing this attack
-            }
+            // LesserHiryu's 80%-miss dismount quirk removed along with the legacy monster roster.
 
             defender.PlaySound(0x140);
             defender.FixedParticles(0x3728, 10, 15, 9955, EffectLayer.Waist);

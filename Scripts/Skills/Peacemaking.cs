@@ -4,7 +4,6 @@ using Server.Engines.XmlSpawner2;
 using Server.Items;
 using Server.Mobiles;
 using Server.Targeting;
-using Server.Engines.Quests;
 #endregion
 
 namespace Server.SkillHandlers
@@ -221,18 +220,7 @@ namespace Server.SkillHandlers
 
 									bc.Pacify(from, DateTime.UtcNow + TimeSpan.FromSeconds(seconds));
 
-                                    #region Bard Mastery Quest
-                                    if (from is PlayerMobile)
-                                    {
-                                        BaseQuest quest = QuestHelper.GetQuest((PlayerMobile)from, typeof(TheBeaconOfHarmonyQuest));
-
-                                        if (quest != null)
-                                        {
-                                            foreach (BaseObjective objective in quest.Objectives)
-                                                objective.Update(bc);
-                                        }
-                                    }
-                                    #endregion
+                                    // Bard mastery quest objective tracking removed with the quest system.
 								}
 								else
 								{

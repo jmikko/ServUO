@@ -290,6 +290,26 @@ namespace Server.Misc
 			Utility.PopColor();
 
 			new WelcomeTimer(newChar).Start();
+
+			// Phase 1 D&D 5.5e vertical slice: prompt a D&D-aware client for ability
+			// score/class setup now that vanilla creation is complete. Ignored by any
+			// client that doesn't recognize the 0xBF subcommand.
+			//
+			// This must NOT be sent immediately: EventSink.InvokeCharacterCreated (which
+			// reaches this handler) fires BEFORE PacketHandlers.DoLogin, which is what
+			// actually sends the world-entry packet burst and gets the client into its
+			// in-game scene/UI state. A gump added before that transition gets silently
+			// dropped when the client's UI manager switches scenes. A short delay lets
+			// the client finish entering the world first.
+			Timer.DelayCall(TimeSpan.FromSeconds(2.0), () =>
+			{
+				if (!state.Running)
+				{
+					return;
+				}
+
+				state.Send(new DnDCreationPrompt());
+			});
 		}
 
 		private static void FixStats(ref int str, ref int dex, ref int intel, int max)

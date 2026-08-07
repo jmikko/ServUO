@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Server.Engines.Quests;
-using Server.Engines.Quests.Collector;
 using Server.Items;
 using Server.Mobiles;
 using Server.Network;
@@ -172,51 +170,6 @@ namespace Server.Engines.Harvest
 
             if (player != null)
             {
-                QuestSystem qs = player.Quest;
-
-                if (qs is CollectorQuest)
-                {
-                    QuestObjective obj = qs.FindObjective(typeof(FishPearlsObjective));
-
-                    if (obj != null && !obj.Completed)
-                    {
-                        if (Utility.RandomDouble() < 0.5)
-                        {
-                            player.SendLocalizedMessage(1055086, "", 0x59); // You pull a shellfish out of the water, and find a rainbow pearl inside of it.
-
-                            obj.CurProgress++;
-                        }
-                        else
-                        {
-                            player.SendLocalizedMessage(1055087, "", 0x2C); // You pull a shellfish out of the water, but it doesn't have a rainbow pearl.
-                        }
-
-                        return true;
-                    }
-                }
-
-                if (from.Region.IsPartOf("Underworld"))
-                {
-                    foreach (BaseQuest quest in player.Quests)
-                    {
-                        if (quest is SomethingFishy && Utility.RandomDouble() < 0.1)
-                        {
-                            Item red = new RedHerring();
-                            from.AddToBackpack(red);
-                            player.SendLocalizedMessage(1095047, "", 0x23); // You pull a shellfish out of the water, but it doesn't have a rainbow pearl.
-                            return true;
-                        }
-
-                        if (quest is ScrapingtheBottom && Utility.RandomDouble() < 0.1)
-                        {
-                            Item mug = new MudPuppy();
-                            from.AddToBackpack(mug);
-                            player.SendLocalizedMessage(1095064, "", 0x23); // You pull a shellfish out of the water, but it doesn't have a rainbow pearl.
-                            return true;
-                        }
-                    }
-                }
-
                 #region High Seas Charydbis
                 if (Core.HS && tool is FishingPole && CharydbisSpawner.SpawnInstance != null && CharydbisSpawner.SpawnInstance.IsSummoned)
                 {

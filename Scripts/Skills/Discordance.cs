@@ -8,7 +8,6 @@ using Server.Engines.XmlSpawner2;
 using Server.Items;
 using Server.Mobiles;
 using Server.Targeting;
-using Server.Engines.Quests;
 #endregion
 
 namespace Server.SkillHandlers
@@ -268,18 +267,7 @@ namespace Server.SkillHandlers
 
                                 info = new DiscordanceInfo(from, targ, Math.Abs(effect), mods);
 
-                                #region Bard Mastery Quest
-                                if (from is PlayerMobile)
-                                {
-                                    BaseQuest quest = QuestHelper.GetQuest((PlayerMobile)from, typeof(WieldingTheSonicBladeQuest));
-
-                                    if (quest != null)
-                                    {
-                                        foreach (BaseObjective objective in quest.Objectives)
-                                            objective.Update(targ);
-                                    }
-                                }
-                                #endregion
+                                // Bard mastery quest objective tracking removed with the quest system.
                             }
 
                             info.m_Timer = Timer.DelayCall(TimeSpan.Zero, TimeSpan.FromSeconds(1.25), ProcessDiscordance, info);

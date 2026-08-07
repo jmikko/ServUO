@@ -4,7 +4,6 @@ using Server.Items;
 using System.Linq;
 using System.Collections.Generic;
 using Server.Engines.Despise;
-using Server.Engines.Shadowguard;
 using Server.Mobiles;
 
 namespace Server.Items

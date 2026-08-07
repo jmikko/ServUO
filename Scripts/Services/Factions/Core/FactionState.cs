@@ -167,13 +167,6 @@ namespace Server.Factions
                     }
             }
 
-            if (version < 6 && Settings.Enabled && Core.ML)
-            {
-                FactionCollectionBox box = new FactionCollectionBox(m_Faction);
-                WeakEntityCollection.Add("factions", box);
-                box.MoveToWorld(m_Faction.Definition.Stronghold.CollectionBox, Faction.Facet);
-            }
-
             if (version < 1)
                 m_Election = new Election(m_Faction);
         }

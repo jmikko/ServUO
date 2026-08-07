@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using Server.Items;
 using Server.Targeting;
-using Server.Engines.Quests;
-using Server.Engines.Quests.Hag;
 using Server.Mobiles;
 using System.Linq;
 
@@ -655,24 +653,7 @@ namespace Server.Engines.Harvest
                     {
                         int itemID = tile.ID;
 
-                        if (itemID == 0xED3 || itemID == 0xEDF || itemID == 0xEE0 || itemID == 0xEE1 || itemID == 0xEE2 || itemID == 0xEE8)
-                        {
-                            if (m is PlayerMobile player)
-                            {
-                                QuestSystem qs = player.Quest;
-
-                                if (qs is WitchApprenticeQuest)
-                                {
-                                    if (qs.FindObjective(typeof(FindIngredientObjective)) is FindIngredientObjective obj && !obj.Completed && obj.Ingredient == Ingredient.Bones)
-                                    {
-                                        player.SendLocalizedMessage(1055037); // You finish your grim work, finding some of the specific bones listed in the Hag's recipe.
-                                        obj.Complete();
-
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
+                        // Witch Apprentice quest ingredient harvesting removed with the quest system.
                     }
                 }
             }
@@ -697,24 +678,7 @@ namespace Server.Engines.Harvest
                     {
                         int itemID = tile.ID;
 
-                        if (itemID == 0xD15 || itemID == 0xD16)
-                        {
-                            if (m is PlayerMobile player)
-                            {
-                                QuestSystem qs = player.Quest;
-
-                                if (qs is WitchApprenticeQuest)
-                                {
-                                    if (qs.FindObjective(typeof(FindIngredientObjective)) is FindIngredientObjective obj && !obj.Completed && obj.Ingredient == Ingredient.RedMushrooms)
-                                    {
-                                        player.SendLocalizedMessage(1055036); // You slice a red cap mushroom from its stem.
-                                        obj.Complete();
-
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
+                        // Witch Apprentice quest ingredient harvesting removed with the quest system.
                     }
                 }
             }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +17,6 @@ using Server.Spells.Chivalry;
 using Server.Spells.Necromancy;
 using Server.Spells.Spellweaving;
 using Server.SkillHandlers;
-using Server.Engines.CityLoyalty;
 using Server.Services.Virtues;
 using Server.Spells.SkillMasteries;
 
@@ -687,7 +686,7 @@ namespace Server
                 #endregion
 
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.GuildOfArcaneArts))
+                if (false)
                     value += 5;
                 #endregion
 
@@ -705,7 +704,7 @@ namespace Server
                     value -= EssenceOfWindSpell.GetFCMalus(m);
 
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.BardicCollegium))
+                if (false)
                     value += 1;
                 #endregion
 
@@ -754,7 +753,7 @@ namespace Server
                     value -= EssenceOfWindSpell.GetSSIMalus(m);
 
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.GuildOfAssassins))
+                if (false)
                     value += 5;
                 #endregion
 
@@ -794,7 +793,7 @@ namespace Server
                     value += move.GetAccuracyBonus(m);
 
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.WarriorsGuild))
+                if (false)
                     value += 5;
                 #endregion
 
@@ -841,7 +840,7 @@ namespace Server
             else if (attribute == AosAttribute.RegenHits)
             {
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.MaritimeGuild))
+                if (false)
                     value += 2;
                 #endregion
 
@@ -875,7 +874,7 @@ namespace Server
             else if (attribute == AosAttribute.RegenMana)
             {
                 #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.MerchantsAssociation))
+                if (false)
                     value += 1;
                 #endregion
 

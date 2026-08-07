@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Server.Engines.Quests.Haven;
-using Server.Engines.Quests.Necro;
 using Server.Items;
 
 namespace Server.Commands
@@ -61,7 +59,6 @@ namespace Server.Commands
         private static readonly Type typeofMarkContainer = typeof(MarkContainer);
         private static readonly Type typeofWarningItem = typeof(WarningItem);
         private static readonly Type typeofHintItem = typeof(HintItem);
-        private static readonly Type typeofCannon = typeof(Cannon);
         private static readonly Type typeofSerpentPillar = typeof(SerpentPillar);
         private static readonly Queue m_DeleteQueue = new Queue();
         private static readonly string[] m_EmptyParams = new string[0];
@@ -356,23 +353,6 @@ namespace Server.Commands
 
                     item = wi;
                 }
-                else if (this.m_Type == typeofCannon)
-                {
-                    CannonDirection direction = CannonDirection.North;
-
-                    for (int i = 0; i < this.m_Params.Length; ++i)
-                    {
-                        if (this.m_Params[i].StartsWith("CannonDirection"))
-                        {
-                            int indexOf = this.m_Params[i].IndexOf('=');
-
-                            if (indexOf >= 0)
-                                direction = (CannonDirection)Enum.Parse(typeof(CannonDirection), this.m_Params[i].Substring(++indexOf), true);
-                        }
-                    }
-
-                    item = new Cannon(direction);
-                }
                 else if (this.m_Type == typeofSerpentPillar)
                 {
                     string word = null;
@@ -461,22 +441,7 @@ namespace Server.Commands
 
             if (item is BaseAddon)
             {
-                if (item is MaabusCoffin)
-                {
-                    MaabusCoffin coffin = (MaabusCoffin)item;
-
-                    for (int i = 0; i < this.m_Params.Length; ++i)
-                    {
-                        if (this.m_Params[i].StartsWith("SpawnLocation"))
-                        {
-                            int indexOf = this.m_Params[i].IndexOf('=');
-
-                            if (indexOf >= 0)
-                                coffin.SpawnLocation = Point3D.Parse(this.m_Params[i].Substring(++indexOf));
-                        }
-                    }
-                }
-                else if (this.m_ItemID > 0)
+                if (this.m_ItemID > 0)
                 {
                     List<AddonComponent> comps = ((BaseAddon)item).Components;
 

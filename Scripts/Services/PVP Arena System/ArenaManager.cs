@@ -1,17 +1,24 @@
 using Server;
 using System;
+using System.Collections.Generic;
 using Server.Mobiles;
 using Server.Items;
 using Server.Gumps;
 
 namespace Server.Engines.ArenaSystem
 {
-    public class ArenaManager : AnimalTrainer
+    public class ArenaManager : BaseVendor
     {
         public override bool IsActiveVendor { get { return false; } }
         public override bool IsActiveBuyer { get { return false; } }
         public override bool IsActiveSeller { get { return false; } }
         public override bool CanTeach { get { return false; } }
+
+        // Rebased from AnimalTrainer (deleted with the pet/taming system) onto BaseVendor;
+        // this NPC never actually sells anything, so the stock lists stay empty.
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+        protected override List<SBInfo> SBInfos { get { return m_SBInfos; } }
+        public override void InitSBInfo() { }
 
         [CommandProperty(AccessLevel.GameMaster)]
         public PVPArena Arena { get; set; }

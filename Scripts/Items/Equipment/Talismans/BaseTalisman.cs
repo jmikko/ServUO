@@ -279,24 +279,6 @@ namespace Server.Items
         public virtual bool CanRepair { get { return true; } }
         public virtual bool CanFortify { get { return NegativeAttributes.Antique < 4; } }
 
-        #region Slayer
-        private TalismanSlayerName m_Slayer;
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TalismanSlayerName Slayer
-        {
-            get
-            {
-                return m_Slayer;
-            }
-            set
-            {
-                m_Slayer = value;
-                InvalidateProperties();
-            }
-        }
-        #endregion
-
         #region Summoner/Removal
         private TalismanAttribute m_Summoner;
         private TalismanRemoval m_Removal;
@@ -807,28 +789,6 @@ namespace Server.Items
             m_AosSkillBonuses.GetProperties(list);
 
             int prop;
-			
-			if (m_Slayer != TalismanSlayerName.None)
-            {
-                if (m_Slayer == TalismanSlayerName.Goblin)
-                    list.Add(1095010);
-                else if (m_Slayer == TalismanSlayerName.Undead)
-                    list.Add(1060479);
-                else if (m_Slayer <= TalismanSlayerName.Wolf)
-                    list.Add(1072503 + (int)m_Slayer);
-                else
-                {
-                    switch (m_Slayer)
-                    {
-                        case TalismanSlayerName.Repond: list.Add(1079750); break;
-                        case TalismanSlayerName.Elemental: list.Add(1079749); break;
-                        case TalismanSlayerName.Demon: list.Add(1079748); break;
-                        case TalismanSlayerName.Arachnid: list.Add(1079747); break;
-                        case TalismanSlayerName.Reptile: list.Add(1079751); break;
-                        case TalismanSlayerName.Fey: list.Add(1154652); break;
-                    }
-                }
-            }  
 
 			#region SA
             if ((prop = m_SAAbsorptionAttributes.CastingFocus) != 0)
@@ -1018,7 +978,7 @@ namespace Server.Items
             SetSaveFlag(ref flags, SaveFlag.MaxChargeTime, m_MaxChargeTime != 0);
             SetSaveFlag(ref flags, SaveFlag.ChargeTime, m_ChargeTime != 0);
             SetSaveFlag(ref flags, SaveFlag.Blessed, m_Blessed);
-            SetSaveFlag(ref flags, SaveFlag.Slayer, m_Slayer != TalismanSlayerName.None);
+            SetSaveFlag(ref flags, SaveFlag.Slayer, false);
             SetSaveFlag(ref flags, SaveFlag.SAAbsorptionAttributes, !m_SAAbsorptionAttributes.IsEmpty);
             SetSaveFlag(ref flags, SaveFlag.NegativeAttributes, !m_NegativeAttributes.IsEmpty);
 
@@ -1062,9 +1022,6 @@ namespace Server.Items
 
             if (GetSaveFlag(flags, SaveFlag.ChargeTime))
                 writer.WriteEncodedInt(m_ChargeTime);
-
-            if (GetSaveFlag(flags, SaveFlag.Slayer))
-                writer.WriteEncodedInt((int)m_Slayer);
 
             if (GetSaveFlag(flags, SaveFlag.SAAbsorptionAttributes))
                 m_SAAbsorptionAttributes.Serialize(writer);
@@ -1170,7 +1127,7 @@ namespace Server.Items
                             m_ChargeTime = reader.ReadEncodedInt();
 
                         if (GetSaveFlag(flags, SaveFlag.Slayer))
-                            m_Slayer = (TalismanSlayerName)reader.ReadEncodedInt();
+                            reader.ReadEncodedInt();
 
                         m_Blessed = GetSaveFlag(flags, SaveFlag.Blessed);
 
@@ -1284,26 +1241,11 @@ namespace Server.Items
             return Utility.RandomList(m_ItemIDs);
         }
 
+        // Summoned-creature entries removed along with the legacy monster roster (no D&D equivalent);
+        // the non-creature resource-grant entries are kept.
         public static Type[] Summons { get { return m_Summons; } }
         private static readonly Type[] m_Summons = new Type[]
         {
-            typeof(SummonedAntLion),
-            typeof(SummonedCow),
-            typeof(SummonedLavaSerpent),
-            typeof(SummonedOrcBrute),
-            typeof(SummonedFrostSpider),
-            typeof(SummonedPanther),
-            typeof(SummonedDoppleganger),
-            typeof(SummonedGreatHart),
-            typeof(SummonedBullFrog),
-            typeof(SummonedArcticOgreLord),
-            typeof(SummonedBogling),
-            typeof(SummonedBakeKitsune),
-            typeof(SummonedSheep),
-            typeof(SummonedSkeletalKnight),
-            typeof(SummonedWailingBanshee),
-            typeof(SummonedChicken),
-            typeof(SummonedVorpalBunny),
             typeof(Board),
             typeof(IronIngot),
             typeof(Bandage),
@@ -1312,24 +1254,6 @@ namespace Server.Items
         public static int[] SummonLabels { get { return m_SummonLabels; } }
         private static readonly int[] m_SummonLabels = new int[]
         {
-            1075211, // Ant Lion
-            1072494, // Cow
-            1072434, // Lava Serpent
-            1072414, // Orc Brute
-            1072476, // Frost Spider
-            1029653, // Panther
-            1029741, // Doppleganger
-            1018292, // great hart
-            1028496, // bullfrog
-            1018227, // arctic ogre lord
-            1029735, // Bogling
-            1030083, // bake-kitsune
-            1018285, // sheep
-            1018239, // skeletal knight
-            1072399, // Wailing Banshee
-            1072459, // Chicken
-            1072401, // Vorpal Bunny
-
             1015101, // Boards
             1044036, // Ingots
             1023817, // clean bandage
@@ -1363,42 +1287,12 @@ namespace Server.Items
             return TalismanRemoval.None;
         }
 
+        // "Killer" bonus-vs-monster-type table removed along with the legacy monster roster (no D&D equivalent).
         public static Type[] Killers { get { return m_Killers; } }
-        private static readonly Type[] m_Killers = new Type[]
-        {
-            typeof(OrcBomber), typeof(OrcBrute), typeof(Sewerrat), typeof(Rat), typeof(GiantRat),
-            typeof(Ratman), typeof(RatmanArcher), typeof(GiantSpider), typeof(FrostSpider), typeof(GiantBlackWidow),
-            typeof(DreadSpider), typeof(SilverSerpent), typeof(DeepSeaSerpent), typeof(GiantSerpent), typeof(Snake),
-            typeof(IceSnake), typeof(IceSerpent), typeof(LavaSerpent), typeof(LavaSnake), typeof(Yamandon),
-            typeof(StrongMongbat), typeof(Mongbat), typeof(VampireBat), typeof(Lich), typeof(EvilMage),
-            typeof(LichLord), typeof(EvilMageLord), typeof(SkeletalMage), typeof(KhaldunZealot), typeof(AncientLich),
-            typeof(JukaMage), typeof(MeerMage), typeof(Beetle), typeof(DeathwatchBeetle), typeof(RuneBeetle),
-            typeof(FireBeetle), typeof(DeathwatchBeetleHatchling), typeof(Bird), typeof(Chicken), typeof(Eagle),
-            typeof(TropicalBird), typeof(Phoenix), typeof(DesertOstard), typeof(FrenziedOstard), typeof(ForestOstard),
-            typeof(Crane), typeof(SnowLeopard), typeof(IceFiend), typeof(FrostOoze), typeof(FrostTroll),
-            typeof(IceElemental), typeof(SnowElemental), typeof(GiantIceWorm), typeof(LadyOfTheSnow), typeof(FireElemental),
-            typeof(FireSteed), typeof(HellHound), typeof(HellCat), typeof(PredatorHellCat), typeof(LavaLizard),
-            typeof(FireBeetle), typeof(Cow), typeof(Bull), typeof(Gaman)//,			typeof( Minotaur)
-            // TODO Meraktus, Tormented Minotaur, Minotaur
-        };
+        private static readonly Type[] m_Killers = new Type[0];
 
         public static int[] KillerLabels { get { return m_KillerLabels; } }
-        private static readonly int[] m_KillerLabels = new int[]
-        {
-            1072413, 1072414, 1072418, 1072419, 1072420,
-            1072421, 1072423, 1072424, 1072425, 1072426,
-            1072427, 1072428, 1072429, 1072430, 1072431,
-            1072432, 1072433, 1072434, 1072435, 1072438,
-            1072440, 1072441, 1072443, 1072444, 1072445,
-            1072446, 1072447, 1072448, 1072449, 1072450,
-            1072451, 1072452, 1072453, 1072454, 1072455,
-            1072456, 1072457, 1072458, 1072459, 1072461,
-            1072462, 1072465, 1072468, 1072469, 1072470,
-            1072473, 1072474, 1072477, 1072478, 1072479,
-            1072480, 1072481, 1072483, 1072485, 1072486,
-            1072487, 1072489, 1072490, 1072491, 1072492,
-            1072493, 1072494, 1072495, 1072498,
-        };
+        private static readonly int[] m_KillerLabels = new int[0];
 
         public static TalismanAttribute GetRandomKiller()
         {
@@ -1407,12 +1301,7 @@ namespace Server.Items
 
         public static TalismanAttribute GetRandomKiller(bool includingNone)
         {
-            if (includingNone && Utility.RandomBool())
-                return new TalismanAttribute();
-
-            int num = Utility.Random(m_Killers.Length);
-
-            return new TalismanAttribute(m_Killers[num], m_KillerLabels[num], Utility.RandomMinMax(10, 100));
+            return new TalismanAttribute();
         }
 
         public static TalismanAttribute GetRandomProtection()
@@ -1497,13 +1386,6 @@ namespace Server.Items
             return false;
         }
 
-        public static TalismanSlayerName GetRandomSlayer()
-        {
-            if (0.01 > Utility.RandomDouble())
-                return (TalismanSlayerName)Utility.RandomMinMax(1, 9);
-
-            return TalismanSlayerName.None;
-        }
 
         public static int GetRandomCharges()
         {

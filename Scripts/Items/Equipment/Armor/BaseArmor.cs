@@ -2511,6 +2511,13 @@ namespace Server.Items
                 }
             }
 
+            if (from is IDnDCharacter && ((IDnDCharacter)from).DnDInitialized &&
+                ((IDnDCharacter)from).CharacterClass != null && !((IDnDCharacter)from).CharacterClass.IsProficientWith(this))
+            {
+                from.SendMessage("Your class is not proficient with this armor.");
+                return false;
+            }
+
             if (!Server.Engines.XmlSpawner2.XmlAttach.CheckCanEquip(this, from))
                 return false;
             else

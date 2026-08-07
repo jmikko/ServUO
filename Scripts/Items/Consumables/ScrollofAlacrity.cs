@@ -69,21 +69,7 @@ namespace Server.Items
             if (pm == null)
                 return false;
 
-            for (int i = pm.Quests.Count - 1; i >= 0; i--)
-            {
-                BaseQuest quest = pm.Quests[i];
-
-                for (int j = quest.Objectives.Count - 1; j >= 0; j--)
-                {
-                    BaseObjective objective = quest.Objectives[j];
-
-                    if (objective is ApprenticeObjective)
-                    {
-                        from.SendMessage("You are already under the effect of an enhanced skillgain quest.");
-                        return false;
-                    }
-                }
-            }
+            // Apprentice (enhanced skillgain) quest conflict check removed with the quest system.
 
             if (pm.AcceleratedStart > DateTime.UtcNow)
             {

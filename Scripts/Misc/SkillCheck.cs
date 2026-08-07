@@ -1,7 +1,6 @@
 #region References
 using System;
 
-using Server.Engines.Quests;
 using Server.Factions;
 using Server.Items;
 using Server.Mobiles;
@@ -400,12 +399,7 @@ namespace Server.Misc
 				if (toGain == 1 && skill.Base <= 10.0)
 					toGain = Utility.Random(4) + 1;
 
-				#region Mondain's Legacy
-				if (from is PlayerMobile && QuestHelper.EnhancedSkill((PlayerMobile)from, skill))
-				{
-					toGain *= Utility.RandomMinMax(2, 4);
-				}
-				#endregion
+				// Quest-driven skill-gain bonus removed with the quest system.
 
 				#region Scroll of Alacrity
 				if (from is PlayerMobile && skill.SkillName == ((PlayerMobile)from).AcceleratedSkill &&
@@ -452,10 +446,7 @@ namespace Server.Misc
 				}
 			}
 
-			#region Mondain's Legacy
-			if (from is PlayerMobile)
-				QuestHelper.CheckSkill((PlayerMobile)from, skill);
-			#endregion
+			// Quest skill-objective progress hook removed with the quest system.
 
 			if (skill.Lock == SkillLock.Up &&
 				(!Siege.SiegeShard || !(from is PlayerMobile) || Siege.CanGainStat((PlayerMobile)from)))

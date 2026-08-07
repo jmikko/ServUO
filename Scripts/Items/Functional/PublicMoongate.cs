@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Server.Commands;
-using Server.Engines.CityLoyalty;
 using Server.Factions;
 using Server.Gumps;
 using Server.Mobiles;
@@ -708,8 +707,6 @@ namespace Server.Items
 			m_Mobile.MoveToWorld(entry.Location, list.Map);
 
 			Effects.PlaySound(entry.Location, list.Map, 0x1FE);
-
-			CityTradeSystem.OnPublicMoongateUsed(m_Mobile);
 		}
 
 		private void RenderPage(int index, int offset)

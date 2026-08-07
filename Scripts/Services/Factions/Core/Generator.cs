@@ -115,12 +115,6 @@ namespace Server.Factions
 				}
             }
 
-            if (Core.ML && !CheckExistance(stronghold.FactionStone, facet, typeof(FactionCollectionBox)))
-            {
-                FactionCollectionBox box = new FactionCollectionBox(faction);
-                WeakEntityCollection.Add("factions", box);
-                box.MoveToWorld(stronghold.CollectionBox, facet);
-            }
         }
 
         private static bool CheckExistance(Point3D loc, Map facet, Type type)

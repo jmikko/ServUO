@@ -106,49 +106,6 @@ namespace Server.Regions
 
         public static void TryPirateBlab(Mobile from, Mobile npc)
         {
-            if (m_PirateBlabTable.ContainsKey(from) && m_PirateBlabTable[from] > DateTime.UtcNow || BountyQuestSpawner.Bounties.Count <= 0)
-                return;
-
-            //Make of list of bounties on their map
-            List<Mobile> bounties = new List<Mobile>();
-            foreach (Mobile mob in BountyQuestSpawner.Bounties.Keys)
-            {
-                if (mob.Map == from.Map && mob is PirateCaptain && !bounties.Contains(mob))
-                    bounties.Add(mob);
-            }
-
-            if (bounties.Count > 0)
-            {
-                Mobile bounty = bounties[Utility.Random(bounties.Count)];
-
-                if (bounty != null)
-                {
-                    PirateCaptain capt = (PirateCaptain)bounty;
-
-                    int xLong = 0, yLat = 0;
-                    int xMins = 0, yMins = 0;
-                    bool xEast = false, ySouth = false;
-                    Point3D loc = capt.Location;
-                    Map map = capt.Map;
-
-                    string locArgs;
-                    string combine;
-
-                    if (Sextant.Format(loc, map, ref xLong, ref yLat, ref xMins, ref yMins, ref xEast, ref ySouth))
-                        locArgs = String.Format("{0}°{1}'{2},{3}°{4}'{5}", yLat, yMins, ySouth ? "S" : "N", xLong, xMins, xEast ? "E" : "W");
-                    else
-                        locArgs = "?????";
-
-                    combine = String.Format("{0}\t{1}", capt.PirateName > -1 ? String.Format("#{0}", capt.PirateName) : capt.Name, locArgs);
-
-                    int cliloc = Utility.RandomMinMax(1149856, 1149865);
-                    npc.SayTo(from, cliloc, combine);
-
-                    m_PirateBlabTable[from] = DateTime.UtcNow + BlabDuration;
-                }
-            }
-
-            ColUtility.Free(bounties);
         }
 
         public static void CheckBlab_Callback()

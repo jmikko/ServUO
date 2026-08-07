@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Server.Engines.Quests.Haven;
-using Server.Engines.Quests.Necro;
 using Server.Items;
 
 namespace Server.Commands
@@ -186,7 +184,6 @@ namespace Server.Commands
         private static readonly Type typeofMarkContainer = typeof(MarkContainer);
         private static readonly Type typeofWarningItem = typeof(WarningItem);
         private static readonly Type typeofHintItem = typeof(HintItem);
-        private static readonly Type typeofCannon = typeof(Cannon);
         private static readonly Type typeofSerpentPillar = typeof(SerpentPillar);
         private static readonly Type typeofAddonComponent = typeof(AddonComponent);
 
@@ -202,56 +199,6 @@ namespace Server.Commands
                 if (m_Type == typeofStatic)
                 {
                     item = new Static(m_ItemID);
-                }
-                else if (m_Type == typeof(SecretSwitch))
-                {
-                    int id = 0;
-					
-                    for (int i = 0; i < m_Params.Length; ++i)
-                    {
-                        if (m_Params[i].StartsWith("SecretWall"))
-                        {
-                            int indexOf = m_Params[i].IndexOf('=');
-
-                            if (indexOf >= 0)
-                            {
-                                id = Utility.ToInt32(m_Params[i].Substring(++indexOf));
-                                break;
-                            }
-                        }
-                    }
-					
-                    Item wall = Decorate.FindByID(id);
-					
-                    item = new SecretSwitch(m_ItemID, wall as SecretWall);
-                }
-                else if (m_Type == typeof(SecretWall))
-                {
-                    SecretWall wall = new SecretWall(m_ItemID);
-				
-                    for (int i = 0; i < m_Params.Length; ++i)
-                    {
-                        if (m_Params[i].StartsWith("MapDest"))
-                        {
-                            int indexOf = m_Params[i].IndexOf('=');
-	
-                            if (indexOf >= 0)
-                                wall.MapDest = Map.Parse(m_Params[i].Substring(++indexOf));
-                        }
-                        else if (m_Params[i].StartsWith("PointDest"))
-                        {
-                            int indexOf = m_Params[i].IndexOf('=');
-	
-                            if (indexOf >= 0)
-                                wall.PointDest = Point3D.Parse(m_Params[i].Substring(++indexOf));
-                        }
-                        else if (m_Params[i].StartsWith("Unlocked"))
-                        {
-                            wall.Locked = false;
-                        }
-                    }
-					
-                    item = wall;					
                 }
                 else if (m_Type == typeofLocalizedStatic)
                 {
@@ -446,23 +393,6 @@ namespace Server.Commands
 
                     item = wi;
                 }
-                else if (m_Type == typeofCannon)
-                {
-                    CannonDirection direction = CannonDirection.North;
-
-                    for (int i = 0; i < m_Params.Length; ++i)
-                    {
-                        if (m_Params[i].StartsWith("CannonDirection"))
-                        {
-                            int indexOf = m_Params[i].IndexOf('=');
-
-                            if (indexOf >= 0)
-                                direction = (CannonDirection)Enum.Parse(typeof(CannonDirection), m_Params[i].Substring(++indexOf), true);
-                        }
-                    }
-
-                    item = new Cannon(direction);
-                }
                 else if (m_Type == typeofSerpentPillar)
                 {
                     string word = null;
@@ -584,22 +514,7 @@ namespace Server.Commands
 
             if (item is BaseAddon)
             {
-                if (item is MaabusCoffin)
-                {
-                    MaabusCoffin coffin = (MaabusCoffin)item;
-
-                    for (int i = 0; i < m_Params.Length; ++i)
-                    {
-                        if (m_Params[i].StartsWith("SpawnLocation"))
-                        {
-                            int indexOf = m_Params[i].IndexOf('=');
-
-                            if (indexOf >= 0)
-                                coffin.SpawnLocation = Point3D.Parse(m_Params[i].Substring(++indexOf));
-                        }
-                    }
-                }
-                else if (m_ItemID > 0)
+                if (m_ItemID > 0)
                 {
                     List<AddonComponent> comps = ((BaseAddon)item).Components;
 
@@ -1024,20 +939,6 @@ namespace Server.Commands
                         rope.ToMap = Map.Parse(param.Substring(++indexOf));
                     else if (param.StartsWith("ToLocation"))
                         rope.ToLocation = Point3D.Parse(param.Substring(++indexOf));
-                }
-            }
-            else if(item is InstanceExitGate)
-            {
-                InstanceExitGate gate = (InstanceExitGate)item;
-
-                foreach (string param in m_Params)
-                {
-                    int indexOf = param.IndexOf('=');
-
-                    if (param.StartsWith("MapDest"))
-                        gate.MapDest = Map.Parse(param.Substring(++indexOf));
-                    else if (param.StartsWith("LocDest"))
-                        gate.LocDest = Point3D.Parse(param.Substring(++indexOf));
                 }
             }
             else if (m_ItemID > 0)

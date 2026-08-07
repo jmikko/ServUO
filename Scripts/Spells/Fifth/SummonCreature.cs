@@ -12,28 +12,10 @@ namespace Server.Spells.Fifth
             Reagent.Bloodmoss,
             Reagent.MandrakeRoot,
             Reagent.SpidersSilk);
-        // NOTE: Creature list based on 1hr of summon/release on OSI.
-        private static readonly Type[] m_Types = new Type[]
-        {
-            typeof(PolarBear),
-            typeof(GrizzlyBear),
-            typeof(BlackBear),
-            typeof(Horse),
-            typeof(Walrus),
-            typeof(Chicken),
-            typeof(Scorpion),
-            typeof(GiantSerpent),
-            typeof(Llama),
-            typeof(Alligator),
-            typeof(GreyWolf),
-            typeof(Slime),
-            typeof(Eagle),
-            typeof(Gorilla),
-            typeof(SnowLeopard),
-            typeof(Pig),
-            typeof(Hind),
-            typeof(Rabbit)
-        };
+        // Summon roster removed: every entry was a legacy UO creature type with no D&D
+        // equivalent. Left empty until SRD summon-spell content replaces it.
+        private static readonly Type[] m_Types = new Type[0];
+
         public SummonCreatureSpell(Mobile caster, Item scroll)
             : base(caster, scroll, m_Info)
         {
