@@ -12,6 +12,14 @@ namespace Server
 		CharacterClass CharacterClass { get; }
 		int CharacterLevel { get; }
 		int ArmorClass { get; }
+		int Experience { get; }
+
+		/// <summary>
+		/// Adds experience and levels the character up if that crosses a threshold. Implemented in
+		/// Scripts/ so Server/ never needs to know how hit points, spell slots and the client's view
+		/// of the sheet are brought back into line afterwards.
+		/// </summary>
+		void AwardExperience(int amount);
 
 		/// <summary>
 		/// Applies a one-time D&amp;D 5.5e setup (ability scores + class, level fixed at 1) and sets

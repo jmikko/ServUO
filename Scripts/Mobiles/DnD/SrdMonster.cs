@@ -22,8 +22,13 @@ namespace Server.Mobiles
 		public int AttackBonus;
 		public string DamageDice;
 		public int HitPoints;
-		public int Fame;
-		public int Karma;
+
+		/// <summary>
+		/// SRD challenge rating, which is the only difficulty measure a D&amp;D monster has - it is
+		/// what the experience award is derived from. This replaces UO's Fame/Karma, which drove
+		/// title, murder and reputation systems that no longer exist here.
+		/// </summary>
+		public double ChallengeRating;
 	}
 
 	/// <summary>
@@ -81,8 +86,7 @@ namespace Server.Mobiles
 					AttackBonus = ParseInt(el.GetAttribute("attackBonus")),
 					DamageDice = el.GetAttribute("damageDice"),
 					HitPoints = ParseInt(el.GetAttribute("hp")),
-					Fame = ParseInt(el.GetAttribute("fame")),
-					Karma = ParseInt(el.GetAttribute("karma"))
+					ChallengeRating = Advancement.ParseChallengeRating(el.GetAttribute("cr"))
 				};
 
 				m_Data[data.Id] = data;
@@ -143,9 +147,6 @@ namespace Server.Mobiles
 
 			Hits = data.HitPoints;
 
-			Fame = data.Fame;
-			Karma = data.Karma;
-
 			VirtualArmor = data.ArmorClass;
 		}
 
@@ -158,6 +159,7 @@ namespace Server.Mobiles
 		public override int AttackBonus { get { return GetData(m_MonsterId).AttackBonus; } }
 		public override string DamageDiceExpression { get { return GetData(m_MonsterId).DamageDice; } }
 		public override int HitPointsMaxDnD { get { return GetData(m_MonsterId).HitPoints; } }
+		public override double ChallengeRating { get { return GetData(m_MonsterId).ChallengeRating; } }
 
 		public override void Serialize(GenericWriter writer)
 		{

@@ -90,6 +90,7 @@ namespace Server.Misc
 			ok &= CheckDamageIsApplied(fighter, goblin, sword);
 			ok &= CheckSpellSlotTables();
 			ok &= CheckSpellcasting(fighter);
+			ok &= CheckAdvancement();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -539,6 +540,83 @@ namespace Server.Misc
 			}
 
 			cleric.Delete();
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Experience awards, level thresholds, and that a level-up actually moves everything that
+		/// keys off character level: hit points, proficiency bonus and spell slots.
+		/// </summary>
+		private static bool CheckAdvancement()
+		{
+			bool ok = true;
+
+			// SRD experience by challenge rating, at the fractional boundaries and a whole rating.
+			ok &= CheckValue("CR 1/8 XP", Advancement.GetExperienceForChallengeRating(0.125), 25);
+			ok &= CheckValue("CR 1/4 XP", Advancement.GetExperienceForChallengeRating(0.25), 50);
+			ok &= CheckValue("CR 1/2 XP", Advancement.GetExperienceForChallengeRating(0.5), 100);
+			ok &= CheckValue("CR 1 XP", Advancement.GetExperienceForChallengeRating(1.0), 200);
+			ok &= CheckValue("CR 5 XP", Advancement.GetExperienceForChallengeRating(5.0), 1800);
+
+			// Level thresholds, including the boundary either side of level 2.
+			ok &= CheckValue("level at 0 XP", Advancement.GetLevelForExperience(0), 1);
+			ok &= CheckValue("level at 299 XP", Advancement.GetLevelForExperience(299), 1);
+			ok &= CheckValue("level at 300 XP", Advancement.GetLevelForExperience(300), 2);
+			ok &= CheckValue("level at 6500 XP", Advancement.GetLevelForExperience(6500), 5);
+			ok &= CheckValue("level at 355000 XP", Advancement.GetLevelForExperience(355000), 20);
+
+			// A goblin is CR 1/4, so the XML wiring has to produce 50 XP end to end.
+			SrdGoblin goblin = new SrdGoblin();
+			ok &= CheckValue("goblin XP value", goblin.ExperienceValue, 50);
+			goblin.Delete();
+
+			DnDPlayerMobile hero = new DnDPlayerMobile { Name = "SelfTestHero", Body = 0x190 };
+
+			hero.ApplyDnDSetup(
+				new AbilityScores(10, 10, 14, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			hero.MoveToWorld(TestLocation, Map.Felucca);
+
+			// Wizard d6, Con +2: 6+2 at 1st, then 4+2 per level after.
+			ok &= CheckValue("level 1 HP", hero.HitsMax, 8);
+			ok &= CheckValue("level 1 slots", hero.GetMaxSpellSlots(1), 2);
+
+			hero.AwardExperience(299);
+			ok &= CheckValue("still level 1", hero.CharacterLevel, 1);
+
+			hero.AwardExperience(1);
+			ok &= CheckValue("level after 300 XP", hero.CharacterLevel, 2);
+			ok &= CheckValue("level 2 HP", hero.HitsMax, 14);
+			ok &= CheckValue("level 2 slots", hero.GetMaxSpellSlots(1), 3);
+
+			// One award crossing several thresholds at once must apply every level it earns.
+			hero.AwardExperience(6200);
+			ok &= CheckValue("level after 6500 XP", hero.CharacterLevel, 5);
+			ok &= CheckValue("level 5 proficiency", hero.CharacterClass.GetProficiencyBonus(hero.CharacterLevel), 3);
+			ok &= CheckValue("level 5 3rd-level slots", hero.GetMaxSpellSlots(3), 2);
+			ok &= CheckValue("level 5 cantrip dice", Spellcasting.GetCantripDice(hero.CharacterLevel), 2);
+
+			// Levelling grants its hit points immediately rather than leaving the character hurt.
+			ok &= CheckValue("HP kept up with level", hero.Hits, hero.HitsMax);
+
+			// Rests.
+			hero.ConsumeSpellSlot(1);
+			hero.Hits = 1;
+			hero.LongRest();
+
+			ok &= CheckValue("HP after long rest", hero.Hits, hero.HitsMax);
+			ok &= CheckValue("slots after long rest", hero.GetAvailableSpellSlots(1), hero.GetMaxSpellSlots(1));
+
+			Console.WriteLine(
+				"[combat-selftest]   advancement: level {0}, {1} XP, HP {2}, proficiency +{3}",
+				hero.CharacterLevel,
+				hero.Experience,
+				hero.HitsMax,
+				hero.CharacterClass.GetProficiencyBonus(hero.CharacterLevel));
+
+			hero.Delete();
 
 			return ok;
 		}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Server.Items;
 
 namespace Server.Mobiles
 {
@@ -65,6 +66,12 @@ namespace Server.Mobiles
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual int HitPointsMaxDnD { get { return 1; } }
+
+		/// <summary>SRD challenge rating - the sole source of the experience this creature is worth.</summary>
+		[CommandProperty(AccessLevel.GameMaster)]
+		public virtual double ChallengeRating { get { return 0.0; } }
+
+		public int ExperienceValue { get { return Advancement.GetExperienceForChallengeRating(ChallengeRating); } }
 		#endregion
 
 		protected DnDCreature(DnDAggression aggression)
@@ -252,6 +259,38 @@ namespace Server.Mobiles
 			StopThinking();
 
 			base.OnAfterDelete();
+		}
+
+		/// <summary>
+		/// Hands out experience. Everyone who damaged this creature is paid the full award rather
+		/// than a share of it - that is how a D&amp;D party works, and splitting it would punish
+		/// players for helping each other.
+		/// </summary>
+		public override void OnDeath(Container c)
+		{
+			base.OnDeath(c);
+
+			int award = ExperienceValue;
+
+			if (award <= 0)
+			{
+				return;
+			}
+
+			var paid = new List<Mobile>();
+
+			foreach (DamageEntry entry in DamageEntries)
+			{
+				IDnDCharacter character = entry.Damager as IDnDCharacter;
+
+				if (character == null || entry.HasExpired || paid.Contains(entry.Damager))
+				{
+					continue;
+				}
+
+				paid.Add(entry.Damager);
+				character.AwardExperience(award);
+			}
 		}
 
 		public override void Serialize(GenericWriter writer)

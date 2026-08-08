@@ -1,4 +1,5 @@
 using System;
+using Server.Network;
 
 namespace Server.Mobiles
 {
@@ -107,19 +108,89 @@ namespace Server.Mobiles
 			}
 		}
 
-		/// <summary>Level 1 SRD hit points: hit die + Con modifier.</summary>
+		/// <summary>
+		/// SRD hit points: the full hit die at 1st level, the die's average each level after, plus
+		/// the Constitution modifier every level.
+		/// </summary>
 		public override int HitsMax
 		{
 			get
 			{
 				if (m_DnDInitialized && m_CharacterClass != null)
 				{
-					return Math.Max(1, m_CharacterClass.HitDie + m_AbilityScores.ConMod);
+					return Advancement.GetMaxHitPoints(
+						m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel);
 				}
 
 				return 10;
 			}
 		}
+
+		#region Advancement
+
+		private int m_Experience;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int Experience { get { return m_Experience; } }
+
+		/// <summary>
+		/// Adds experience and applies every level it earns. Levelling is not a choice a player
+		/// makes here - crossing the threshold applies it immediately, which keeps hit points,
+		/// proficiency bonus and spell slots from ever disagreeing with the experience total.
+		/// </summary>
+		public void AwardExperience(int amount)
+		{
+			if (!m_DnDInitialized || amount <= 0 || m_CharacterLevel >= Advancement.MaxLevel)
+			{
+				return;
+			}
+
+			m_Experience += amount;
+
+			SendMessage("You gain {0} experience.", amount);
+
+			int newLevel = Advancement.GetLevelForExperience(m_Experience);
+
+			while (m_CharacterLevel < newLevel)
+			{
+				++m_CharacterLevel;
+				OnLevelUp();
+			}
+		}
+
+		/// <summary>
+		/// A new level is worth its hit points immediately - the character gains the difference in
+		/// current hit points as well as maximum, so levelling up is never a reason to go and rest.
+		/// New spell slots come from the level itself; unspent ones are not refilled.
+		/// </summary>
+		private void OnLevelUp()
+		{
+			int before = Hits;
+
+			Hits = Math.Min(HitsMax, before + GainedHitPointsThisLevel());
+
+			SendMessage(0x35, "You are now level {0}.", m_CharacterLevel);
+
+			Delta(MobileDelta.Hits);
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
+			}
+		}
+
+		private int GainedHitPointsThisLevel()
+		{
+			if (m_CharacterClass == null)
+			{
+				return 0;
+			}
+
+			return Advancement.GetMaxHitPoints(m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel) -
+				   Advancement.GetMaxHitPoints(m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel - 1);
+		}
+
+		#endregion
 
 		public void ApplyDnDSetup(AbilityScores scores, CharacterClass characterClass)
 		{
@@ -192,12 +263,47 @@ namespace Server.Mobiles
 			return 0;
 		}
 
-		/// <summary>A long rest: every slot back, and hit points to full.</summary>
 		public void RestoreAllSpellSlots()
 		{
 			for (int i = 0; i < m_SpellSlotsUsed.Length; ++i)
 			{
 				m_SpellSlotsUsed[i] = 0;
+			}
+		}
+
+		/// <summary>
+		/// A long rest: hit points to full and every spell slot back.
+		/// </summary>
+		public void LongRest()
+		{
+			Hits = HitsMax;
+
+			RestoreAllSpellSlots();
+
+			SendMessage(0x35, "You finish a long rest.");
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
+			}
+		}
+
+		/// <summary>
+		/// A short rest. Only Pact Magic comes back - that is the whole point of the Warlock's small
+		/// slot pool. Hit dice spending is not modelled yet, so this restores no hit points.
+		/// </summary>
+		public void ShortRest()
+		{
+			if (m_CharacterClass != null && m_CharacterClass.SpellProgression == SpellProgression.Pact)
+			{
+				RestoreAllSpellSlots();
+			}
+
+			SendMessage(0x35, "You finish a short rest.");
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
 			}
 		}
 
@@ -237,7 +343,7 @@ namespace Server.Mobiles
 		{
 			base.Serialize(writer);
 
-			writer.Write(1); // version
+			writer.Write(2); // version
 
 			writer.Write(m_DnDInitialized);
 
@@ -254,6 +360,8 @@ namespace Server.Mobiles
 				{
 					writer.Write(m_SpellSlotsUsed[i]);
 				}
+
+				writer.Write(m_Experience); // version 2
 			}
 		}
 
@@ -285,6 +393,11 @@ namespace Server.Mobiles
 							m_SpellSlotsUsed[i] = used;
 						}
 					}
+				}
+
+				if (version >= 2)
+				{
+					m_Experience = reader.ReadInt();
 				}
 			}
 		}
