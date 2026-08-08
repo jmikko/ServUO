@@ -99,14 +99,9 @@ namespace Server.Movement
                 {
                     if (ignoreDoors && ((flags & TileFlag.Door) != 0 || itemID == 0x692 || itemID == 0x846 || itemID == 0x873 || (itemID >= 0x6F5 && itemID <= 0x6F6)))
                     {
-                        if (item is BaseHouseDoor && m != null && !((BaseHouseDoor)item).CheckAccess(m))
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        // Stock ServUO also refuses house doors the mover has no access to. There
+                        // is no housing system here, so every door that can be ignored simply is.
+                        continue;
                     }
 
                     if (ignoreSpellFields && (itemID == 0x82 || itemID == 0x3946 || itemID == 0x3956))
@@ -171,7 +166,7 @@ namespace Server.Movement
             int checkTop = startZ + PersonHeight;
 
             bool ignoreDoors = (m_AlwaysIgnoreDoors || m == null || !m.Alive || m.Body.BodyID == 0x3DB || m.IsDeadBondedPet);
-            bool ignoreSpellFields = m is PlayerMobile && map != Map.Felucca;
+            bool ignoreSpellFields = m is DnDPlayerMobile && map != Map.Felucca;
 
             #region Tiles
             for (int i = 0; i < tiles.Length; ++i)
@@ -186,27 +181,10 @@ namespace Server.Movement
                     newZ = tile.Z;
                     return true;
                 }
-                else if (m is StygianDragon && map == Map.TerMur)
-                {
-                    if (x >= 307 && x <= 354 && y >= 126 && y <= 192)
-                    {
-                        if (tile.Z > newZ)
-                            newZ = tile.Z;
-
-                        moveIsOk = true;
-                    }
-                    else if (x >= 42 && x <= 89)
-                    {
-                        if ((y >= 333 && y <= 399) || (y >= 531 && y <= 597) || (y >= 739 && y <= 805))
-                        {
-                            if (tile.Z > newZ)
-                                newZ = tile.Z;
-
-                            moveIsOk = true;
-                        }
-                    }
-                }
-				#endregion
+                // Stock ServUO follows this with a hard-coded exception letting the Stygian Dragon
+                // traverse specific coordinate ranges of its Ter Mur lair. That creature and that
+                // encounter are both gone, so the special case goes with them.
+                #endregion
 
                 if ((flags & ImpassableSurface) == TileFlag.Surface || (canSwim && (flags & TileFlag.Wet) != 0)) // Surface && !Impassable
                 {
@@ -408,7 +386,9 @@ namespace Server.Movement
             List<Mobile> mobsLeft = this.m_MobPools[1];
             List<Mobile> mobsRight = this.m_MobPools[2];
 
-            bool checkMobs = (p is BaseCreature && !((BaseCreature)p).Controlled && (xForward != m_Goal.X || yForward != m_Goal.Y));
+            // Creatures body-block each other; players walk through each other. Pet control is not
+            // modelled, so every D&D creature counts as uncontrolled.
+            bool checkMobs = (p is DnDCreature && (xForward != m_Goal.X || yForward != m_Goal.Y));
 
             if (checkDiagonals)
             {

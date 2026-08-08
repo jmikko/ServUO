@@ -66,6 +66,7 @@ namespace Server.Misc
 
 			bool ok = true;
 
+			ok &= CheckMovementWorks(fighter);
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -129,6 +130,47 @@ namespace Server.Misc
 			}
 
 			Console.WriteLine("[combat-selftest]   {0} weapon: {1} (range {2})", m.Name, weapon.GetType().Name, weapon.MaxRange);
+			return true;
+		}
+
+		/// <summary>
+		/// Nothing can move unless something has assigned Movement.Impl - it is null by default and
+		/// CheckMovement then refuses every step, silently, for players and creatures alike. That is
+		/// exactly what happened once the pathing service was parked, and it is invisible from the
+		/// server console, so it gets a check of its own.
+		/// </summary>
+		private static bool CheckMovementWorks(Mobile m)
+		{
+			if (Movement.Movement.Impl == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Movement.Impl is unset - nothing will be able to walk");
+				return false;
+			}
+
+			// A step off the test tile has to be permitted by the real implementation.
+			int walkable = 0;
+
+			for (int i = 0; i < 8; i++)
+			{
+				int newZ;
+
+				if (Movement.Movement.CheckMovement(m, m.Map, m.Location, (Direction)i, out newZ))
+				{
+					++walkable;
+				}
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   movement: {0} ({1}/8 directions walkable from the test tile)",
+				Movement.Movement.Impl.GetType().Name,
+				walkable);
+
+			if (walkable == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: no direction is walkable - map data may not be loading");
+				return false;
+			}
+
 			return true;
 		}
 
