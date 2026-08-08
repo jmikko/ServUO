@@ -87,6 +87,8 @@ namespace Server.Engines.Classes
 			{
 				pm.NetState.Send(new DnDStatSync(pm));
 			}
+
+			Spells.DnD.DnDSpellPackets.SendSpellList(pm);
 		}
 
 		/// <summary>

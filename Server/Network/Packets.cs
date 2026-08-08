@@ -860,6 +860,82 @@ namespace Server.Network
 		}
 	}
 
+	/// <summary>
+	/// One spell as the client needs to see it. The spell classes themselves live in Scripts/, so
+	/// the packet is handed this flattened form rather than the spell objects.
+	/// </summary>
+	public struct DnDSpellInfo
+	{
+		public int Id;
+		public int Level;
+		public SpellSchool School;
+		public string Name;
+
+		public DnDSpellInfo(int id, int level, SpellSchool school, string name)
+		{
+			Id = id;
+			Level = level;
+			School = school;
+			Name = name;
+		}
+	}
+
+	/// <summary>
+	/// The spells a character can currently cast, with their remaining slots. Extended (0xBF)
+	/// subcommand 0x42. Sent after character setup, after a level-up, and after any cast - the
+	/// client has no way to recompute slot counts itself, so the server always tells it.
+	/// </summary>
+	public sealed class DnDSpellList : Packet
+	{
+		public DnDSpellList(IEnumerable<DnDSpellInfo> spells, int[] slotsAvailable, int[] slotsMax)
+			: base(0xBF)
+		{
+			EnsureCapacity(64);
+
+			m_Stream.Write((short)0x42);
+
+			// Slots first, so a client can render the slot bar without parsing the spell list.
+			int slotLevels = Math.Min(slotsAvailable.Length, slotsMax.Length);
+
+			m_Stream.Write((byte)slotLevels);
+
+			for (int i = 0; i < slotLevels; ++i)
+			{
+				m_Stream.Write((byte)slotsAvailable[i]);
+				m_Stream.Write((byte)slotsMax[i]);
+			}
+
+			var list = new List<DnDSpellInfo>(spells);
+
+			m_Stream.Write((byte)list.Count);
+
+			foreach (DnDSpellInfo spell in list)
+			{
+				m_Stream.Write((short)spell.Id);
+				m_Stream.Write((byte)spell.Level);
+				m_Stream.Write((byte)spell.School);
+				m_Stream.WriteAsciiNull(spell.Name);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Why a cast succeeded or failed, so the client can say so without guessing. Extended (0xBF)
+	/// subcommand 0x43. The result codes mirror Scripts' CastResult enum.
+	/// </summary>
+	public sealed class DnDCastResult : Packet
+	{
+		public DnDCastResult(int spellId, int result)
+			: base(0xBF)
+		{
+			EnsureCapacity(8);
+
+			m_Stream.Write((short)0x43);
+			m_Stream.Write((short)spellId);
+			m_Stream.Write((byte)result);
+		}
+	}
+
 	public sealed class DisplayItemListMenu : Packet
 	{
 		public DisplayItemListMenu(ItemListMenu menu)

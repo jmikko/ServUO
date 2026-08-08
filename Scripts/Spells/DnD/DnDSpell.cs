@@ -81,6 +81,14 @@ namespace Server.Spells.DnD
 		private static readonly Dictionary<string, List<DnDSpell>> m_ClassLists =
 			new Dictionary<string, List<DnDSpell>>(StringComparer.OrdinalIgnoreCase);
 
+		/// <summary>
+		/// Registration order, which is what gives every spell the small integer id the wire
+		/// protocol uses. Ids are therefore only stable for as long as SrdSpells.Configure keeps
+		/// registering in the same order - fine while client and server ship together, and the
+		/// thing to replace with an explicit id if they ever stop.
+		/// </summary>
+		private static readonly List<DnDSpell> m_Ordered = new List<DnDSpell>();
+
 		public static IEnumerable<DnDSpell> AllSpells { get { return m_Spells.Values; } }
 
 		public static int Count { get { return m_Spells.Count; } }
@@ -93,6 +101,11 @@ namespace Server.Spells.DnD
 			}
 
 			m_Spells[spell.Name] = spell;
+
+			if (!m_Ordered.Contains(spell))
+			{
+				m_Ordered.Add(spell);
+			}
 
 			foreach (string className in classNames)
 			{
@@ -115,6 +128,17 @@ namespace Server.Spells.DnD
 			DnDSpell spell;
 
 			return name != null && m_Spells.TryGetValue(name, out spell) ? spell : null;
+		}
+
+		public static DnDSpell FindById(int id)
+		{
+			return id >= 0 && id < m_Ordered.Count ? m_Ordered[id] : null;
+		}
+
+		/// <summary>-1 if the spell was never registered.</summary>
+		public static int GetId(DnDSpell spell)
+		{
+			return m_Ordered.IndexOf(spell);
 		}
 
 		/// <summary>Every spell on a class' list, whether or not the character is high enough level.</summary>

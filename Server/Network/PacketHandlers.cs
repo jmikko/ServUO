@@ -168,6 +168,7 @@ namespace Server.Network
 			RegisterEncoded(0x32, true, QuestGumpRequest);
 
 			RegisterEncoded(0x40, true, DnDCharacterSetup);
+			RegisterEncoded(0x41, true, DnDCastRequest);
 		}
 
 		public static void Register(int packetID, int length, bool ingame, OnPacketReceive onReceive)
@@ -367,6 +368,30 @@ namespace Server.Network
 			EventSink.InvokeDnDCharacterSetup(
 				new DnDCharacterSetupEventArgs(
 					state.Mobile, new AbilityScores(str, dex, con, intl, wis, cha), classIndex, speciesIndex));
+		}
+
+		/// <summary>
+		/// A client asking to cast a spell (0xD7 encoded subcommand 0x41): spell id, then the target
+		/// serial (0 for self).
+		/// <para>
+		/// Nothing is validated here beyond the caster existing - which spell exists, whether it is
+		/// on the class list, whether a slot is free and whether the target is legal are all
+		/// decisions that belong to the rules in Scripts/, and duplicating any of them here would
+		/// mean two places to keep in step.
+		/// </para>
+		/// </summary>
+		public static void DnDCastRequest(NetState state, IEntity e, EncodedReader reader)
+		{
+			if (state.Mobile == null)
+			{
+				return;
+			}
+
+			int spellId = reader.ReadInt32();
+			int targetSerial = reader.ReadInt32();
+
+			EventSink.InvokeDnDCastRequest(
+				new DnDCastRequestEventArgs(state.Mobile, spellId, (Serial)targetSerial));
 		}
 
 		public static void EncodedCommand(NetState state, PacketReader pvSrc)

@@ -177,6 +177,9 @@ namespace Server.Mobiles
 			{
 				NetState.Send(new DnDStatSync(this));
 			}
+
+			// A level can unlock a whole new spell level, so the list is resent, not just the slots.
+			Spells.DnD.DnDSpellPackets.SendSpellList(this);
 		}
 
 		private int GainedHitPointsThisLevel()

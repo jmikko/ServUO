@@ -101,6 +101,8 @@ namespace Server
 
     public delegate void DnDCharacterSetupEventHandler(DnDCharacterSetupEventArgs e);
 
+    public delegate void DnDCastRequestEventHandler(DnDCastRequestEventArgs e);
+
 	public delegate void FastWalkEventHandler(FastWalkEventArgs e);
 
 	public delegate void ServerStartedEventHandler();
@@ -360,6 +362,30 @@ namespace Server
 			m_Scores = scores;
 			m_ClassIndex = classIndex;
 			m_SpeciesIndex = speciesIndex;
+		}
+	}
+
+	/// <summary>
+	/// A client asking to cast a spell. Carried to Scripts/ the same way character setup is: the
+	/// spell classes and the registry live there, so Server/ can only pass along the identifiers.
+	/// </summary>
+	public class DnDCastRequestEventArgs : EventArgs
+	{
+		private readonly Mobile m_Mobile;
+		private readonly int m_SpellId;
+		private readonly Serial m_TargetSerial;
+
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int SpellId { get { return m_SpellId; } }
+
+		/// <summary>Serial.Zero when the spell is being cast on the caster.</summary>
+		public Serial TargetSerial { get { return m_TargetSerial; } }
+
+		public DnDCastRequestEventArgs(Mobile mobile, int spellId, Serial targetSerial)
+		{
+			m_Mobile = mobile;
+			m_SpellId = spellId;
+			m_TargetSerial = targetSerial;
 		}
 	}
 
@@ -1762,6 +1788,7 @@ namespace Server
         public static event AfterWorldSaveEventHandler AfterWorldSave;
         public static event SetAbilityEventHandler SetAbility;
         public static event DnDCharacterSetupEventHandler DnDCharacterSetup;
+		public static event DnDCastRequestEventHandler DnDCastRequest;
 		public static event FastWalkEventHandler FastWalk;
 		public static event CreateGuildHandler CreateGuild;
 		public static event ServerStartedEventHandler ServerStarted;
@@ -1883,6 +1910,14 @@ namespace Server
 			if (DnDCharacterSetup != null)
 			{
 				DnDCharacterSetup(e);
+			}
+		}
+
+		public static void InvokeDnDCastRequest(DnDCastRequestEventArgs e)
+		{
+			if (DnDCastRequest != null)
+			{
+				DnDCastRequest(e);
 			}
 		}
 
