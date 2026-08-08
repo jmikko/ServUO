@@ -67,6 +67,7 @@ namespace Server.Misc
 			bool ok = true;
 
 			ok &= CheckMovementWorks(fighter);
+			ok &= CheckSpeciesRendering();
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -131,6 +132,58 @@ namespace Server.Misc
 
 			Console.WriteLine("[combat-selftest]   {0} weapon: {1} (range {2})", m.Name, weapon.GetType().Name, weapon.MaxRange);
 			return true;
+		}
+
+		/// <summary>
+		/// After a species change, no character may be left carrying hair or a beard that species
+		/// has no art for. The client draws hair, beard and body as separate layers and does not
+		/// check they belong together - it just draws them, which is what makes a human hairstyle
+		/// on a gargoyle look like two overlapping figures rather than like an error.
+		/// </summary>
+		private static bool CheckSpeciesRendering()
+		{
+			bool ok = true;
+			int bad = 0;
+
+			foreach (Race race in Race.AllRaces)
+			{
+				if (race == null)
+				{
+					continue;
+				}
+
+				DnDPlayerMobile pm = new DnDPlayerMobile { Name = "RenderProbe", Body = 0x190 };
+
+				// Human hair and beard, exactly as vanilla character creation hands them over.
+				pm.HairItemID = 0x203B;
+				pm.FacialHairItemID = 0x203E;
+
+				pm.Race = race;
+
+				bool hairOk = pm.HairItemID == 0 || race.ValidateHair(pm, pm.HairItemID);
+				bool beardOk = pm.FacialHairItemID == 0 || race.ValidateFacialHair(pm, pm.FacialHairItemID);
+
+				if (!hairOk || !beardOk)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0} kept art it has none for - hair 0x{1:X} beard 0x{2:X}",
+						race.Name,
+						pm.HairItemID,
+						pm.FacialHairItemID);
+
+					++bad;
+					ok = false;
+				}
+
+				pm.Delete();
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   species art: {0} race(s) checked, {1} mismatch(es)",
+				Race.AllRaces.Count,
+				bad);
+
+			return ok;
 		}
 
 		/// <summary>

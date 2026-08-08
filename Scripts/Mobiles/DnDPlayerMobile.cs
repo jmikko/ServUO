@@ -329,6 +329,39 @@ namespace Server.Mobiles
 			return base.OnEquip(item);
 		}
 
+		/// <summary>
+		/// Drops hair and facial hair the new species has no art for.
+		/// <para>
+		/// Hair, beard and body are separate layers drawn together by the client, and each race has
+		/// its own art ranges. Nothing validates them on a race change, so a character created as a
+		/// human and then made a Gargoyle keeps a human hairstyle - which the client happily draws
+		/// on top of the gargoyle body, producing what looks like two overlapping figures. Stock
+		/// ServUO handles this in PlayerMobile.ValidateEquipment; this is the part of it that still
+		/// applies here.
+		/// </para>
+		/// </summary>
+		protected override void OnRaceChange(Race oldRace)
+		{
+			base.OnRaceChange(oldRace);
+
+			Race race = Race;
+
+			if (race == null)
+			{
+				return;
+			}
+
+			if (HairItemID != 0 && !race.ValidateHair(this, HairItemID))
+			{
+				HairItemID = 0;
+			}
+
+			if (FacialHairItemID != 0 && !race.ValidateFacialHair(this, FacialHairItemID))
+			{
+				FacialHairItemID = 0;
+			}
+		}
+
 		/// <summary>Species darkvision, surfaced through the light-level calculation.</summary>
 		public override void ComputeBaseLightLevels(out int global, out int personal)
 		{
