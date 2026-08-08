@@ -70,6 +70,35 @@ namespace Server.Misc
 				"DnDCharacterCreation: created '{0}' on account '{1}'",
 				pm.Name,
 				args.Account.Username);
+
+			PromptForDnDSetup(args.State);
+		}
+
+		/// <summary>
+		/// Asks the client to show the D&amp;D setup screen (species + class + ability scores).
+		/// <para>
+		/// Deliberately delayed: CharacterCreated fires BEFORE PacketHandlers.DoLogin sends the
+		/// world-entry burst that moves the client into its in-game UI state. Sending the prompt
+		/// immediately means the gump is added before the client's UIManager exists and is
+		/// silently dropped on the scene transition - this cost real debugging time once already.
+		/// </para>
+		/// </summary>
+		private static void PromptForDnDSetup(NetState state)
+		{
+			if (state == null)
+			{
+				return;
+			}
+
+			Timer.DelayCall(
+				TimeSpan.FromSeconds(2.0),
+				() =>
+				{
+					if (state.Running)
+					{
+						state.Send(new DnDCreationPrompt());
+					}
+				});
 		}
 
 		/// <summary>

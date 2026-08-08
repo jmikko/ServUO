@@ -44,7 +44,7 @@ namespace Server.Engines.Classes
 		/// </summary>
 		private static void OnDnDCharacterSetup(DnDCharacterSetupEventArgs e)
 		{
-			PlayerMobile pm = e.Mobile as PlayerMobile;
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
 
 			if (pm == null || pm.DnDInitialized)
 			{
@@ -119,7 +119,7 @@ namespace Server.Engines.Classes
 		/// </summary>
 		private static void OnDnDSheetCommand(CommandEventArgs e)
 		{
-			PlayerMobile pm = e.Mobile as PlayerMobile;
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
 
 			if (pm == null || !pm.DnDInitialized)
 			{
