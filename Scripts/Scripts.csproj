@@ -22,6 +22,15 @@
 		<DebugType>none</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
+		<!--
+			Legacy/ holds the original ServUO Scripts tree. It is excluded from compilation and
+			kept only as a reference source to port content across from during the D&D rebuild.
+			Files are moved OUT of Legacy/ into the tree proper as they are adopted.
+		-->
+		<Compile Remove="Legacy\**\*.cs" />
+		<None Include="Legacy\**\*.cs" />
+	</ItemGroup>
+	<ItemGroup>
 		<Reference Include="System.Web" />
 	</ItemGroup>
 	<ItemGroup>
