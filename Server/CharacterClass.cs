@@ -52,6 +52,19 @@ namespace Server
 
 		public abstract bool CanCastSpells { get; }
 
+		/// <summary>
+		/// How fast this class gains spell slots. Non-casters leave this at None, which is what
+		/// makes <see cref="Spellcasting.GetMaxSlots"/> hand them nothing at any level.
+		/// </summary>
+		public virtual SpellProgression SpellProgression { get { return SpellProgression.None; } }
+
+		/// <summary>
+		/// The ability that powers this class' magic - Int for Wizards, Wis for the divine and
+		/// primal classes, Cha for the ones that cast on force of personality or a pact. Only
+		/// meaningful when <see cref="SpellProgression"/> is not None.
+		/// </summary>
+		public virtual AbilityScoreType SpellcastingAbility { get { return AbilityScoreType.Int; } }
+
 		public override string ToString()
 		{
 			return Name;

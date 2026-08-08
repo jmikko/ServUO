@@ -1,0 +1,141 @@
+using System;
+using Server.Mobiles;
+
+namespace Server.Spells.DnD
+{
+	public enum CastResult
+	{
+		Success,
+		NotACaster,
+		NotOnClassList,
+		NoSlotAvailable,
+		NoTarget,
+		OutOfRange,
+		WrongTargetType
+	}
+
+	/// <summary>
+	/// The one way a spell gets cast. Everything that can refuse a cast is checked here, in one
+	/// place, so a spell's own Effect never has to re-check whether it was allowed to happen.
+	/// </summary>
+	public static class DnDCasting
+	{
+		/// <summary>
+		/// Casts <paramref name="spell"/>, spending the smallest slot that fits (cantrips spend
+		/// nothing). Returns why it failed, if it did.
+		/// </summary>
+		public static CastResult Cast(DnDPlayerMobile caster, DnDSpell spell, Mobile target)
+		{
+			if (caster == null || spell == null)
+			{
+				return CastResult.NotACaster;
+			}
+
+			CharacterClass charClass = caster.CharacterClass;
+
+			if (!caster.DnDInitialized || charClass == null || !charClass.CanCastSpells)
+			{
+				return CastResult.NotACaster;
+			}
+
+			if (!IsOnClassList(charClass, spell))
+			{
+				return CastResult.NotOnClassList;
+			}
+
+			if (spell.RequiresTarget)
+			{
+				if (target == null || target.Deleted || !target.Alive)
+				{
+					return CastResult.NoTarget;
+				}
+
+				// Fireballing yourself is a misclick, not a tactic. (Beneficial spells are left
+				// free to target anyone, including the caster.)
+				if (!spell.Beneficial && target == caster)
+				{
+					return CastResult.WrongTargetType;
+				}
+
+				if (target.Map != caster.Map || !caster.InRange(target, Math.Max(1, spell.Range)))
+				{
+					return CastResult.OutOfRange;
+				}
+			}
+
+			int slotLevel = spell.Level;
+
+			if (!spell.IsCantrip)
+			{
+				slotLevel = caster.FindSlotFor(spell.Level);
+
+				if (slotLevel == 0 || !caster.ConsumeSpellSlot(slotLevel))
+				{
+					return CastResult.NoSlotAvailable;
+				}
+			}
+
+			spell.Effect(caster, caster, target ?? caster, slotLevel);
+
+			return CastResult.Success;
+		}
+
+		private static bool IsOnClassList(CharacterClass charClass, DnDSpell spell)
+		{
+			return SpellRegistry.GetClassList(charClass.Name).Contains(spell);
+		}
+
+		/// <summary>
+		/// Rolls a spell attack or a saving throw and reports how much of the spell's damage lands:
+		/// all of it, half (a successful save against a spell that only halves), or none.
+		/// </summary>
+		public static int ApplySpellDamage(
+			Mobile caster,
+			IDnDCharacter character,
+			Mobile target,
+			DnDSpell spell,
+			int damage)
+		{
+			switch (spell.Resolution)
+			{
+				case SpellResolution.SpellAttack:
+					{
+						int roll = Utility.RandomMinMax(1, 20);
+
+						if (roll == 1)
+						{
+							return 0;
+						}
+
+						if (roll == 20)
+						{
+							damage += damage; // a critical spell hit rolls its dice twice
+						}
+						else if (roll + Spellcasting.GetSpellAttackBonus(character) <
+								 CombatRules.GetArmorClass(target))
+						{
+							return 0;
+						}
+
+						break;
+					}
+				case SpellResolution.SavingThrow:
+					{
+						if (CombatRules.CheckSave(target, spell.SaveAbility, Spellcasting.GetSaveDC(character)))
+						{
+							damage = spell.HalfDamageOnSave ? damage / 2 : 0;
+						}
+
+						break;
+					}
+			}
+
+			if (damage > 0)
+			{
+				target.Damage(damage, caster);
+			}
+
+			return damage;
+		}
+	}
+}

@@ -1,6 +1,7 @@
 using System;
 using Server.Items;
 using Server.Mobiles;
+using Server.Spells.DnD;
 using Server.Regions;
 
 namespace Server.Misc
@@ -87,6 +88,8 @@ namespace Server.Misc
 			ok &= RunSwings("goblin", goblin, fighter, null, 1, 6, 2, 0);
 
 			ok &= CheckDamageIsApplied(fighter, goblin, sword);
+			ok &= CheckSpellSlotTables();
+			ok &= CheckSpellcasting(fighter);
 
 			fighter.Delete();
 			goblin.Delete();
@@ -209,8 +212,7 @@ namespace Server.Misc
 		/// Swings the resolver enough times to make the hit rate meaningful, then checks it against
 		/// the rate the d20 math predicts. With a wide tolerance this catches a resolver that always
 		/// hits, never hits, or ignores AC, without being flaky.
-		/// </summary>
-		/// <summary>
+		/// <para>
 		/// Statistics come from the pure roll rather than from watching the target's HP: a target
 		/// that dies (or is Blessed, or is at full health already) makes an HP delta a liar, and
 		/// the whole point here is to check the dice, not the bookkeeping. That damage genuinely
@@ -338,6 +340,228 @@ namespace Server.Misc
 			}
 
 			Console.WriteLine("[combat-selftest] FAIL: 200 swings never reduced the target's hit points");
+			return false;
+		}
+
+		/// <summary>
+		/// Spot-checks the SRD slot tables at the boundaries that are easy to get wrong: a
+		/// half-caster having nothing at 1st, and Pact Magic putting every slot at one level.
+		/// </summary>
+		private static bool CheckSpellSlotTables()
+		{
+			bool ok = true;
+
+			ok &= CheckSlots("Wizard 1", SpellProgression.Full, 1, 1, 2);
+			ok &= CheckSlots("Wizard 1 (2nd-level)", SpellProgression.Full, 1, 2, 0);
+			ok &= CheckSlots("Wizard 5 (3rd-level)", SpellProgression.Full, 5, 3, 2);
+			ok &= CheckSlots("Wizard 20 (9th-level)", SpellProgression.Full, 20, 9, 1);
+
+			// A Paladin casts nothing at 1st and as a 1st-level caster at 2nd.
+			ok &= CheckSlots("Paladin 1", SpellProgression.Half, 1, 1, 0);
+			ok &= CheckSlots("Paladin 2", SpellProgression.Half, 2, 1, 2);
+			ok &= CheckSlots("Paladin 5 (2nd-level)", SpellProgression.Half, 5, 2, 2);
+
+			// Pact Magic: all slots sit at one level, and none exist below it.
+			ok &= CheckSlots("Warlock 1", SpellProgression.Pact, 1, 1, 1);
+			ok &= CheckSlots("Warlock 3 (2nd-level)", SpellProgression.Pact, 3, 2, 2);
+			ok &= CheckSlots("Warlock 3 (1st-level)", SpellProgression.Pact, 3, 1, 0);
+
+			ok &= CheckSlots("Fighter 20", SpellProgression.None, 20, 1, 0);
+
+			Console.WriteLine("[combat-selftest]   spell slot tables: {0}", ok ? "OK" : "MISMATCH");
+
+			return ok;
+		}
+
+		private static bool CheckSlots(string label, SpellProgression progression, int level, int spellLevel, int expected)
+		{
+			int actual = Spellcasting.GetMaxSlots(progression, level, spellLevel);
+
+			if (actual == expected)
+			{
+				return true;
+			}
+
+			Console.WriteLine("[combat-selftest] FAIL: {0} slots expected {1}, got {2}", label, expected, actual);
+			return false;
+		}
+
+		/// <summary>
+		/// Casts real spells through the real entry point, checking the things that are meant to
+		/// refuse a cast actually refuse it, and that slots are spent exactly once.
+		/// </summary>
+		private static bool CheckSpellcasting(DnDPlayerMobile fighter)
+		{
+			bool ok = true;
+
+			// Blessed, because a goblin has 7 hit points and Fire Bolt averages more than that: an
+			// unblessed dummy dies on the first cantrip and every later cast reports NoTarget.
+			// Damage actually landing is checked separately, against a target meant to die.
+			SrdGoblin dummy = new SrdGoblin { Blessed = true };
+			dummy.MoveToWorld(TestLocation, Map.Felucca);
+
+			DnDPlayerMobile wizard = new DnDPlayerMobile { Name = "SelfTestWizard", Body = 0x190 };
+
+			wizard.ApplyDnDSetup(
+				new AbilityScores(8, 14, 12, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			wizard.MoveToWorld(TestLocation, Map.Felucca);
+
+			// Int 16 -> +3, proficiency +2. SRD: DC = 8 + prof + mod, attack = prof + mod.
+			ok &= CheckValue("wizard save DC", Spellcasting.GetSaveDC(wizard), 13);
+			ok &= CheckValue("wizard spell attack", Spellcasting.GetSpellAttackBonus(wizard), 5);
+			ok &= CheckValue("wizard 1st-level slots", wizard.GetAvailableSpellSlots(1), 2);
+
+			DnDSpell fireBolt = SpellRegistry.Find("Fire Bolt");
+			DnDSpell magicMissile = SpellRegistry.Find("Magic Missile");
+			DnDSpell cureWounds = SpellRegistry.Find("Cure Wounds");
+
+			if (fireBolt == null || magicMissile == null || cureWounds == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: starter spells are not registered");
+				wizard.Delete();
+				dummy.Delete();
+				return false;
+			}
+
+			// A cantrip costs nothing, however many times it is cast.
+			ok &= CheckCast("cantrip", DnDCasting.Cast(wizard, fireBolt, dummy), CastResult.Success);
+			ok &= CheckCast("cantrip again", DnDCasting.Cast(wizard, fireBolt, dummy), CastResult.Success);
+			ok &= CheckValue("slots after 2 cantrips", wizard.GetAvailableSpellSlots(1), 2);
+
+			// A levelled spell spends exactly one slot per cast, and stops when they run out.
+			ok &= CheckCast("magic missile", DnDCasting.Cast(wizard, magicMissile, dummy), CastResult.Success);
+			ok &= CheckValue("slots after 1 spell", wizard.GetAvailableSpellSlots(1), 1);
+
+			ok &= CheckCast("magic missile 2", DnDCasting.Cast(wizard, magicMissile, dummy), CastResult.Success);
+			ok &= CheckValue("slots after 2 spells", wizard.GetAvailableSpellSlots(1), 0);
+
+			ok &= CheckCast("out of slots", DnDCasting.Cast(wizard, magicMissile, dummy), CastResult.NoSlotAvailable);
+
+			// A long rest hands them all back.
+			wizard.RestoreAllSpellSlots();
+			ok &= CheckValue("slots after rest", wizard.GetAvailableSpellSlots(1), 2);
+
+			// Class list and caster gating.
+			ok &= CheckCast("wizard casting a cleric spell", DnDCasting.Cast(wizard, cureWounds, wizard), CastResult.NotOnClassList);
+			ok &= CheckCast("fighter casting", DnDCasting.Cast(fighter, fireBolt, dummy), CastResult.NotACaster);
+			ok &= CheckCast("fire bolt on self", DnDCasting.Cast(wizard, fireBolt, wizard), CastResult.WrongTargetType);
+
+			ok &= CheckHealing();
+			ok &= CheckSpellDamageIsApplied(wizard, fireBolt);
+
+			Console.WriteLine(
+				"[combat-selftest]   spellcasting: DC {0}, attack +{1}, {2} spell(s) available to a 1st-level wizard",
+				Spellcasting.GetSaveDC(wizard),
+				Spellcasting.GetSpellAttackBonus(wizard),
+				SpellRegistry.GetAvailable(wizard).Count);
+
+			wizard.Delete();
+			dummy.Delete();
+
+			return ok;
+		}
+
+		/// <summary>
+		/// A spell's damage has to reach the target's hit points, not just be rolled. Fire Bolt is a
+		/// spell attack, so it can miss - hence the retry loop.
+		/// </summary>
+		private static bool CheckSpellDamageIsApplied(DnDPlayerMobile caster, DnDSpell spell)
+		{
+			SrdGoblin victim = new SrdGoblin();
+			victim.MoveToWorld(TestLocation, Map.Felucca);
+
+			for (int i = 0; i < 200; i++)
+			{
+				victim.Hits = victim.HitsMax;
+
+				int before = victim.Hits;
+
+				if (DnDCasting.Cast(caster, spell, victim) == CastResult.Success && victim.Hits < before)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   spell damage: {0} took {1} from {2}",
+						victim.Name,
+						before - victim.Hits,
+						spell.Name);
+
+					victim.Delete();
+					return true;
+				}
+
+				if (!victim.Alive)
+				{
+					Console.WriteLine("[combat-selftest]   spell damage: {0} was killed by {1}", victim.Name, spell.Name);
+
+					victim.Delete();
+					return true;
+				}
+			}
+
+			Console.WriteLine("[combat-selftest] FAIL: 200 casts of {0} never damaged the target", spell.Name);
+
+			victim.Delete();
+			return false;
+		}
+
+		/// <summary>Healing has to actually put hit points back, and never past the maximum.</summary>
+		private static bool CheckHealing()
+		{
+			DnDPlayerMobile cleric = new DnDPlayerMobile { Name = "SelfTestCleric", Body = 0x190 };
+
+			cleric.ApplyDnDSetup(
+				new AbilityScores(12, 10, 14, 10, 16, 10),
+				CharacterClass.Parse("Cleric"));
+
+			cleric.MoveToWorld(TestLocation, Map.Felucca);
+
+			DnDSpell cureWounds = SpellRegistry.Find("Cure Wounds");
+
+			cleric.Hits = 1;
+
+			CastResult result = DnDCasting.Cast(cleric, cureWounds, cleric);
+
+			bool ok = CheckCast("cure wounds", result, CastResult.Success);
+
+			if (cleric.Hits <= 1)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: cure wounds restored no hit points");
+				ok = false;
+			}
+
+			Console.WriteLine("[combat-selftest]   healing: cleric HP 1 -> {0} (max {1})", cleric.Hits, cleric.HitsMax);
+
+			if (cleric.Hits > cleric.HitsMax)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: healing exceeded maximum hit points");
+				ok = false;
+			}
+
+			cleric.Delete();
+
+			return ok;
+		}
+
+		private static bool CheckCast(string label, CastResult actual, CastResult expected)
+		{
+			if (actual == expected)
+			{
+				return true;
+			}
+
+			Console.WriteLine("[combat-selftest] FAIL: {0} expected {1}, got {2}", label, expected, actual);
+			return false;
+		}
+
+		private static bool CheckValue(string label, int actual, int expected)
+		{
+			if (actual == expected)
+			{
+				return true;
+			}
+
+			Console.WriteLine("[combat-selftest] FAIL: {0} expected {1}, got {2}", label, expected, actual);
 			return false;
 		}
 	}

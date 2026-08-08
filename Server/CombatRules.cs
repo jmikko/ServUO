@@ -166,6 +166,31 @@ namespace Server
 				: character.AbilityScores.StrMod;
 		}
 
+		/// <summary>
+		/// Rolls a saving throw: d20 + ability modifier, plus the proficiency bonus if the target's
+		/// class is proficient in that save. Monsters have no per-ability save data in their stat
+		/// blocks yet, so they roll flat d20 against the DC.
+		/// </summary>
+		public static bool CheckSave(Mobile target, AbilityScoreType ability, int dc)
+		{
+			int roll = Utility.RandomMinMax(1, 20);
+			int bonus = 0;
+
+			IDnDCharacter character = target as IDnDCharacter;
+
+			if (character != null && character.DnDInitialized)
+			{
+				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+
+				if (character.CharacterClass != null && character.CharacterClass.IsProficientSave(ability))
+				{
+					bonus += character.CharacterClass.GetProficiencyBonus(character.CharacterLevel);
+				}
+			}
+
+			return roll + bonus >= dc;
+		}
+
 		/// <summary>Defender AC. Anything with no D&amp;D data at all sits at the SRD floor of 10.</summary>
 		public static int GetArmorClass(IDamageable defender)
 		{

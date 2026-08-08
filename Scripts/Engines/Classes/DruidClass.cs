@@ -22,5 +22,9 @@ namespace Server.Engines.Classes
 		}
 
 		public override bool CanCastSpells { get { return true; } }
+
+		public override SpellProgression SpellProgression { get { return SpellProgression.Full; } }
+
+		public override AbilityScoreType SpellcastingAbility { get { return AbilityScoreType.Wis; } }
 	}
 }

@@ -134,7 +134,74 @@ namespace Server.Mobiles
 			m_DnDInitialized = true;
 
 			Hits = HitsMax;
+
+			RestoreAllSpellSlots();
 		}
+
+		#region Spell slots
+
+		// Index 0 holds 1st-level slots; cantrips cost nothing and so are not tracked here.
+		private int[] m_SpellSlotsUsed = new int[Spellcasting.MaxSpellLevel];
+
+		public int GetMaxSpellSlots(int spellLevel)
+		{
+			if (!m_DnDInitialized || m_CharacterClass == null)
+			{
+				return 0;
+			}
+
+			return Spellcasting.GetMaxSlots(m_CharacterClass.SpellProgression, m_CharacterLevel, spellLevel);
+		}
+
+		public int GetAvailableSpellSlots(int spellLevel)
+		{
+			if (spellLevel < 1 || spellLevel > Spellcasting.MaxSpellLevel)
+			{
+				return 0;
+			}
+
+			return Math.Max(0, GetMaxSpellSlots(spellLevel) - m_SpellSlotsUsed[spellLevel - 1]);
+		}
+
+		/// <summary>Spends one slot of the given level, or reports that there wasn't one.</summary>
+		public bool ConsumeSpellSlot(int spellLevel)
+		{
+			if (GetAvailableSpellSlots(spellLevel) <= 0)
+			{
+				return false;
+			}
+
+			++m_SpellSlotsUsed[spellLevel - 1];
+			return true;
+		}
+
+		/// <summary>
+		/// The lowest unspent slot that can carry a spell of this level, or 0 if there is none.
+		/// Casting from the smallest slot that fits is what a player would pick by hand.
+		/// </summary>
+		public int FindSlotFor(int spellLevel)
+		{
+			for (int level = Math.Max(1, spellLevel); level <= Spellcasting.MaxSpellLevel; ++level)
+			{
+				if (GetAvailableSpellSlots(level) > 0)
+				{
+					return level;
+				}
+			}
+
+			return 0;
+		}
+
+		/// <summary>A long rest: every slot back, and hit points to full.</summary>
+		public void RestoreAllSpellSlots()
+		{
+			for (int i = 0; i < m_SpellSlotsUsed.Length; ++i)
+			{
+				m_SpellSlotsUsed[i] = 0;
+			}
+		}
+
+		#endregion
 
 		/// <summary>
 		/// D&amp;D proficiency is enforced at the actual equip boundary, rather than only when the
@@ -170,7 +237,7 @@ namespace Server.Mobiles
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(1); // version
 
 			writer.Write(m_DnDInitialized);
 
@@ -179,6 +246,14 @@ namespace Server.Mobiles
 				m_AbilityScores.Serialize(writer);
 				writer.Write(m_CharacterClass == null ? "" : m_CharacterClass.Name);
 				writer.Write(m_CharacterLevel);
+
+				// version 1: spent spell slots
+				writer.Write(m_SpellSlotsUsed.Length);
+
+				for (int i = 0; i < m_SpellSlotsUsed.Length; ++i)
+				{
+					writer.Write(m_SpellSlotsUsed[i]);
+				}
 			}
 		}
 
@@ -186,7 +261,7 @@ namespace Server.Mobiles
 		{
 			base.Deserialize(reader);
 
-			reader.ReadInt(); // version
+			int version = reader.ReadInt();
 
 			m_DnDInitialized = reader.ReadBool();
 
@@ -195,6 +270,22 @@ namespace Server.Mobiles
 				m_AbilityScores = AbilityScores.Deserialize(reader);
 				m_CharacterClass = CharacterClass.Parse(reader.ReadString());
 				m_CharacterLevel = reader.ReadInt();
+
+				if (version >= 1)
+				{
+					int count = reader.ReadInt();
+
+					for (int i = 0; i < count; ++i)
+					{
+						int used = reader.ReadInt();
+
+						// Tolerate a save written when MaxSpellLevel was larger than it is now.
+						if (i < m_SpellSlotsUsed.Length)
+						{
+							m_SpellSlotsUsed[i] = used;
+						}
+					}
+				}
 			}
 		}
 	}
