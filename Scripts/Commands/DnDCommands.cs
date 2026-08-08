@@ -20,6 +20,102 @@ namespace Server.Commands
 			CommandSystem.Register("spells", AccessLevel.Player, Spells_OnCommand);
 			CommandSystem.Register("Attune", AccessLevel.Player, Attune_OnCommand);
 			CommandSystem.Register("Unattune", AccessLevel.Player, Unattune_OnCommand);
+
+			CommandSystem.Register("XP", AccessLevel.GameMaster, XP_OnCommand);
+			CommandSystem.Register("LevelUp", AccessLevel.GameMaster, LevelUp_OnCommand);
+		}
+
+		[Usage("XP <amount>")]
+		[Description("Awards experience to yourself. Levels earned still have to be spent with [LevelUp.")]
+		private static void XP_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			int amount = e.Length > 0 ? e.GetInt32(0) : 0;
+
+			if (amount <= 0)
+			{
+				pm.SendMessage("Usage: [XP <amount>");
+				return;
+			}
+
+			pm.AwardExperience(amount);
+
+			pm.SendMessage(
+				"Experience {0}, level {1}, {2} level(s) waiting to be spent.",
+				pm.Experience,
+				pm.TotalLevel,
+				pm.PendingLevels);
+		}
+
+		/// <summary>
+		/// [LevelUp - spends one pending level on a class.
+		/// <para>
+		/// The client's level-up window is the real way to do this; a level is a choice, and which
+		/// class it goes into is what multiclassing is. This exists so advancement can be tested
+		/// without the gump, and so a player whose client is out of date is not stuck with levels
+		/// they can never spend.
+		/// </para>
+		/// </summary>
+		[Usage("LevelUp [class]")]
+		[Description("Spends one pending level. Defaults to your current class.")]
+		private static void LevelUp_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (pm.PendingLevels <= 0)
+			{
+				int toNext = Advancement.GetExperienceToNextLevel(pm.Experience);
+
+				pm.SendMessage(
+					"You have no levels waiting. {0}",
+					toNext > 0 ? String.Format("{0} more experience to level {1}.", toNext, pm.TotalLevel + 1) : "You are at the maximum level.");
+
+				return;
+			}
+
+			CharacterClass into = e.Length > 0 ? CharacterClass.Parse(e.GetString(0)) : pm.PrimaryClass;
+
+			if (into == null)
+			{
+				pm.SendMessage("No such class. Try one of: {0}", DescribeClasses());
+				return;
+			}
+
+			pm.AddClassLevel(into);
+
+			pm.SendMessage(
+				0x35,
+				"Level {0} total. {1} level(s) still waiting.",
+				pm.TotalLevel,
+				pm.PendingLevels);
+		}
+
+		private static string DescribeClasses()
+		{
+			var builder = new StringBuilder();
+
+			foreach (CharacterClass c in CharacterClass.AllClasses)
+			{
+				if (builder.Length > 0)
+				{
+					builder.Append(", ");
+				}
+
+				builder.Append(c.Name);
+			}
+
+			return builder.ToString();
 		}
 
 		[Usage("sheet")]
