@@ -24,5 +24,12 @@ namespace Server.Engines.Classes
 		public override ArmorCategory ArmorProficiencies { get { return ArmorCategory.None; } }
 
 		public override bool CanCastSpells { get { return false; } }
+
+		public override int SkillChoiceCount { get { return 2; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.Acrobatics, DnDSkill.Athletics, DnDSkill.History, DnDSkill.Insight, DnDSkill.Religion, DnDSkill.Stealth }; }
+		}
 	}
 }

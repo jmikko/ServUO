@@ -381,12 +381,26 @@ namespace Server
 		/// </summary>
 		public int SpeciesIndex { get { return m_SpeciesIndex; } }
 
-		public DnDCharacterSetupEventArgs(Mobile mobile, AbilityScores scores, int classIndex, int speciesIndex)
+		/// <summary>
+		/// The skill proficiencies the player picked. Never empty in practice but never trusted
+		/// either - the class decides which of these it will actually honour.
+		/// </summary>
+		public System.Collections.Generic.List<DnDSkill> Skills { get { return m_Skills; } }
+
+		private readonly System.Collections.Generic.List<DnDSkill> m_Skills;
+
+		public DnDCharacterSetupEventArgs(
+			Mobile mobile,
+			AbilityScores scores,
+			int classIndex,
+			int speciesIndex,
+			System.Collections.Generic.List<DnDSkill> skills = null)
 		{
 			m_Mobile = mobile;
 			m_Scores = scores;
 			m_ClassIndex = classIndex;
 			m_SpeciesIndex = speciesIndex;
+			m_Skills = skills ?? new System.Collections.Generic.List<DnDSkill>();
 		}
 	}
 

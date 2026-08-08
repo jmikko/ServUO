@@ -31,5 +31,12 @@ namespace Server.Engines.Classes
 		{
 			return int.MaxValue;
 		}
+
+		public override int SkillChoiceCount { get { return 2; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.History, DnDSkill.Insight, DnDSkill.Medicine, DnDSkill.Persuasion, DnDSkill.Religion }; }
+		}
 	}
 }

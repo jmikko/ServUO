@@ -344,6 +344,29 @@ namespace Server.Network
 			int classIndex = reader.ReadInt32();
 			int speciesIndex = reader.ReadInt32();
 
+			// Chosen skill proficiencies, appended after the original fields so that a client
+			// predating them simply sends nothing and the server fills the defaults in.
+			var skills = new List<DnDSkill>();
+
+			try
+			{
+				int skillCount = reader.ReadInt32();
+
+				for (int i = 0; i < skillCount && i < 16; ++i)
+				{
+					int value = reader.ReadInt32();
+
+					if (Enum.IsDefined(typeof(DnDSkill), value))
+					{
+						skills.Add((DnDSkill)value);
+					}
+				}
+			}
+			catch
+			{
+				// An older client ends the packet here. Not an error - the class' own list is used.
+			}
+
 			int[] scores = { str, dex, con, intl, wis, cha };
 
 			for (int i = 0; i < scores.Length; ++i)
@@ -368,7 +391,7 @@ namespace Server.Network
 
 			EventSink.InvokeDnDCharacterSetup(
 				new DnDCharacterSetupEventArgs(
-					state.Mobile, new AbilityScores(str, dex, con, intl, wis, cha), classIndex, speciesIndex));
+					state.Mobile, new AbilityScores(str, dex, con, intl, wis, cha), classIndex, speciesIndex, skills));
 		}
 
 		/// <summary>

@@ -55,6 +55,19 @@ namespace Server
 		public abstract bool CanCastSpells { get; }
 
 		/// <summary>
+		/// The skills this class may take proficiency in at creation. A character picks
+		/// <see cref="SkillChoiceCount"/> of them - which is what makes two Fighters different
+		/// before either has gained a level.
+		/// <para>
+		/// A subclass inherits its parent's list unless it says otherwise, which is correct: a
+		/// Champion is a Fighter and trains as one.
+		/// </para>
+		/// </summary>
+		public virtual DnDSkill[] SkillChoices { get { return new DnDSkill[0]; } }
+
+		public virtual int SkillChoiceCount { get { return 2; } }
+
+		/// <summary>
 		/// How fast this class gains spell slots. Non-casters leave this at None, which is what
 		/// makes <see cref="Spellcasting.GetMaxSlots"/> hand them nothing at any level.
 		/// </summary>

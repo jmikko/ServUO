@@ -101,6 +101,9 @@ namespace Server.Engines.Classes
 
 			pm.ApplyDnDSetup(finalScores, charClass);
 
+			// After setup, since ApplyDnDSetup seeds the class defaults and this replaces them with
+			// what the player actually chose.
+			pm.ApplySkillProficiencies(charClass, e.Skills);
 
 			GrantStartingKit(pm, charClass);
 

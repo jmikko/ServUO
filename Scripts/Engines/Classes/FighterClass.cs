@@ -25,5 +25,12 @@ namespace Server.Engines.Classes
 			}
 			return 0;
 		}
+
+		public override int SkillChoiceCount { get { return 2; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.Acrobatics, DnDSkill.AnimalHandling, DnDSkill.Athletics, DnDSkill.History, DnDSkill.Insight, DnDSkill.Intimidation, DnDSkill.Perception, DnDSkill.Survival }; }
+		}
 	}
 }

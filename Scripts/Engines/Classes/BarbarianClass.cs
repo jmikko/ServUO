@@ -19,5 +19,12 @@ namespace Server.Engines.Classes
 		}
 
 		public override bool CanCastSpells { get { return false; } }
+
+		public override int SkillChoiceCount { get { return 2; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.AnimalHandling, DnDSkill.Athletics, DnDSkill.Intimidation, DnDSkill.Nature, DnDSkill.Perception, DnDSkill.Survival }; }
+		}
 	}
 }

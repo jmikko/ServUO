@@ -338,31 +338,59 @@ namespace Server.Mobiles
 			m_Classes[characterClass] = 1;
 			m_DnDInitialized = true;
 
-			m_SkillProficiencies.Clear();
-			if (characterClass.Name == "Wizard" || characterClass.Name == "Sorcerer")
-			{
-				m_SkillProficiencies.Add(DnDSkill.Arcana);
-				m_SkillProficiencies.Add(DnDSkill.History);
-			}
-			else if (characterClass.Name == "Rogue" || characterClass.Name == "Ranger" || characterClass.Name == "Monk")
-			{
-				m_SkillProficiencies.Add(DnDSkill.Acrobatics);
-				m_SkillProficiencies.Add(DnDSkill.Stealth);
-			}
-			else if (characterClass.Name == "Cleric" || characterClass.Name == "Paladin")
-			{
-				m_SkillProficiencies.Add(DnDSkill.Religion);
-				m_SkillProficiencies.Add(DnDSkill.Medicine);
-			}
-			else
-			{
-				m_SkillProficiencies.Add(DnDSkill.Athletics);
-				m_SkillProficiencies.Add(DnDSkill.Survival);
-			}
+			ApplySkillProficiencies(characterClass, null);
 
 			Hits = HitsMax;
 
 			RestoreAllSpellSlots();
+		}
+
+		/// <summary>
+		/// Takes the player's chosen skill proficiencies, keeping only those the class actually
+		/// offers and only as many as it allows.
+		/// <para>
+		/// Anything the choice does not fill is topped up from the front of the class list. That
+		/// covers a client too old to send choices at all, and means a character is never left with
+		/// fewer proficiencies than the rules give them just because the UI failed to ask.
+		/// </para>
+		/// </summary>
+		public void ApplySkillProficiencies(CharacterClass characterClass, IEnumerable<DnDSkill> chosen)
+		{
+			m_SkillProficiencies.Clear();
+
+			if (characterClass == null)
+			{
+				return;
+			}
+
+			DnDSkill[] offered = characterClass.SkillChoices;
+			int allowed = characterClass.SkillChoiceCount;
+
+			if (chosen != null)
+			{
+				foreach (DnDSkill skill in chosen)
+				{
+					if (m_SkillProficiencies.Count >= allowed)
+					{
+						break;
+					}
+
+					// A client is not trusted to send a legal set - it may offer skills the class
+					// has no claim to, or the same one twice.
+					if (Array.IndexOf(offered, skill) >= 0 && !m_SkillProficiencies.Contains(skill))
+					{
+						m_SkillProficiencies.Add(skill);
+					}
+				}
+			}
+
+			for (int i = 0; i < offered.Length && m_SkillProficiencies.Count < allowed; ++i)
+			{
+				if (!m_SkillProficiencies.Contains(offered[i]))
+				{
+					m_SkillProficiencies.Add(offered[i]);
+				}
+			}
 		}
 
 		#region Spell slots

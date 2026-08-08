@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Server.Items;
 using Server.Mobiles;
@@ -111,6 +111,7 @@ namespace Server.Misc
 			ok &= CheckMulticlassing();
 			ok &= CheckSkills();
 			ok &= CheckAttunement();
+			ok &= CheckSkillChoice();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -523,6 +524,94 @@ namespace Server.Misc
 			{
 				pm.AddClassLevel(into);
 			}
+		}
+
+		/// <summary>
+		/// Skill proficiency choice. The client is not trusted, so the class has to honour legal
+		/// picks, discard illegal ones, and top up anything the player left unfilled - a character
+		/// must never end up with fewer proficiencies than the rules grant just because the UI
+		/// failed to ask.
+		/// </summary>
+		private static bool CheckSkillChoice()
+		{
+			bool ok = true;
+
+			CharacterClass wizard = CharacterClass.Parse("Wizard");
+			CharacterClass rogue = CharacterClass.Parse("Rogue");
+
+			// Every class must offer at least as many skills as it lets a character take.
+			foreach (CharacterClass c in CharacterClass.AllClasses)
+			{
+				if (c.SkillChoices.Length < c.SkillChoiceCount)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0} offers {1} skill(s) but allows {2}",
+						c.Name,
+						c.SkillChoices.Length,
+						c.SkillChoiceCount);
+
+					ok = false;
+				}
+			}
+
+			DnDPlayerMobile pm = new DnDPlayerMobile { Name = "SkillChoiceProbe", Body = 0x190 };
+
+			pm.ApplyDnDSetup(new AbilityScores(10, 10, 10, 10, 10, 10), wizard);
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			// A legal pick is honoured exactly.
+			pm.ApplySkillProficiencies(wizard, new[] { DnDSkill.Investigation, DnDSkill.Religion });
+
+			ok &= CheckValue("legal pick honoured", pm.IsProficient(DnDSkill.Investigation) ? 1 : 0, 1);
+			ok &= CheckValue("second legal pick honoured", pm.IsProficient(DnDSkill.Religion) ? 1 : 0, 1);
+
+			// Stealth is not on the Wizard list, so it must be refused - and the slot it would have
+			// taken filled from the class' own skills rather than left empty.
+			pm.ApplySkillProficiencies(wizard, new[] { DnDSkill.Stealth, DnDSkill.Arcana });
+
+			ok &= CheckValue("skill off the class list refused", pm.IsProficient(DnDSkill.Stealth) ? 1 : 0, 0);
+			ok &= CheckValue("legal pick still taken", pm.IsProficient(DnDSkill.Arcana) ? 1 : 0, 1);
+			ok &= CheckValue("refused slot topped up", CountProficiencies(pm), wizard.SkillChoiceCount);
+
+			// The same skill twice must not consume two slots.
+			pm.ApplySkillProficiencies(wizard, new[] { DnDSkill.Arcana, DnDSkill.Arcana });
+
+			ok &= CheckValue("duplicate does not fill two slots", CountProficiencies(pm), wizard.SkillChoiceCount);
+
+			// No choice at all still produces a full, legal set - the old-client path.
+			pm.ApplySkillProficiencies(rogue, null);
+
+			ok &= CheckValue("defaults fill when nothing chosen", CountProficiencies(pm), rogue.SkillChoiceCount);
+
+			// More picks than allowed must be truncated, not obeyed.
+			pm.ApplySkillProficiencies(wizard, wizard.SkillChoices);
+
+			ok &= CheckValue("over-long choice truncated", CountProficiencies(pm), wizard.SkillChoiceCount);
+
+			Console.WriteLine(
+				"[combat-selftest]   skill choice: {0} class(es) checked, Rogue picks {1}, Wizard {2}",
+				CharacterClass.AllClasses.Count,
+				rogue.SkillChoiceCount,
+				wizard.SkillChoiceCount);
+
+			pm.Delete();
+
+			return ok;
+		}
+
+		private static int CountProficiencies(DnDPlayerMobile pm)
+		{
+			int count = 0;
+
+			foreach (DnDSkill skill in Enum.GetValues(typeof(DnDSkill)))
+			{
+				if (pm.IsProficient(skill))
+				{
+					++count;
+				}
+			}
+
+			return count;
 		}
 
 		/// <summary>

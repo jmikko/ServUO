@@ -31,5 +31,12 @@ namespace Server.Engines.Classes
 			if (level < 1) return 0;
 			return m_SpellsKnown[System.Math.Min(level, m_SpellsKnown.Length) - 1];
 		}
+
+		public override int SkillChoiceCount { get { return 3; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.Acrobatics, DnDSkill.Deception, DnDSkill.History, DnDSkill.Insight, DnDSkill.Investigation, DnDSkill.Performance, DnDSkill.Persuasion, DnDSkill.SleightOfHand, DnDSkill.Stealth }; }
+		}
 	}
 }

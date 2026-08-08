@@ -29,5 +29,12 @@ namespace Server.Engines.Classes
 			if (level < 1) return 0;
 			return 6 + (level - 1) * 2;
 		}
+
+		public override int SkillChoiceCount { get { return 2; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.Arcana, DnDSkill.History, DnDSkill.Insight, DnDSkill.Investigation, DnDSkill.Medicine, DnDSkill.Religion }; }
+		}
 	}
 }

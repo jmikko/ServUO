@@ -28,5 +28,12 @@ namespace Server.Engines.Classes
 			}
 			return 0;
 		}
+
+		public override int SkillChoiceCount { get { return 4; } }
+
+		public override DnDSkill[] SkillChoices
+		{
+			get { return new[] { DnDSkill.Acrobatics, DnDSkill.Athletics, DnDSkill.Deception, DnDSkill.Insight, DnDSkill.Intimidation, DnDSkill.Investigation, DnDSkill.Perception, DnDSkill.Performance, DnDSkill.Persuasion, DnDSkill.SleightOfHand, DnDSkill.Stealth }; }
+		}
 	}
 }
