@@ -113,6 +113,8 @@ namespace Server.Misc
 			ok &= CheckAttunement();
 			ok &= CheckSkillChoice();
 			ok &= CheckLevelUpWireFormat();
+			ok &= CheckDeathSaves();
+			ok &= CheckHitDice();
 			ok &= CheckSubclasses();
 			ok &= CheckClassFeatures();
 
@@ -995,6 +997,198 @@ namespace Server.Misc
 			}
 
 			Console.WriteLine("[combat-selftest]   level-up wire format: '{0}' parsed, next field {1}", parsed, firstIncrease);
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Death saving throws, measured as a distribution rather than asserted as a state.
+		/// <para>
+		/// Whether a character left alone at 0 hit points gets up again is the whole substance of
+		/// this rule, and it is a number: about 40.5% die. That figure falls straight out of the
+		/// per-roll odds - 50% success, 5% natural 20, 40% failure, 5% natural 1 counting twice -
+		/// walked through the three-success/three-failure race. Checking that the dying state
+		/// exists would pass just as happily with the arithmetic inverted.
+		/// </para>
+		/// </summary>
+		private static bool CheckDeathSaves()
+		{
+			bool ok = true;
+
+			const int trials = 6000;
+
+			int died = 0, stabilised = 0, revived = 0, unresolved = 0;
+
+			for (int i = 0; i < trials; ++i)
+			{
+				var state = new DnDDeath.DyingState();
+				bool resolved = false;
+
+				// Twenty rounds is far more than the rule can possibly need - six failures at worst
+				// arrive in three rolls. It is here to catch a rule that never terminates at all.
+				for (int round = 0; round < 20 && !resolved; ++round)
+				{
+					switch (DnDDeath.ApplyRoll(state, Utility.RandomMinMax(1, 20)))
+					{
+						case DnDDeath.SaveOutcome.Died: ++died; resolved = true; break;
+						case DnDDeath.SaveOutcome.Stabilised: ++stabilised; resolved = true; break;
+						case DnDDeath.SaveOutcome.Revived: ++revived; resolved = true; break;
+					}
+				}
+
+				if (!resolved)
+				{
+					++unresolved;
+				}
+			}
+
+			if (unresolved > 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: {0} death save(s) never resolved", unresolved);
+				ok = false;
+			}
+
+			double deathRate = died / (double)trials;
+
+			// +/-4 points around 40.5%. The standard error over 6000 trials is about 0.6 points, so
+			// this is a wide band that still catches an inverted comparison or a miscounted natural 1.
+			if (deathRate < 0.365 || deathRate > 0.445)
+			{
+				Console.WriteLine(
+					"[combat-selftest] FAIL: death rate {0:P1}, expected about 40.5% (died {1}, stable {2}, revived {3})",
+					deathRate, died, stabilised, revived);
+
+				ok = false;
+			}
+
+			// A natural 20 must get you up no matter how badly the previous rolls went.
+			var doomed = new DnDDeath.DyingState { Failures = 2, Successes = 0 };
+
+			if (DnDDeath.ApplyRoll(doomed, 20) != DnDDeath.SaveOutcome.Revived)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a natural 20 did not revive a character on two failures");
+				ok = false;
+			}
+
+			// A natural 1 on one failure is two more, which is three - death, not a third round.
+			var unlucky = new DnDDeath.DyingState { Failures = 1 };
+
+			if (DnDDeath.ApplyRoll(unlucky, 1) != DnDDeath.SaveOutcome.Died)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a natural 1 on one failure did not count twice");
+				ok = false;
+			}
+
+			// Exactly 10 is a success; the DC is met, not beaten.
+			var borderline = new DnDDeath.DyingState { Successes = 2 };
+
+			if (DnDDeath.ApplyRoll(borderline, 10) != DnDDeath.SaveOutcome.Stabilised)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a roll of exactly 10 was not a success");
+				ok = false;
+			}
+
+			// And 9 is not.
+			var justUnder = new DnDDeath.DyingState { Failures = 2 };
+
+			if (DnDDeath.ApplyRoll(justUnder, 9) != DnDDeath.SaveOutcome.Died)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a roll of 9 was not a failure");
+				ok = false;
+			}
+
+			if (ok)
+			{
+				Console.WriteLine(
+					"[combat-selftest] death saves: {0:P1} die, {1:P1} stabilise, {2:P1} come round",
+					deathRate, stabilised / (double)trials, revived / (double)trials);
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Hit dice: a level's worth each, spent one at a time on a short rest, restored by a long
+		/// one. Measured by actually spending them and watching hit points move, because a counter
+		/// that decrements without healing anything would satisfy any check of the counter alone.
+		/// </summary>
+		private static bool CheckHitDice()
+		{
+			bool ok = true;
+
+			DnDPlayerMobile pm = MakeCharacter("Hit Dice Test", "Fighter", 5, 16, 12, 14);
+
+			try
+			{
+				if (pm.HitDiceTotal != pm.TotalLevel)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: level {0} character has {1} hit dice",
+						pm.TotalLevel, pm.HitDiceTotal);
+
+					ok = false;
+				}
+
+				// Hurt badly enough that a d10+2 cannot overshoot the maximum and hide the healing.
+				pm.Hits = 1;
+
+				int before = pm.Hits;
+				int spent = 0;
+
+				while (pm.HitDiceRemaining > 0 && pm.SpendHitDie())
+				{
+					++spent;
+				}
+
+				if (spent != pm.HitDiceTotal)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: spent {0} hit dice out of {1}",
+						spent, pm.HitDiceTotal);
+
+					ok = false;
+				}
+
+				if (pm.Hits <= before)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: spending every hit die healed nothing");
+					ok = false;
+				}
+
+				// Spent dice must stay spent until a long rest - a short one does not bring them back.
+				pm.ShortRest();
+
+				if (pm.HitDiceRemaining != 0)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: a short rest restored {0} hit dice",
+						pm.HitDiceRemaining);
+
+					ok = false;
+				}
+
+				pm.LongRest();
+
+				if (pm.HitDiceRemaining != pm.HitDiceTotal)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: a long rest restored {0} of {1} hit dice",
+						pm.HitDiceRemaining, pm.HitDiceTotal);
+
+					ok = false;
+				}
+
+				if (ok)
+				{
+					Console.WriteLine(
+						"[combat-selftest] hit dice: level {0} spent {1}d{2}, healed {3} hit points",
+						pm.TotalLevel, spent, pm.PrimaryClass.HitDie, pm.Hits - before);
+				}
+			}
+			finally
+			{
+				pm.Delete();
+			}
 
 			return ok;
 		}

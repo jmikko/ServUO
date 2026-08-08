@@ -493,6 +493,9 @@ namespace Server.Mobiles
 			// being limited.
 			Engines.Classes.Features.FeatureUses.Restore(this, this, true);
 
+			RestoreHitDice();
+			Mobiles.DnDDeath.Clear(this);
+
 			SendMessage(0x35, "You finish a long rest.");
 			if (NetState != null)
 			{
@@ -526,6 +529,86 @@ namespace Server.Mobiles
 		}
 
 		#endregion
+
+		#region Hit dice
+
+		private int m_HitDiceSpent;
+
+		/// <summary>
+		/// One hit die per character level, spent on a short rest to heal and restored by a long
+		/// one. This is what makes a short rest worth taking for a class with no magic - without
+		/// it, resting means nothing to a Fighter but a Warlock's slots coming back.
+		/// </summary>
+		public int HitDiceTotal { get { return TotalLevel; } }
+
+		public int HitDiceRemaining { get { return Math.Max(0, HitDiceTotal - m_HitDiceSpent); } }
+
+		/// <summary>
+		/// Spends one hit die: roll it, add Constitution, heal that much. SRD lets a character
+		/// spend as many as they like one at a time, deciding after each - so this is one die per
+		/// call rather than a total to commit to up front.
+		/// </summary>
+		public bool SpendHitDie()
+		{
+			if (HitDiceRemaining <= 0)
+			{
+				SendMessage("You have no hit dice left. A long rest restores them.");
+				return false;
+			}
+
+			if (Hits >= HitsMax)
+			{
+				SendMessage("You are already at full health.");
+				return false;
+			}
+
+			// The die is the one belonging to the class the level came from. Multiclassing makes
+			// that ambiguous without tracking each level's origin, so the starting class' die is
+			// used - right for a single-class character and stable for anyone else.
+			int die = m_PrimaryClass != null ? m_PrimaryClass.HitDie : 8;
+
+			int healed = Math.Max(1, Utility.Dice(1, die, EffectiveAbilityScores.ConMod));
+
+			++m_HitDiceSpent;
+
+			Hits += healed;
+
+			SendMessage(
+				0x35,
+				"You spend a hit die and recover {0} hit points. ({1} of {2} left)",
+				healed,
+				HitDiceRemaining,
+				HitDiceTotal);
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
+			}
+
+			return true;
+		}
+
+		public void RestoreHitDice()
+		{
+			m_HitDiceSpent = 0;
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Running out of hit points does not kill you here - it knocks you down, and the death
+		/// saves decide the rest. Returning false refuses the death outright, which is the only
+		/// hook the engine offers between "hit points reached zero" and "become a ghost".
+		/// </summary>
+		public override bool OnBeforeDeath()
+		{
+			if (!DnDDeath.OnBeforeDeath(this))
+			{
+				return false;
+			}
+
+			return base.OnBeforeDeath();
+		}
 
 		public override bool OnEquip(Item item)
 		{

@@ -271,6 +271,10 @@ namespace Server.Spells.DnD
 						if (healed > 0 && target.Alive)
 						{
 							target.Hits += healed;
+
+							// Healing someone who is dying brings them round, which is the whole
+							// point of the rounds they get before the saves run out.
+							Mobiles.DnDDeath.OnHealed(target);
 						}
 
 						break;

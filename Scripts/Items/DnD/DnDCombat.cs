@@ -142,6 +142,16 @@ namespace Server.Items
 					applied = Math.Max(1, applied / 2);
 				}
 
+				// A hit on someone already down costs them a death save rather than hit points.
+				Mobile downed = defender as Mobile;
+
+				if (Mobiles.DnDDeath.IsDying(downed))
+				{
+					Mobiles.DnDDeath.OnDamagedWhileDying(downed, result.Critical);
+					Announce(attacker, defender, "strikes the fallen");
+					continue;
+				}
+
 				defender.Damage(applied, attacker);
 
 				// Taking a hit risks dropping whatever the defender was concentrating on.

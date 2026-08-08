@@ -84,8 +84,13 @@ needs ki.
 
 These need no new system and are simply not done:
 
-- Hit dice spending on a short rest
 - The 60 spells registered with no mechanical effect (see `DND_STATUS.md`)
 - Magic item catalogue beyond the four types that exist
 - Feats beyond Tough
-- Death saving throws and unconsciousness at 0 hit points
+
+Death saves and hit dice are done. Two things they left behind:
+
+- **Dying has no client UI.** The successes and failures arrive as system messages. They want to be
+  three pips somewhere visible, since the whole tension of the rule is watching the count.
+- **What happens after death is still UO's.** Three failed saves ends in a UO ghost and a healer.
+  Revivify, and what resurrection costs, are a separate question from how you get there.

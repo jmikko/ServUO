@@ -17,6 +17,7 @@ namespace Server.Commands
 			CommandSystem.Register("sheet", AccessLevel.Player, Sheet_OnCommand);
 			CommandSystem.Register("rest", AccessLevel.Player, LongRest_OnCommand);
 			CommandSystem.Register("shortrest", AccessLevel.Player, ShortRest_OnCommand);
+			CommandSystem.Register("hitdie", AccessLevel.Player, HitDie_OnCommand);
 			CommandSystem.Register("spells", AccessLevel.Player, Spells_OnCommand);
 			CommandSystem.Register("Attune", AccessLevel.Player, Attune_OnCommand);
 			CommandSystem.Register("Unattune", AccessLevel.Player, Unattune_OnCommand);
@@ -333,6 +334,25 @@ namespace Server.Commands
 			}
 
 			pm.ShortRest();
+		}
+
+		/// <summary>
+		/// Spending hit dice is the other half of a short rest, and the half that matters to a class
+		/// with no magic to recover. One die per call, because the rules let you look at the result
+		/// before deciding whether to spend another.
+		/// </summary>
+		[Usage("hitdie")]
+		[Description("Spends one hit die to heal. A long rest restores them.")]
+		private static void HitDie_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm) || !CanRest(pm))
+			{
+				return;
+			}
+
+			pm.SpendHitDie();
 		}
 
 		/// <summary>You cannot rest with something actively trying to kill you.</summary>
