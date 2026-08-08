@@ -62,7 +62,8 @@ namespace Server.Regions
 
         public override void AlterLightLevel(Mobile m, ref int global, ref int personal)
         {
-            global = LightCycle.DungeonLevel;
+            // LightCycle (day/night cycle) not carried over yet; dungeon level is its constant.
+            global = 26;
         }
     }
 }

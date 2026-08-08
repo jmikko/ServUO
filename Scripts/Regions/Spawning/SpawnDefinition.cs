@@ -56,17 +56,7 @@ namespace Server.Regions
                             return def;
                         }
                     }
-                case "treasureChest":
-                    {
-                        int itemID = 0xE43;
-                        Region.ReadInt32(xml, "itemID", ref itemID, false);
-
-                        BaseTreasureChest.TreasureLevel level = BaseTreasureChest.TreasureLevel.Level2;
-
-                        Region.ReadEnum(xml, "level", ref level, false);
-
-                        return new SpawnTreasureChest(itemID, level);
-                    }
+                // "treasureChest" spawn kind removed with the legacy treasure system.
                 default:
                     {
                         return null;
@@ -199,14 +189,8 @@ namespace Server.Regions
         {
             Mobile mobile = this.CreateMobile();
 
-            BaseCreature creature = mobile as BaseCreature;
-
-            if (creature != null)
-            {
-                creature.Home = entry.HomeLocation;
-                creature.RangeHome = entry.HomeRange;
-            }
-
+            // TODO: when the D&D creature base lands, restore Home/RangeHome seeding here
+            // (was: cast to BaseCreature and set Home = entry.HomeLocation, RangeHome = entry.HomeRange).
             if (entry.Direction != SpawnEntry.InvalidDirection)
                 mobile.Direction = entry.Direction;
 
@@ -293,41 +277,7 @@ namespace Server.Regions
         }
     }
 
-    public class SpawnTreasureChest : SpawnItem
-    {
-        private readonly int m_ItemID;
-        private readonly BaseTreasureChest.TreasureLevel m_Level;
-        public SpawnTreasureChest(int itemID, BaseTreasureChest.TreasureLevel level)
-            : base(typeof(BaseTreasureChest))
-        {
-            this.m_ItemID = itemID;
-            this.m_Level = level;
-        }
-
-        public int ItemID
-        {
-            get
-            {
-                return this.m_ItemID;
-            }
-        }
-        public BaseTreasureChest.TreasureLevel Level
-        {
-            get
-            {
-                return this.m_Level;
-            }
-        }
-        protected override void Init()
-        {
-            this.m_Height = TileData.ItemTable[this.m_ItemID & TileData.MaxItemValue].Height;
-        }
-
-        protected override Item CreateItem()
-        {
-            return new BaseTreasureChest(this.m_ItemID, this.m_Level);
-        }
-    }
+    // SpawnTreasureChest removed: treasure chests are legacy UO content with no D&D equivalent.
 
     public class SpawnGroupElement
     {

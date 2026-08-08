@@ -493,8 +493,7 @@ namespace Server.Regions
 
             spawn.Spawner = this;
 
-            if (spawn is BaseCreature)
-                ((BaseCreature)spawn).RemoveIfUntamed = this.RemoveIfUntamed;
+            // TODO: restore RemoveIfUntamed seeding once the D&D creature base exists.
         }
 
         void ISpawner.Remove(ISpawnable spawn)
@@ -548,7 +547,7 @@ namespace Server.Regions
             {
                 spawnable.Spawner = null;
 
-                bool uncontrolled = !(spawnable is BaseCreature) || !((BaseCreature)spawnable).Controlled;
+                bool uncontrolled = true; // TODO: re-check pet control once the D&D creature base exists.
 
                 if (uncontrolled)
                     spawnable.Delete();

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<accounts count="1">
+	<account>
+		<username>dndtester93923</username>
+		<newCryptPassword>80-14-CF-15-F9-83-C4-E9-DF-70-92-0C-B1-FE-44-3C-73-B3-6F-2A</newCryptPassword>
+		<created>2026-08-07T10:38:59.4853824Z</created>
+		<lastLogin>2026-08-07T10:38:59.5525417Z</lastLogin>
+		<totalGameTime>PT2.1172943S</totalGameTime>
+		<chars>
+			<char index="0">117</char>
+		</chars>
+		<totalCurrency>0</totalCurrency>
+		<sovereigns>0</sovereigns>
+	</account>
+</accounts>

@@ -265,16 +265,9 @@ namespace Server.Regions
 
             return base.GetLogoutDelay(m);
         }
-
         public override void OnEnter(Mobile m)
         {
-            if (m is PlayerMobile && ((PlayerMobile)m).Young)
-            {
-                if (!this.YoungProtected)
-                {
-                    m.SendGump(new YoungDungeonWarning());
-                }
-            }
+            // Young-player dungeon warning removed with the UO new-player protection system.
         }
 
         public override bool AcceptsSpawnsFrom(Region region)
