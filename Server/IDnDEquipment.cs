@@ -15,5 +15,12 @@ namespace Server
 		/// </summary>
 		string DamageDiceExpression { get; }
 		int ArmorBonus { get; }
+
+		/// <summary>
+		/// Whether a weapon may use the better of Strength or Dexterity for its attack and damage
+		/// rolls. Armour always returns false. This is the SRD finesse property (used by daggers
+		/// now and kept on the shared contract so later weapons do not need combat special cases).
+		/// </summary>
+		bool IsFinesse { get; }
 	}
 }

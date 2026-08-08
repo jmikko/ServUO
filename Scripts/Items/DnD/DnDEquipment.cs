@@ -13,6 +13,7 @@ namespace Server.Items
 	{
 		public abstract WeaponCategory WeaponCategory { get; }
 		public abstract string DamageDiceExpression { get; }
+		public virtual bool IsFinesse { get { return false; } }
 
 		public virtual ArmorCategory ArmorCategory { get { return ArmorCategory.None; } }
 		public virtual int ArmorBonus { get { return 0; } }
@@ -41,7 +42,7 @@ namespace Server.Items
 		{
 			CombatRules.GetDiceRange(DamageDiceExpression, out min, out max);
 
-			int bonus = CombatRules.GetDamageBonus(from, IsRanged);
+			int bonus = CombatRules.GetDamageBonus(from, IsRanged, IsFinesse);
 
 			min += bonus;
 			max += bonus;
@@ -53,9 +54,14 @@ namespace Server.Items
 		}
 
 		protected DnDWeapon(int itemID)
+			: this(itemID, Layer.OneHanded)
+		{
+		}
+
+		protected DnDWeapon(int itemID, Layer layer)
 			: base(itemID)
 		{
-			Layer = Layer.OneHanded;
+			Layer = layer;
 		}
 
 		protected DnDWeapon(Serial serial)
@@ -96,6 +102,7 @@ namespace Server.Items
 
 		public virtual WeaponCategory WeaponCategory { get { return WeaponCategory.None; } }
 		public virtual string DamageDiceExpression { get { return null; } }
+		public virtual bool IsFinesse { get { return false; } }
 
 		protected DnDArmor(int itemID)
 			: base(itemID)

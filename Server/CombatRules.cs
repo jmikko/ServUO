@@ -109,10 +109,10 @@ namespace Server
 
 		/// <summary>
 		/// The attacker's d20 attack-roll bonus. Monsters carry a flat bonus in their stat block;
-		/// characters get ability modifier + proficiency bonus, using Dex for ranged weapons and
-		/// Str for everything else (SRD finesse is not modelled yet).
+		/// characters get ability modifier + proficiency bonus, using Dex for ranged weapons, Str
+		/// for ordinary melee weapons, and the better of Str/Dex for finesse weapons.
 		/// </summary>
-		public static int GetAttackBonus(Mobile attacker, bool ranged)
+		public static int GetAttackBonus(Mobile attacker, bool ranged, bool finesse = false)
 		{
 			IDnDCreature creature = attacker as IDnDCreature;
 
@@ -125,7 +125,7 @@ namespace Server
 
 			if (character != null && character.CharacterClass != null)
 			{
-				int abilityMod = ranged ? character.AbilityScores.DexMod : character.AbilityScores.StrMod;
+				int abilityMod = GetWeaponAbilityModifier(character, ranged, finesse);
 
 				return abilityMod + character.CharacterClass.GetProficiencyBonus(character.CharacterLevel);
 			}
@@ -137,7 +137,7 @@ namespace Server
 		/// The damage bonus added to a weapon's dice. Monsters bake theirs into the dice expression,
 		/// so they get none here.
 		/// </summary>
-		public static int GetDamageBonus(Mobile attacker, bool ranged)
+		public static int GetDamageBonus(Mobile attacker, bool ranged, bool finesse = false)
 		{
 			if (attacker is IDnDCreature)
 			{
@@ -148,10 +148,22 @@ namespace Server
 
 			if (character != null)
 			{
-				return ranged ? character.AbilityScores.DexMod : character.AbilityScores.StrMod;
+				return GetWeaponAbilityModifier(character, ranged, finesse);
 			}
 
 			return 0;
+		}
+
+		private static int GetWeaponAbilityModifier(IDnDCharacter character, bool ranged, bool finesse)
+		{
+			if (ranged)
+			{
+				return character.AbilityScores.DexMod;
+			}
+
+			return finesse
+				? Math.Max(character.AbilityScores.StrMod, character.AbilityScores.DexMod)
+				: character.AbilityScores.StrMod;
 		}
 
 		/// <summary>Defender AC. Anything with no D&amp;D data at all sits at the SRD floor of 10.</summary>

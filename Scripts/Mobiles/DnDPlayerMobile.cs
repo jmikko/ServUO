@@ -136,6 +136,23 @@ namespace Server.Mobiles
 			Hits = HitsMax;
 		}
 
+		/// <summary>
+		/// D&amp;D proficiency is enforced at the actual equip boundary, rather than only when the
+		/// initial kit is granted. This also covers gear received from future loot, vendors, or
+		/// GM-created test items.
+		/// </summary>
+		public override bool OnEquip(Item item)
+		{
+			if (m_DnDInitialized && AccessLevel < AccessLevel.GameMaster &&
+				m_CharacterClass != null && !m_CharacterClass.IsProficientWith(item))
+			{
+				SendMessage("You are not proficient with that equipment.");
+				return false;
+			}
+
+			return base.OnEquip(item);
+		}
+
 		/// <summary>Species darkvision, surfaced through the light-level calculation.</summary>
 		public override void ComputeBaseLightLevels(out int global, out int personal)
 		{

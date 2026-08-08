@@ -80,35 +80,68 @@ namespace Server.Engines.Classes
 
 			pm.ApplyDnDSetup(finalScores, charClass);
 
-			// A single hard-coded martial kit only suits proficient classes (Fighter, Barbarian,
-			// Paladin, Ranger); only equip what the class can actually use so casters/Rogues/
-			// Monks don't get handed gear that just bounces off their own proficiency gate. A
-			// real per-class starting-kit table (staves for casters, etc.) is future content work.
-			DnDLongsword sword = new DnDLongsword();
 
-			if (charClass.IsProficientWith(sword))
-			{
-				pm.EquipItem(sword);
-			}
-			else
-			{
-				sword.Delete();
-			}
-
-			DnDChainShirt armor = new DnDChainShirt();
-
-			if (charClass.IsProficientWith(armor))
-			{
-				pm.EquipItem(armor);
-			}
-			else
-			{
-				armor.Delete();
-			}
+			GrantStartingKit(pm, charClass);
 
 			if (pm.NetState != null)
 			{
 				pm.NetState.Send(new DnDStatSync(pm));
+			}
+		}
+
+		/// <summary>
+		/// Every class gets a weapon it can use on its first login. This is intentionally a small
+		/// SRD baseline, not a substitute for class features or a full equipment economy.
+		/// </summary>
+		private static void GrantStartingKit(DnDPlayerMobile pm, CharacterClass charClass)
+		{
+			Item weapon;
+			Item armor = null;
+
+			switch (charClass.Name)
+			{
+				case "Fighter":
+				case "Barbarian":
+				case "Paladin":
+					weapon = new DnDLongsword();
+					armor = new DnDChainShirt();
+					break;
+				case "Ranger":
+					weapon = new DnDShortbow();
+					armor = new DnDChainShirt();
+					break;
+				case "Cleric":
+				case "Druid":
+					weapon = new DnDQuarterstaff();
+					armor = new DnDChainShirt();
+					break;
+				case "Monk":
+					weapon = new DnDQuarterstaff();
+					break;
+				case "Bard":
+				case "Rogue":
+				case "Warlock":
+					weapon = new DnDDagger();
+					armor = new DnDLeatherArmor();
+					break;
+				default: // Sorcerer and Wizard
+					weapon = new DnDDagger();
+					break;
+			}
+
+			EquipStartingItem(pm, weapon);
+
+			if (armor != null)
+			{
+				EquipStartingItem(pm, armor);
+			}
+		}
+
+		private static void EquipStartingItem(DnDPlayerMobile pm, Item item)
+		{
+			if (!pm.EquipItem(item))
+			{
+				pm.AddToBackpack(item);
 			}
 		}
 

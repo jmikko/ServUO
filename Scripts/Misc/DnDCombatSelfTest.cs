@@ -1,6 +1,7 @@
 using System;
 using Server.Items;
 using Server.Mobiles;
+using Server.Regions;
 
 namespace Server.Misc
 {
@@ -64,8 +65,10 @@ namespace Server.Misc
 
 			bool ok = true;
 
+			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
+			ok &= CheckFinesseAndProficiency();
 
 			// Unarmed: 1d1 + Str mod.
 			ok &= RunSwings("fighter unarmed", fighter, goblin, null, 1, 1, 0, 3);
@@ -123,6 +126,83 @@ namespace Server.Misc
 
 			Console.WriteLine("[combat-selftest]   {0} weapon: {1} (range {2})", m.Name, weapon.GetType().Name, weapon.MaxRange);
 			return true;
+		}
+
+		/// <summary>
+		/// A region entry can explicitly carry an anchor/range; otherwise a D&amp;D creature falls back
+		/// to the random tile it spawned on and its default wander range. Both paths must be valid.
+		/// </summary>
+		private static bool CheckSpawnAnchors()
+		{
+			int checkedCount = 0;
+			int mismatches = 0;
+
+			foreach (Mobile mobile in World.Mobiles.Values)
+			{
+				DnDCreature creature = mobile as DnDCreature;
+				SpawnEntry entry = creature == null ? null : creature.Spawner as SpawnEntry;
+
+				if (entry == null)
+				{
+					continue;
+				}
+
+				++checkedCount;
+
+				bool hasConfiguredHome = entry.HomeLocation != Point3D.Zero;
+				bool matches = hasConfiguredHome
+					? creature.Home == entry.HomeLocation && creature.RangeHome == entry.HomeRange
+					: creature.Home != Point3D.Zero && creature.RangeHome > 0;
+
+				if (!matches)
+				{
+					++mismatches;
+				}
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   spawn anchors: {0} checked, {1} mismatch(es)",
+				checkedCount,
+				mismatches);
+
+			return checkedCount > 0 && mismatches == 0;
+		}
+
+		/// <summary>
+		/// A low-Strength, high-Dexterity wizard must use Dexterity with a dagger, while the same
+		/// character must be refused medium armour. These are the two seams that keep the compact
+		/// equipment layer honest as more SRD items are added.
+		/// </summary>
+		private static bool CheckFinesseAndProficiency()
+		{
+			DnDPlayerMobile wizard = new DnDPlayerMobile
+			{
+				Name = "EquipmentSelfTest",
+				Body = 0x190
+			};
+
+			wizard.ApplyDnDSetup(
+				new AbilityScores(8, 16, 12, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			DnDDagger dagger = new DnDDagger();
+			DnDChainShirt chainShirt = new DnDChainShirt();
+
+			int attackBonus = CombatRules.GetAttackBonus(wizard, false, dagger.IsFinesse);
+			int damageBonus = CombatRules.GetDamageBonus(wizard, false, dagger.IsFinesse);
+			bool blockedArmor = !wizard.EquipItem(chainShirt);
+
+			dagger.Delete();
+			chainShirt.Delete();
+			wizard.Delete();
+
+			Console.WriteLine(
+				"[combat-selftest]   dagger finesse: attack +{0}, damage +{1}; wizard chain shirt blocked: {2}",
+				attackBonus,
+				damageBonus,
+				blockedArmor);
+
+			return attackBonus == 5 && damageBonus == 3 && blockedArmor;
 		}
 
 		/// <summary>

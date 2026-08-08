@@ -42,6 +42,7 @@ namespace Server.Items
 			}
 
 			bool ranged = IsRanged(weapon);
+			bool finesse = weapon != null && weapon.IsFinesse;
 
 			result.Roll = Utility.RandomMinMax(1, 20);
 			result.Critical = result.Roll == 20;
@@ -52,7 +53,7 @@ namespace Server.Items
 			}
 
 			if (!result.Critical &&
-				result.Roll + CombatRules.GetAttackBonus(attacker, ranged) < CombatRules.GetArmorClass(defender))
+				result.Roll + CombatRules.GetAttackBonus(attacker, ranged, finesse) < CombatRules.GetArmorClass(defender))
 			{
 				return result;
 			}
@@ -67,7 +68,7 @@ namespace Server.Items
 				damage += CombatRules.RollDice(dice);
 			}
 
-			damage += CombatRules.GetDamageBonus(attacker, ranged);
+			damage += CombatRules.GetDamageBonus(attacker, ranged, finesse);
 
 			result.Damage = Math.Max(1, damage); // a hit always does something
 

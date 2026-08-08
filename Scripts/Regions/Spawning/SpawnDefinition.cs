@@ -185,14 +185,22 @@ namespace Server.Regions
             mob.Delete();
         }
 
-        protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
-        {
-            Mobile mobile = this.CreateMobile();
+		protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
+		{
+			Mobile mobile = this.CreateMobile();
 
-            // TODO: when the D&D creature base lands, restore Home/RangeHome seeding here
-            // (was: cast to BaseCreature and set Home = entry.HomeLocation, RangeHome = entry.HomeRange).
-            if (entry.Direction != SpawnEntry.InvalidDirection)
-                mobile.Direction = entry.Direction;
+			// Seed an explicitly configured region-spawn anchor before OnAfterSpawn. Entries without
+			// a <home> element intentionally retain DnDCreature's spawn-tile/default-range fallback.
+			DnDCreature creature = mobile as DnDCreature;
+
+			if (creature != null && entry.HomeLocation != Point3D.Zero)
+			{
+				creature.Home = entry.HomeLocation;
+				creature.RangeHome = entry.HomeRange;
+			}
+
+			if (entry.Direction != SpawnEntry.InvalidDirection)
+				mobile.Direction = entry.Direction;
 
             mobile.OnBeforeSpawn(loc, map);
             mobile.MoveToWorld(loc, map);
