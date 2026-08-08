@@ -1,3 +1,4 @@
+using System;
 using Server.Commands;
 using Server.Items;
 using Server.Mobiles;
@@ -63,6 +64,25 @@ namespace Server.Engines.Classes
 
 			AbilityScores baseScores = e.Scores;
 
+			// A species the client has no art for cannot be applied. Decide that BEFORE the ability
+			// bonuses are worked out: applying the bonuses and then failing to set the race leaves
+			// a character with, say, an Elf's Dexterity who is not an Elf.
+			bool speciesAvailable = Core.Expansion >= species.RequiredExpansion;
+
+			if (!speciesAvailable)
+			{
+				speciesTraits = null;
+
+				pm.SendMessage(
+					"Your shard does not support {0} characters; continuing without a species.", species.Name);
+
+				Console.WriteLine(
+					"ClassSystem: '{0}' requires expansion {1} but the shard is {2}; species not applied.",
+					species.Name,
+					species.RequiredExpansion,
+					Core.Expansion);
+			}
+
 			AbilityScores finalScores = speciesTraits == null
 				? baseScores
 				: new AbilityScores(
@@ -73,7 +93,7 @@ namespace Server.Engines.Classes
 					baseScores.Wis + speciesTraits.GetAbilityScoreBonus(AbilityScoreType.Wis),
 					baseScores.Cha + speciesTraits.GetAbilityScoreBonus(AbilityScoreType.Cha));
 
-			if (Core.Expansion >= species.RequiredExpansion)
+			if (speciesAvailable)
 			{
 				pm.Race = species; // sets body too
 			}
