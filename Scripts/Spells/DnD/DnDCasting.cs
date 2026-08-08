@@ -137,7 +137,8 @@ namespace Server.Spells.DnD
 						{
 							damage += damage; // a critical spell hit rolls its dice twice
 						}
-						else if (roll + Spellcasting.GetSpellAttackBonus(character) <
+						else if (roll + DnDRollModifiers.Roll(caster, RollKind.Attack) +
+								 Spellcasting.GetSpellAttackBonus(character) <
 								 CombatRules.GetArmorClass(target))
 						{
 							return 0;

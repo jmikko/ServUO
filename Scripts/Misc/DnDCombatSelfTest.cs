@@ -270,6 +270,7 @@ namespace Server.Misc
 
 			ok &= CheckMageArmor();
 			ok &= CheckHighLevelSpell();
+			ok &= CheckRollModifiers();
 
 			Console.WriteLine(
 				"[combat-selftest]   spells: {0} total - {1} damaging cantrip(s), {2} levelled, {3} utility placeholder(s)",
@@ -509,6 +510,94 @@ namespace Server.Misc
 
 			Console.WriteLine("[combat-selftest] FAIL: {0} expected '{1}', got '{2}'", label, expected, actual);
 			return false;
+		}
+
+		/// <summary>
+		/// The Bless and Bane family. A d4 averages 2.5, which against a d20 is worth about 12.5
+		/// percentage points of hit rate, so the shift is large enough to measure but small enough
+		/// that measuring it proves the die is actually being rolled rather than a flat bonus.
+		/// </summary>
+		private static bool CheckRollModifiers()
+		{
+			const int Rolls = 6000;
+
+			DnDPlayerMobile fighter = new DnDPlayerMobile { Name = "ModifierProbe", Body = 0x190 };
+
+			fighter.ApplyDnDSetup(
+				new AbilityScores(16, 12, 14, 10, 10, 10),
+				CharacterClass.Parse("Fighter"));
+
+			fighter.MoveToWorld(TestLocation, Map.Felucca);
+
+			SrdGoblin dummy = new SrdGoblin { Blessed = true };
+			dummy.MoveToWorld(TestLocation, Map.Felucca);
+
+			double plain = MeasureHitRate(fighter, dummy, Rolls);
+
+			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			double blessed = MeasureHitRate(fighter, dummy, Rolls);
+
+			DnDRollModifiers.Remove(fighter, "Bless");
+			DnDRollModifiers.Add(fighter, "Bane", 4, -1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			double baned = MeasureHitRate(fighter, dummy, Rolls);
+
+			DnDRollModifiers.Clear(fighter);
+
+			Console.WriteLine(
+				"[combat-selftest]   roll modifiers: plain {0:P1}, blessed {1:P1}, baned {2:P1}",
+				plain,
+				blessed,
+				baned);
+
+			bool ok = true;
+
+			// A d4 is worth 2.5 on a d20, so roughly 12.5 points either way. Allow a wide band.
+			if (blessed - plain < 0.05 || blessed - plain > 0.20)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Bless did not shift the hit rate by about a d4");
+				ok = false;
+			}
+
+			if (plain - baned < 0.05 || plain - baned > 0.20)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Bane did not shift the hit rate by about a d4");
+				ok = false;
+			}
+
+			// One-shot modifiers are spent by the first roll that consults them.
+			DnDRollModifiers.Add(fighter, "Resistance", 4, 1, RollKind.Save, TimeSpan.FromMinutes(5), true);
+
+			if (!DnDRollModifiers.Has(fighter, RollKind.Save))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Resistance did not attach");
+				ok = false;
+			}
+
+			DnDRollModifiers.Roll(fighter, RollKind.Save);
+
+			if (DnDRollModifiers.Has(fighter, RollKind.Save))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a one-shot modifier survived being used");
+				ok = false;
+			}
+
+			// Recasting replaces rather than stacking.
+			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+
+			double doubled = MeasureHitRate(fighter, dummy, Rolls);
+
+			if (doubled - blessed > 0.08)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Bless stacked with itself");
+				ok = false;
+			}
+
+			DnDRollModifiers.Clear(fighter);
+			fighter.Delete();
+			dummy.Delete();
+
+			return ok;
 		}
 
 		/// <summary>

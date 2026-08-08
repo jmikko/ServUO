@@ -203,7 +203,9 @@ namespace Server
 				return false;
 			}
 
-			int roll = RollD20(mode);
+			// Bless and its relatives add a fresh die to the roll rather than a fixed number, so
+			// they are rolled here rather than folded into the character's stats.
+			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.Save);
 			int bonus = 0;
 
 			IDnDCharacter character = target as IDnDCharacter;

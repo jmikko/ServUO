@@ -24,6 +24,9 @@ namespace Server.Spells.DnD
 		/// <summary>Inflicts a condition, subject to a saving throw where the spell allows one.</summary>
 		Condition,
 
+		/// <summary>Adds or subtracts a die on future rolls - the Bless and Bane family.</summary>
+		RollModifier,
+
 		/// <summary>Does nothing mechanical yet - flavour, light, and the like.</summary>
 		Utility
 	}
@@ -77,6 +80,15 @@ namespace Server.Spells.DnD
 		/// affected. 0 means no limit. This is how Sleep works - it simply overwhelms the weak.
 		/// </summary>
 		public int HitPointThreshold;
+
+		/// <summary>For RollModifier effects: the die added, which rolls it applies to, and its sign.</summary>
+		public int ModifierDie;
+
+		public RollKind ModifierKinds;
+		public bool ModifierIsPenalty;
+
+		/// <summary>Guidance and Resistance are spent by the first roll that uses them.</summary>
+		public bool ModifierOneShot;
 
 		public SpellShape Shape;
 
@@ -143,6 +155,10 @@ namespace Server.Spells.DnD
 				ArmorClassValue = ParseInt(el.GetAttribute("armorClass")),
 				Condition = ParseEnum(el.GetAttribute("condition"), DnDCondition.None),
 				HitPointThreshold = ParseInt(el.GetAttribute("hitPointThreshold")),
+				ModifierDie = ParseInt(el.GetAttribute("modifierDie")),
+				ModifierKinds = ParseModifierKinds(el.GetAttribute("modifierKinds")),
+				ModifierIsPenalty = el.GetAttribute("modifierPenalty") == "true",
+				ModifierOneShot = el.GetAttribute("modifierOneShot") == "true",
 				Shape = ParseEnum(el.GetAttribute("shape"), SpellShape.Single),
 				AreaSize = ParseInt(el.GetAttribute("size")),
 				Concentration = el.GetAttribute("concentration") == "true",
@@ -168,6 +184,23 @@ namespace Server.Spells.DnD
 			}
 
 			return data;
+		}
+
+		private static RollKind ParseModifierKinds(string value)
+		{
+			RollKind result = RollKind.None;
+
+			if (String.IsNullOrEmpty(value))
+			{
+				return result;
+			}
+
+			foreach (string part in value.Split(','))
+			{
+				result |= ParseEnum(part.Trim(), RollKind.None);
+			}
+
+			return result;
 		}
 
 		private static T ParseEnum<T>(string value, T fallback) where T : struct
@@ -243,6 +276,11 @@ namespace Server.Spells.DnD
 						ApplyCondition(caster, character, target);
 						break;
 					}
+				case SpellEffectKind.RollModifier:
+					{
+						ApplyRollModifier(caster, character, target);
+						break;
+					}
 				case SpellEffectKind.Utility:
 					{
 						caster.SendMessage("{0} takes effect.", Name);
@@ -275,6 +313,48 @@ namespace Server.Spells.DnD
 			DnDConditions.Add(target, m_Data.Condition, m_Data.Duration);
 
 			caster.SendMessage("{0} is {1}.", target.Name, m_Data.Condition.ToString().ToLowerInvariant());
+		}
+
+		/// <summary>
+		/// Hangs a die on the target's future rolls. A penalty like Bane allows a save to avoid it;
+		/// a blessing does not, since nobody resists being helped.
+		/// </summary>
+		private void ApplyRollModifier(Mobile caster, IDnDCharacter character, Mobile target)
+		{
+			if (m_Data.Resolution == SpellResolution.SavingThrow &&
+				CombatRules.CheckSave(target, m_Data.SaveAbility, Spellcasting.GetSaveDC(character)))
+			{
+				caster.SendMessage("{0} resists.", target.Name);
+				return;
+			}
+
+			DnDRollModifiers.Add(
+				target,
+				Name,
+				m_Data.ModifierDie,
+				m_Data.ModifierIsPenalty ? -1 : 1,
+				m_Data.ModifierKinds,
+				m_Data.Duration,
+				m_Data.ModifierOneShot);
+
+			target.SendMessage(
+				"{0} {1} you {2}d{3} on {4}.",
+				Name,
+				m_Data.ModifierIsPenalty ? "costs" : "grants",
+				1,
+				m_Data.ModifierDie,
+				DescribeKinds(m_Data.ModifierKinds));
+		}
+
+		private static string DescribeKinds(RollKind kinds)
+		{
+			var parts = new List<string>();
+
+			if ((kinds & RollKind.Attack) != 0) { parts.Add("attack rolls"); }
+			if ((kinds & RollKind.Save) != 0) { parts.Add("saving throws"); }
+			if ((kinds & RollKind.AbilityCheck) != 0) { parts.Add("ability checks"); }
+
+			return parts.Count == 0 ? "nothing" : String.Join(" and ", parts);
 		}
 
 		/// <summary>

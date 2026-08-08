@@ -54,8 +54,14 @@ namespace Server.Items
 				return result;
 			}
 
+			// Bless and Bane add or subtract a fresh die. Rolled once here and reused below, since
+			// asking again would spend a one-shot modifier twice. A natural 1 or 20 has already
+			// decided the outcome, so neither wastes one.
+			int modifier = DnDRollModifiers.Roll(attacker, RollKind.Attack);
+
 			if (!result.Critical &&
-				result.Roll + CombatRules.GetAttackBonus(attacker, ranged, finesse) < CombatRules.GetArmorClass(defender))
+				result.Roll + modifier + CombatRules.GetAttackBonus(attacker, ranged, finesse) <
+				CombatRules.GetArmorClass(defender))
 			{
 				return result;
 			}

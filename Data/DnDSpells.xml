@@ -47,10 +47,12 @@
          dice="1" die="1" range="1" beneficial="true" classes="Cleric" description="Stabilises a dying creature." />
   <spell id="Light"         name="Light"          level="0" school="Evocation" kind="Utility" range="1" beneficial="true"
          classes="Bard,Cleric,Sorcerer,Wizard" description="An object sheds light. Not yet modelled." />
-  <spell id="Guidance"      name="Guidance"       level="0" school="Divination" kind="Utility" range="1" beneficial="true"
-         classes="Cleric,Druid" description="Adds a d4 to one ability check. Not yet modelled." />
-  <spell id="Resistance"    name="Resistance"     level="0" school="Abjuration" kind="Utility" range="1" beneficial="true"
-         classes="Cleric,Druid" description="Adds a d4 to one saving throw. Not yet modelled." />
+  <spell id="Guidance"      name="Guidance"       level="0" school="Divination" kind="RollModifier"
+         modifierDie="4" modifierKinds="AbilityCheck" modifierOneShot="true" durationSeconds="60" concentration="true"
+         range="1" beneficial="true" classes="Cleric,Druid" description="Adds a d4 to one ability check." />
+  <spell id="Resistance"    name="Resistance"     level="0" school="Abjuration" kind="RollModifier"
+         modifierDie="4" modifierKinds="Save" modifierOneShot="true" durationSeconds="60" concentration="true"
+         range="1" beneficial="true" classes="Cleric,Druid" description="Adds a d4 to one saving throw." />
   <spell id="MageHand"      name="Mage Hand"      level="0" school="Conjuration" kind="Utility" range="24" beneficial="true"
          classes="Bard,Sorcerer,Warlock,Wizard" description="A spectral hand manipulates objects. Not yet modelled." />
   <spell id="MinorIllusion" name="Minor Illusion" level="0" school="Illusion" kind="Utility" range="24" beneficial="true"
@@ -109,10 +111,14 @@
          armorClass="12" durationSeconds="600" range="24" beneficial="true"
          classes="Cleric,Paladin" description="A shimmering field wards the target." />
 
-  <spell id="Bless"         name="Bless"          level="1" school="Enchantment" kind="Utility" range="6" beneficial="true"
-         classes="Cleric,Paladin" description="Adds a d4 to attacks and saves. Not yet modelled." />
-  <spell id="Bane"          name="Bane"           level="1" school="Enchantment" kind="Utility" range="6"
-         classes="Bard,Cleric" description="Subtracts a d4 from attacks and saves. Not yet modelled." />
+  <spell id="Bless"         name="Bless"          level="1" school="Enchantment" kind="RollModifier"
+         modifierDie="4" modifierKinds="Attack,Save" durationSeconds="60" concentration="true"
+         shape="Sphere" size="6" range="6" beneficial="true"
+         classes="Cleric,Paladin" description="Allies nearby add a d4 to attack rolls and saving throws." />
+  <spell id="Bane"          name="Bane"           level="1" school="Enchantment" kind="RollModifier" resolution="SavingThrow" save="Cha"
+         modifierDie="4" modifierKinds="Attack,Save" modifierPenalty="true" durationSeconds="60" concentration="true"
+         shape="Sphere" size="6" range="6"
+         classes="Bard,Cleric" description="Enemies nearby subtract a d4 from attack rolls and saving throws." />
   <spell id="CharmPerson"   name="Charm Person"   level="1" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
          condition="Charmed" durationSeconds="3600" range="12"
          classes="Bard,Druid,Sorcerer,Warlock,Wizard" description="Charms a humanoid that fails a Wisdom save." />
