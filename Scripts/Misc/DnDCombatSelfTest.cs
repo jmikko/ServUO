@@ -112,6 +112,7 @@ namespace Server.Misc
 			ok &= CheckSkills();
 			ok &= CheckAttunement();
 			ok &= CheckSkillChoice();
+			ok &= CheckLevelUpWireFormat();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -524,6 +525,77 @@ namespace Server.Misc
 			{
 				pm.AddClassLevel(into);
 			}
+		}
+
+		/// <summary>
+		/// The level-up submission's wire format, checked by feeding the server's reader exactly
+		/// the bytes the client writes.
+		/// <para>
+		/// This is the one shape of bug the rest of the self-test cannot see: both sides compiled,
+		/// both were self-consistent, and they simply disagreed about the format. The client wrote a
+		/// bare ASCII name; the server expected a type tag, a length and UTF-16. The tag check
+		/// failed, the class name came back empty, the level was silently not applied - and every
+		/// field after it was misread too, because the failed read still consumed a byte.
+		/// </para>
+		/// </summary>
+		private static bool CheckLevelUpWireFormat()
+		{
+			const string ClassName = "Fighter";
+
+			var bytes = new List<byte>();
+
+			// A variable-length packet's id and length, which PacketReader skips over - it starts
+			// reading at byte 3. Leaving these out makes the test read from the middle of its own
+			// payload and fail for a reason that has nothing to do with the format under test.
+			bytes.Add(0xD7);
+			bytes.Add(0);
+			bytes.Add(0);
+
+			// Exactly what OutgoingPackets.WriteEncodedString emits: tag 2, character count as a
+			// big-endian ushort, then big-endian UTF-16.
+			bytes.Add(2);
+			bytes.Add((byte)(ClassName.Length >> 8));
+			bytes.Add((byte)ClassName.Length);
+
+			foreach (char c in ClassName)
+			{
+				bytes.Add((byte)(c >> 8));
+				bytes.Add((byte)c);
+			}
+
+			// Then the six ability increases, as type-tagged int32s.
+			for (int i = 0; i < 6; ++i)
+			{
+				bytes.Add(0);
+				bytes.Add(0);
+				bytes.Add(0);
+				bytes.Add(0);
+				bytes.Add((byte)(i == 0 ? 1 : 0));
+			}
+
+			byte[] data = bytes.ToArray();
+
+			var reader = new Network.EncodedReader(new Network.PacketReader(data, data.Length, false));
+
+			string parsed = reader.ReadUnicodeStringSafe();
+
+			bool ok = CheckText("level-up class name survives the wire", parsed, ClassName);
+
+			// The misalignment is the part that makes this hard to spot by eye: if the string read
+			// is wrong, the numbers after it are wrong too, and nothing reports an error.
+			int firstIncrease = reader.ReadInt32();
+
+			ok &= CheckValue("field after the name still aligned", firstIncrease, 1);
+
+			if (CharacterClass.Parse(parsed) == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: '{0}' does not resolve to a class", parsed);
+				ok = false;
+			}
+
+			Console.WriteLine("[combat-selftest]   level-up wire format: '{0}' parsed, next field {1}", parsed, firstIncrease);
+
+			return ok;
 		}
 
 		/// <summary>
