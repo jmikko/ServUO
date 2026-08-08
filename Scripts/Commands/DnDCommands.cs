@@ -21,6 +21,9 @@ namespace Server.Commands
 			CommandSystem.Register("Attune", AccessLevel.Player, Attune_OnCommand);
 			CommandSystem.Register("Unattune", AccessLevel.Player, Unattune_OnCommand);
 
+			CommandSystem.Register("features", AccessLevel.Player, Features_OnCommand);
+			CommandSystem.Register("use", AccessLevel.Player, Use_OnCommand);
+
 			CommandSystem.Register("XP", AccessLevel.GameMaster, XP_OnCommand);
 			CommandSystem.Register("LevelUp", AccessLevel.GameMaster, LevelUp_OnCommand);
 		}
@@ -102,6 +105,96 @@ namespace Server.Commands
 				"Level {0} total. {1} level(s) still waiting.",
 				pm.TotalLevel,
 				pm.PendingLevels);
+		}
+
+		[Usage("features")]
+		[Description("Lists the class features you have, and how many uses are left of each.")]
+		private static void Features_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			var active = ClassFeatures.GetActive(pm);
+
+			if (active.Count == 0)
+			{
+				pm.SendMessage("You have no class features yet.");
+				return;
+			}
+
+			pm.SendMessage(0x35, "--- Features ---");
+
+			foreach (var entry in active)
+			{
+				ClassFeature feature = entry.Key;
+				int uses = feature.GetUses(entry.Value);
+
+				if (uses > 0)
+				{
+					pm.SendMessage(
+						"{0} ({1}/{2} uses) - {3}",
+						feature.Name,
+						Engines.Classes.Features.FeatureUses.GetRemaining(pm, pm, feature, entry.Value),
+						uses,
+						feature.Description);
+				}
+				else
+				{
+					pm.SendMessage("{0} - {1}", feature.Name, feature.Description);
+				}
+			}
+		}
+
+		[Usage("use <feature>")]
+		[Description("Uses an activated class feature, such as Second Wind or Rage.")]
+		private static void Use_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (e.Length == 0)
+			{
+				pm.SendMessage("Usage: [use <feature>. Try [features to see what you have.");
+				return;
+			}
+
+			string wanted = String.Join(" ", e.Arguments);
+
+			int classLevel;
+			ClassFeature feature = ClassFeatures.Find(pm, wanted, out classLevel);
+
+			if (feature == null)
+			{
+				pm.SendMessage("You have no feature called '{0}'.", wanted);
+				return;
+			}
+
+			if (feature.GetUses(classLevel) <= 0)
+			{
+				pm.SendMessage("{0} is always active - there is nothing to use.", feature.Name);
+				return;
+			}
+
+			if (Engines.Classes.Features.FeatureUses.GetRemaining(pm, pm, feature, classLevel) <= 0)
+			{
+				pm.SendMessage("You have no uses of {0} left. Rest to recover it.", feature.Name);
+				return;
+			}
+
+			// The use is only spent if the feature actually did something - Second Wind at full
+			// health should not cost a use.
+			if (feature.Activate(pm, pm, classLevel))
+			{
+				Engines.Classes.Features.FeatureUses.Spend(pm, feature);
+			}
 		}
 
 		private static string DescribeClasses()

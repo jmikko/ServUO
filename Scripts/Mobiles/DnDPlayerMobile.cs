@@ -188,7 +188,22 @@ namespace Server.Mobiles
 
 				int floor = Spells.DnD.DnDEffects.GetArmorClassFloor(this);
 
-				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus + magicBonus;
+				// Unarmored Defense replaces the whole calculation rather than adding to it, and
+				// only while no body armour is worn - that condition is what makes it a trade
+				// rather than a bonus. Shields and magic still apply on top.
+				if (baseAC == 10)
+				{
+					int unarmored = ClassFeatures.GetUnarmoredArmorClass(this);
+
+					if (unarmored > baseAC + dexMod)
+					{
+						return Math.Max(unarmored, floor + dexMod) + shieldBonus + magicBonus
+							 + ClassFeatures.GetArmorClassBonus(this);
+					}
+				}
+
+				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus + magicBonus
+					 + ClassFeatures.GetArmorClassBonus(this);
 			}
 		}
 
@@ -473,6 +488,11 @@ namespace Server.Mobiles
 		{
 			Hits = HitsMax;
 			RestoreAllSpellSlots();
+
+			// Limited-use class features come back too - a long rest is the whole point of them
+			// being limited.
+			Engines.Classes.Features.FeatureUses.Restore(this, this, true);
+
 			SendMessage(0x35, "You finish a long rest.");
 			if (NetState != null)
 			{
@@ -484,6 +504,9 @@ namespace Server.Mobiles
 		{
 			// Pact magic recovers on short rest. For multiclassing we'd have to track slots separately.
 			// As a simplification for now, if they have pact magic we just restore all.
+			// Second Wind and Action Surge return on a short rest; Rage and Lay on Hands do not.
+			Engines.Classes.Features.FeatureUses.Restore(this, this, false);
+
 			bool hasPact = false;
 			foreach(var kv in m_Classes)
 			{

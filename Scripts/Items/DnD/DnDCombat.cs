@@ -80,6 +80,14 @@ namespace Server.Items
 			if (result.Critical)
 			{
 				damage += CombatRules.RollDice(dice);
+
+				// Brutal Critical adds weapon dice beyond the usual doubling.
+				int extraDice = ClassFeatures.GetExtraCriticalDice(character);
+
+				for (int i = 0; i < extraDice; ++i)
+				{
+					damage += CombatRules.RollDice(dice);
+				}
 			}
 
 			damage += CombatRules.GetDamageBonus(attacker, ranged, finesse, weapon as Item);
@@ -126,10 +134,18 @@ namespace Server.Items
 					continue;
 				}
 
-				defender.Damage(result.Damage, attacker);
+				int applied = result.Damage;
+
+				// Rage and its kin halve weapon damage.
+				if (ClassFeatures.ResistsPhysicalDamage(defender as IDnDCharacter))
+				{
+					applied = Math.Max(1, applied / 2);
+				}
+
+				defender.Damage(applied, attacker);
 
 				// Taking a hit risks dropping whatever the defender was concentrating on.
-				Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, result.Damage);
+				Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, applied);
 
 				Announce(attacker, defender, result.Critical ? "critically hits" : "hits");
 			}

@@ -33,9 +33,10 @@ namespace Server.Engines.Classes
 			get { return new[] { DnDSkill.Athletics, DnDSkill.Insight, DnDSkill.Intimidation, DnDSkill.Medicine, DnDSkill.Persuasion, DnDSkill.Religion }; }
 		}
 
+
 		public override ClassFeature[] Features
 		{
-			get { return new ClassFeature[] { new Features.ExtraAttackFeature() }; }
+			get { return new ClassFeature[] { new Features.LayOnHandsFeature(), new Features.ExtraAttackFeature(), new Features.AuraOfProtectionFeature(), new Features.ImprovedDivineSmiteFeature() }; }
 		}
 	}
 }

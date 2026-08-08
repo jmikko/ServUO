@@ -624,13 +624,138 @@ namespace Server.Misc
 				withoutAdvantage,
 				withAdvantage);
 
+			// UNARMORED DEFENSE - a Barbarian with no armour should be better protected than the
+			// bare 10 + Dex, and the feature must not apply once armour goes on.
+			DnDPlayerMobile barbarian = MakeCharacter("FeatureProbeBarbarian", "Barbarian", 3, 14, 14, 18);
+
+			int unarmoured = barbarian.ArmorClass;
+
+			var shirt = new DnDChainShirt();
+			barbarian.EquipItem(shirt);
+
+			int armoured = barbarian.ArmorClass;
+
+			Console.WriteLine(
+				"[combat-selftest]   unarmored defense: {0} with nothing worn, {1} in a chain shirt",
+				unarmoured,
+				armoured);
+
+			// 10 + Dex 2 + Con 4 = 16, against a chain shirt's 13 + 2 = 15. The scores are chosen so
+			// the two differ - with Con 16 both come to 15 and the test proves nothing.
+			if (unarmoured <= armoured)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Unarmored Defense did not raise armour class");
+				ok = false;
+			}
+
+			shirt.Delete();
+
+			// RAGE - resistance and bonus damage, and only while it is running.
+			int classLevel;
+			ClassFeature rage = ClassFeatures.Find(barbarian, "Rage", out classLevel);
+
+			if (rage == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a Barbarian has no Rage");
+				ok = false;
+			}
+			else
+			{
+				ok &= CheckValue("not resisting before raging", ClassFeatures.ResistsPhysicalDamage(barbarian) ? 1 : 0, 0);
+
+				rage.Activate(barbarian, barbarian, classLevel);
+
+				ok &= CheckValue("resisting while raging", ClassFeatures.ResistsPhysicalDamage(barbarian) ? 1 : 0, 1);
+
+				int rageDamage = ClassFeatures.RollBonusDamage(barbarian, RollMode.Normal);
+
+				if (rageDamage <= 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Rage added no damage");
+					ok = false;
+				}
+
+				Console.WriteLine("[combat-selftest]   rage: resistance on, +{0} damage", rageDamage);
+			}
+
+			// ACTIVATED USES - spent by use, restored by the right kind of rest.
+			DnDPlayerMobile fighter = MakeFighter("FeatureProbeUses", 2);
+
+			ClassFeature secondWind = ClassFeatures.Find(fighter, "Second Wind", out classLevel);
+
+			if (secondWind == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a Fighter has no Second Wind");
+				ok = false;
+			}
+			else
+			{
+				fighter.Hits = 1;
+
+				int before = Engines.Classes.Features.FeatureUses.GetRemaining(fighter, fighter, secondWind, classLevel);
+
+				secondWind.Activate(fighter, fighter, classLevel);
+				Engines.Classes.Features.FeatureUses.Spend(fighter, secondWind);
+
+				int after = Engines.Classes.Features.FeatureUses.GetRemaining(fighter, fighter, secondWind, classLevel);
+
+				ok &= CheckValue("second wind spent a use", before - after, 1);
+
+				if (fighter.Hits <= 1)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Second Wind healed nothing");
+					ok = false;
+				}
+
+				fighter.ShortRest();
+
+				int restored = Engines.Classes.Features.FeatureUses.GetRemaining(fighter, fighter, secondWind, classLevel);
+
+				ok &= CheckValue("short rest restored second wind", restored, before);
+
+				Console.WriteLine("[combat-selftest]   activated uses: spent 1, short rest restored it");
+			}
+
+			// AURA OF PROTECTION - a flat addition to every saving throw.
+			DnDPlayerMobile paladin = MakeCharacter("FeatureProbePaladin", "Paladin", 6, 14, 10, 12, 16);
+
+			int saveBonus = ClassFeatures.GetSaveBonus(paladin);
+
+			if (saveBonus <= 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Aura of Protection added nothing to saves");
+				ok = false;
+			}
+
+			Console.WriteLine("[combat-selftest]   aura of protection: +{0} to every save", saveBonus);
+
 			novice.Delete();
 			veteran.Delete();
 			champion.Delete();
 			rogue.Delete();
+			barbarian.Delete();
+			fighter.Delete();
+			paladin.Delete();
 			dummy.Delete();
 
 			return ok;
+		}
+
+		/// <summary>Builds a character of a given class and level with chosen ability scores.</summary>
+		private static DnDPlayerMobile MakeCharacter(
+			string name, string className, int level, int str = 12, int dex = 12, int con = 12, int cha = 10)
+		{
+			var pm = new DnDPlayerMobile { Name = name, Body = 0x190 };
+
+			pm.ApplyDnDSetup(new AbilityScores(str, dex, con, 10, 12, cha), CharacterClass.Parse(className));
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			if (level > 1)
+			{
+				AwardAndLevel(pm, Advancement.GetExperienceForLevel(level), CharacterClass.Parse(className));
+			}
+
+			return pm;
 		}
 
 		private static DnDPlayerMobile MakeFighter(string name, int level, string className = "Fighter")

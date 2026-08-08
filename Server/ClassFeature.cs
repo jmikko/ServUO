@@ -45,6 +45,48 @@ namespace Server
 		{
 			return null;
 		}
+
+		/// <summary>
+		/// Extra dice rolled on a critical hit, beyond the usual doubling - Brutal Critical.
+		/// </summary>
+		public virtual int ExtraCriticalDice(int classLevel) { return 0; }
+
+		/// <summary>A flat addition to attack rolls, such as the Archery fighting style's +2.</summary>
+		public virtual int AttackBonus { get { return 0; } }
+
+		/// <summary>A flat addition to armour class, such as the Defense fighting style's +1.</summary>
+		public virtual int ArmorClassBonus { get { return 0; } }
+
+		/// <summary>
+		/// An unarmoured armour class this feature grants, or 0. A Barbarian's is 10 + Dex + Con and
+		/// a Monk's is 10 + Dex + Wis; both apply only while wearing no armour, which is why this is
+		/// a whole value rather than a bonus.
+		/// </summary>
+		public virtual int GetUnarmoredArmorClass(IDnDCharacter character, int classLevel) { return 0; }
+
+		/// <summary>A flat addition to every saving throw - the Paladin's Aura of Protection.</summary>
+		public virtual int GetSaveBonus(IDnDCharacter character, int classLevel) { return 0; }
+
+		/// <summary>Whether this feature grants advantage on saves of a given ability.</summary>
+		public virtual bool GrantsSaveAdvantage(AbilityScoreType ability) { return false; }
+
+		/// <summary>Halves damage of these types while the feature is active.</summary>
+		public virtual bool ResistsPhysicalDamage(IDnDCharacter character) { return false; }
+
+		/// <summary>
+		/// How many times this can be used between rests, or 0 if it is passive. An activated
+		/// feature is invoked by name and spends one use.
+		/// </summary>
+		public virtual int GetUses(int classLevel) { return 0; }
+
+		/// <summary>Whether a short rest restores its uses, or only a long one.</summary>
+		public virtual bool RecoversOnShortRest { get { return true; } }
+
+		/// <summary>
+		/// Runs when an activated feature is used. Returns false if it could not take effect, which
+		/// leaves the use unspent.
+		/// </summary>
+		public virtual bool Activate(Mobile user, IDnDCharacter character, int classLevel) { return false; }
 	}
 
 	/// <summary>
@@ -140,6 +182,121 @@ namespace Server
 			}
 
 			return total;
+		}
+
+		public static int GetAttackBonus(IDnDCharacter character)
+		{
+			int total = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				total += entry.Key.AttackBonus;
+			}
+
+			return total;
+		}
+
+		public static int GetArmorClassBonus(IDnDCharacter character)
+		{
+			int total = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				total += entry.Key.ArmorClassBonus;
+			}
+
+			return total;
+		}
+
+		/// <summary>The best unarmoured armour class any feature offers, or 0 for none.</summary>
+		public static int GetUnarmoredArmorClass(IDnDCharacter character)
+		{
+			int best = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				int value = entry.Key.GetUnarmoredArmorClass(character, entry.Value);
+
+				if (value > best)
+				{
+					best = value;
+				}
+			}
+
+			return best;
+		}
+
+		public static int GetSaveBonus(IDnDCharacter character)
+		{
+			int total = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				total += entry.Key.GetSaveBonus(character, entry.Value);
+			}
+
+			return total;
+		}
+
+		public static bool HasSaveAdvantage(IDnDCharacter character, AbilityScoreType ability)
+		{
+			foreach (var entry in GetActive(character))
+			{
+				if (entry.Key.GrantsSaveAdvantage(ability))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public static bool ResistsPhysicalDamage(IDnDCharacter character)
+		{
+			foreach (var entry in GetActive(character))
+			{
+				if (entry.Key.ResistsPhysicalDamage(character))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/// <summary>Extra damage dice on a critical, beyond the usual doubling.</summary>
+		public static int GetExtraCriticalDice(IDnDCharacter character)
+		{
+			int best = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				int dice = entry.Key.ExtraCriticalDice(entry.Value);
+
+				if (dice > best)
+				{
+					best = dice;
+				}
+			}
+
+			return best;
+		}
+
+		/// <summary>Finds an activated feature by name, with the class level that granted it.</summary>
+		public static ClassFeature Find(IDnDCharacter character, string featureName, out int classLevel)
+		{
+			classLevel = 0;
+
+			foreach (var entry in GetActive(character))
+			{
+				if (Insensitive.Equals(entry.Key.Name, featureName))
+				{
+					classLevel = entry.Value;
+					return entry.Key;
+				}
+			}
+
+			return null;
 		}
 
 		public static bool Has(IDnDCharacter character, string featureName)

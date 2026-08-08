@@ -136,7 +136,9 @@ namespace Server
 			{
 				int abilityMod = GetWeaponAbilityModifier(character, ranged, finesse);
 
-				return abilityMod + character.PrimaryClass.GetProficiencyBonus(character.TotalLevel) + magicBonus;
+				// Fighting styles and their kin.
+				return abilityMod + character.PrimaryClass.GetProficiencyBonus(character.TotalLevel) + magicBonus
+					 + ClassFeatures.GetAttackBonus(character);
 			}
 
 			return magicBonus;
@@ -222,6 +224,14 @@ namespace Server
 				return false;
 			}
 
+			// Danger Sense and its relatives grant advantage on particular saves.
+			IDnDCharacter saver = target as IDnDCharacter;
+
+			if (mode == RollMode.Normal && ClassFeatures.HasSaveAdvantage(saver, ability))
+			{
+				mode = RollMode.Advantage;
+			}
+
 			// Bless and its relatives add a fresh die to the roll rather than a fixed number, so
 			// they are rolled here rather than folded into the character's stats.
 			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.Save);
@@ -237,6 +247,9 @@ namespace Server
 				{
 					bonus += character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
 				}
+
+				// Aura of Protection and Diamond Soul.
+				bonus += ClassFeatures.GetSaveBonus(character);
 
 				foreach (Item item in target.Items)
 				{

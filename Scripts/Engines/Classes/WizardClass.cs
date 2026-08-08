@@ -36,5 +36,10 @@ namespace Server.Engines.Classes
 		{
 			get { return new[] { DnDSkill.Arcana, DnDSkill.History, DnDSkill.Insight, DnDSkill.Investigation, DnDSkill.Medicine, DnDSkill.Religion }; }
 		}
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ArcaneRecoveryFeature() }; }
+		}
 	}
 }

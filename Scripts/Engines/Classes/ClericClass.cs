@@ -38,5 +38,10 @@ namespace Server.Engines.Classes
 		{
 			get { return new[] { DnDSkill.History, DnDSkill.Insight, DnDSkill.Medicine, DnDSkill.Persuasion, DnDSkill.Religion }; }
 		}
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ChannelDivinityFeature() }; }
+		}
 	}
 }
