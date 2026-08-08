@@ -86,11 +86,20 @@ These need no new system and are simply not done:
 
 - The 60 spells registered with no mechanical effect (see `DND_STATUS.md`)
 - Magic item catalogue beyond the four types that exist
-- Feats beyond Tough
 
-Death saves and hit dice are done. Two things they left behind:
+Death saves, hit dice and feats are done. What they left behind:
 
 - **Dying has no client UI.** The successes and failures arrive as system messages. They want to be
   three pips somewhere visible, since the whole tension of the rule is watching the count.
 - **What happens after death is still UO's.** Three failed saves ends in a UO ghost and a healer.
   Revivify, and what resurrection costs, are a separate question from how you get there.
+- **Feats that need machinery the game has no notion of.** Everything reaction-driven - Sentinel,
+  Mage Slayer, Polearm Master's opportunity attack, Lucky's reroll - waits on a turn structure with
+  reactions in it. There is no such structure; combat is a swing timer.
+- **`Feat.AttackBonus` is unconditional.** Archery should apply to ranged weapons only, and Great
+  Weapon Master to heavy ones, but the hook is not handed the weapon. Same shape as the fighting
+  styles below, and worth fixing once for both.
+- **`SkilledFeat` picks its own three skills.** There is no UI to ask which, so it grants Perception,
+  Athletics and Insight. It should ask.
+- **Fighting styles are still defined and unattached** (`DefenseStyleFeature`, `ArcheryStyleFeature`).
+  Choosing one at 1st level is the missing piece, and it is the same weapon-context problem.

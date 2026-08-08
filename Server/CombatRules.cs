@@ -138,7 +138,8 @@ namespace Server
 
 				// Fighting styles and their kin.
 				return abilityMod + character.PrimaryClass.GetProficiencyBonus(character.TotalLevel) + magicBonus
-					 + ClassFeatures.GetAttackBonus(character);
+					 + ClassFeatures.GetAttackBonus(character)
+					 + Feat.GetAttackBonus(character);
 			}
 
 			return magicBonus;
@@ -227,7 +228,7 @@ namespace Server
 			// Danger Sense and its relatives grant advantage on particular saves.
 			IDnDCharacter saver = target as IDnDCharacter;
 
-			if (mode == RollMode.Normal && ClassFeatures.HasSaveAdvantage(saver, ability))
+			if (mode == RollMode.Normal && (ClassFeatures.HasSaveAdvantage(saver, ability) || Feat.HasSaveAdvantage(saver, ability)))
 			{
 				mode = RollMode.Advantage;
 			}
@@ -249,7 +250,7 @@ namespace Server
 				}
 
 				// Aura of Protection and Diamond Soul.
-				bonus += ClassFeatures.GetSaveBonus(character);
+				bonus += ClassFeatures.GetSaveBonus(character) + Feat.GetSaveBonusFor(character, ability);
 
 				foreach (Item item in target.Items)
 				{

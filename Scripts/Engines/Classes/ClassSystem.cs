@@ -21,6 +21,8 @@ namespace Server.Engines.Classes
 		{
 			CommandSystem.Register("DnDSheet", AccessLevel.Player, OnDnDSheetCommand);
 
+			Feats.OriginFeats.Configure();
+
 			CharacterClass.Register(new FighterClass());
 			CharacterClass.Register(new BarbarianClass());
 			CharacterClass.Register(new BardClass());
@@ -272,15 +274,15 @@ namespace Server.Engines.Classes
 			if (!string.IsNullOrEmpty(e.ChosenFeat))
 			{
 				Feat f = Feat.Parse(e.ChosenFeat);
-				if (f != null && pm.PendingAbilityScorePoints >= 2) // Assume feat costs 1 ASI (2 points)
+
+				// A feat costs the whole ability score improvement, which is what makes taking one
+				// a real decision rather than a bonus. AddFeat does the rest - prerequisites, any
+				// ability increase the feat itself carries, and the sync back to the client - so it
+				// is called rather than reimplemented here, where a feat that raised a score used
+				// to have that part of it quietly dropped.
+				if (f != null && pm.PendingAbilityScorePoints >= 2 && pm.AddFeat(f))
 				{
-					if (f.CanSelect(pm))
-					{
-						pm.Feats.Add(f);
-						f.OnSelected(pm);
-						pm.PendingAbilityScorePoints -= 2;
-						pm.SendMessage("You have gained the {0} feat.", f.Name);
-					}
+					pm.PendingAbilityScorePoints -= 2;
 				}
 			}
 

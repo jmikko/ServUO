@@ -38,6 +38,45 @@ namespace Server
 			return (int)Math.Floor((score - 10) / 2.0);
 		}
 
+		/// <summary>Reads one score by name, for rules that work on whichever ability they are told.</summary>
+		public int Get(AbilityScoreType ability)
+		{
+			switch (ability)
+			{
+				case AbilityScoreType.Str: return Str;
+				case AbilityScoreType.Dex: return Dex;
+				case AbilityScoreType.Con: return Con;
+				case AbilityScoreType.Int: return Int;
+				case AbilityScoreType.Wis: return Wis;
+				case AbilityScoreType.Cha: return Cha;
+			}
+
+			return 10;
+		}
+
+		public int GetModifier(AbilityScoreType ability)
+		{
+			return Modifier(Get(ability));
+		}
+
+		/// <summary>Adds to one score, capped at 20 - the limit the rules put on advancement.</summary>
+		public AbilityScores Increase(AbilityScoreType ability, int amount)
+		{
+			int raised = Math.Min(20, Get(ability) + amount);
+
+			switch (ability)
+			{
+				case AbilityScoreType.Str: return new AbilityScores(raised, Dex, Con, Int, Wis, Cha);
+				case AbilityScoreType.Dex: return new AbilityScores(Str, raised, Con, Int, Wis, Cha);
+				case AbilityScoreType.Con: return new AbilityScores(Str, Dex, raised, Int, Wis, Cha);
+				case AbilityScoreType.Int: return new AbilityScores(Str, Dex, Con, raised, Wis, Cha);
+				case AbilityScoreType.Wis: return new AbilityScores(Str, Dex, Con, Int, raised, Cha);
+				case AbilityScoreType.Cha: return new AbilityScores(Str, Dex, Con, Int, Wis, raised);
+			}
+
+			return this;
+		}
+
 		public int StrMod { get { return Modifier(Str); } }
 		public int DexMod { get { return Modifier(Dex); } }
 		public int ConMod { get { return Modifier(Con); } }

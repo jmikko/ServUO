@@ -945,7 +945,12 @@ namespace Server.Network
 	/// </summary>
 	public sealed class DnDLevelUpPrompt : Packet
 	{
-		public DnDLevelUpPrompt(int pendingLevels, int pendingASI, int pendingSpellsKnown, IEnumerable<DnDSpellInfo> availableSpells)
+		public DnDLevelUpPrompt(
+			IDnDCharacter character,
+			int pendingLevels,
+			int pendingASI,
+			int pendingSpellsKnown,
+			IEnumerable<DnDSpellInfo> availableSpells)
 			: base(0xBF)
 		{
 			EnsureCapacity(4096);
@@ -964,9 +969,22 @@ namespace Server.Network
 				m_Stream.WriteAsciiNull(c.GetParent() != null ? c.GetParent().Name : "");
 			}
 
-			var feats = Feat.AllFeats;
-			m_Stream.Write((short)feats.Count);
-			foreach (var f in feats)
+			// Only the feats this character could actually take. The server checks the prerequisite
+			// again when the choice comes back, so this is not a security measure - it is so the
+			// list holds no dead buttons, which is what a Fighter offered War Caster would be.
+			var offered = new List<Feat>();
+
+			foreach (Feat f in Feat.AllFeats)
+			{
+				if (character == null || f.CanSelect(character))
+				{
+					offered.Add(f);
+				}
+			}
+
+			m_Stream.Write((short)offered.Count);
+
+			foreach (Feat f in offered)
 			{
 				m_Stream.WriteAsciiNull(f.Name);
 			}

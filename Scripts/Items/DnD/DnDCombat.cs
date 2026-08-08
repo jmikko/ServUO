@@ -96,6 +96,7 @@ namespace Server.Items
 			// doubles a critical's dice, and these dice are part of the attack, but doubling them
 			// here as well would compound with the weapon dice already doubled above.
 			damage += ClassFeatures.RollBonusDamage(character, mode);
+			damage += Feat.GetDamageBonus(character);
 
 			result.Damage = Math.Max(1, damage); // a hit always does something
 

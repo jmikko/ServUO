@@ -103,7 +103,7 @@ namespace Server.Spells.DnD
 				}
 			}
 
-			pm.NetState.Send(new DnDLevelUpPrompt(pm.PendingLevels, pm.PendingAbilityScorePoints, pm.PendingSpellsKnown, infos));
+			pm.NetState.Send(new DnDLevelUpPrompt(pm, pm.PendingLevels, pm.PendingAbilityScorePoints, pm.PendingSpellsKnown, infos));
 		}
 
 		private static void Send(DnDPlayerMobile pm, Packet packet)

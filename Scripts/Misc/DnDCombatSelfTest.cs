@@ -115,6 +115,7 @@ namespace Server.Misc
 			ok &= CheckLevelUpWireFormat();
 			ok &= CheckDeathSaves();
 			ok &= CheckHitDice();
+			ok &= CheckFeats();
 			ok &= CheckSubclasses();
 			ok &= CheckClassFeatures();
 
@@ -1102,6 +1103,250 @@ namespace Server.Misc
 				Console.WriteLine(
 					"[combat-selftest] death saves: {0:P1} die, {1:P1} stabilise, {2:P1} come round",
 					deathRate, stabilised / (double)trials, revived / (double)trials);
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Feats, read back through the rules they modify rather than out of the feat list.
+		/// <para>
+		/// This is the check that would have caught the shape the feat system was in: the hooks and
+		/// the aggregation could all be perfect and Tough would still do nothing, because until now
+		/// the only thing that consulted a feat was one hand-written type check inside HitsMax. A
+		/// feat is real when armour class, hit points and saving throws move - so those are what is
+		/// measured.
+		/// </para>
+		/// </summary>
+		private static bool CheckFeats()
+		{
+			bool ok = true;
+
+			if (Feat.AllFeats.Count == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: no feats registered");
+				return false;
+			}
+
+			// Every registered feat must be constructible, named, and describable - a feat with no
+			// description is one the level-up window cannot present.
+			foreach (Feat f in Feat.AllFeats)
+			{
+				if (String.IsNullOrEmpty(f.Name) || String.IsNullOrEmpty(f.Description))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: feat {0} has no name or description", f.GetType().Name);
+					ok = false;
+				}
+			}
+
+			DnDPlayerMobile pm = MakeCharacter("Feat Test", "Fighter", 5, 16, 14, 14);
+
+			try
+			{
+				int hitsBefore = pm.HitsMax;
+				int acBefore = pm.ArmorClass;
+
+				if (!pm.AddFeat(Feat.Parse("Tough")))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: could not take Tough");
+					ok = false;
+				}
+
+				// Level 5, +2 a level: exactly 10 more.
+				if (pm.HitsMax != hitsBefore + 10)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Tough moved hit points {0} -> {1}, expected +10",
+						hitsBefore, pm.HitsMax);
+
+					ok = false;
+				}
+
+				// Taking it twice must not stack - the default CanSelect refuses a repeat.
+				if (pm.AddFeat(Feat.Parse("Tough")))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Tough was taken twice");
+					ok = false;
+				}
+
+				pm.AddFeat(Feat.Parse("Lucky"));
+
+				if (pm.ArmorClass != acBefore)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Lucky changed armour class");
+					ok = false;
+				}
+
+				// Lucky is +1 to every save, so a save on a knife-edge DC should land about 5
+				// points more often. Measured, because a save bonus that is summed but never added
+				// to the roll is invisible to any check of the feat list.
+				const int trials = 6000;
+
+				DnDPlayerMobile plain = MakeCharacter("Feat Control", "Fighter", 5, 16, 14, 14);
+
+				try
+				{
+					int withLuck = 0, without = 0;
+
+					for (int i = 0; i < trials; ++i)
+					{
+						if (CombatRules.CheckSave(pm, AbilityScoreType.Cha, 15)) ++withLuck;
+						if (CombatRules.CheckSave(plain, AbilityScoreType.Cha, 15)) ++without;
+					}
+
+					double gain = (withLuck - without) / (double)trials;
+
+					if (gain < 0.01 || gain > 0.10)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Lucky changed save rate by {0:P1}, expected about +5%",
+							gain);
+
+						ok = false;
+					}
+
+					// Shield Master grants advantage on Dexterity saves, which is a much bigger jump
+					// than a flat +1 and must not be confused with one.
+					DnDPlayerMobile shielded = MakeCharacter("Feat Advantage", "Fighter", 5, 16, 14, 14);
+
+					try
+					{
+						shielded.AddFeat(Feat.Parse("Shield Master"));
+
+						int advantaged = 0, flat = 0;
+
+						for (int i = 0; i < trials; ++i)
+						{
+							if (CombatRules.CheckSave(shielded, AbilityScoreType.Dex, 15)) ++advantaged;
+							if (CombatRules.CheckSave(plain, AbilityScoreType.Dex, 15)) ++flat;
+						}
+
+						double advGain = (advantaged - flat) / (double)trials;
+
+						// Rolling twice against a roughly even DC is worth around 20 points.
+						if (advGain < 0.12 || advGain > 0.30)
+						{
+							Console.WriteLine(
+								"[combat-selftest] FAIL: Shield Master changed Dexterity saves by {0:P1}, expected about +20%",
+								advGain);
+
+							ok = false;
+						}
+
+						// And it must not leak into the wrong ability.
+						int wrongAbility = 0, wrongControl = 0;
+
+						for (int i = 0; i < trials; ++i)
+						{
+							if (CombatRules.CheckSave(shielded, AbilityScoreType.Wis, 15)) ++wrongAbility;
+							if (CombatRules.CheckSave(plain, AbilityScoreType.Wis, 15)) ++wrongControl;
+						}
+
+						if (Math.Abs(wrongAbility - wrongControl) / (double)trials > 0.05)
+						{
+							Console.WriteLine("[combat-selftest] FAIL: Shield Master leaked into Wisdom saves");
+							ok = false;
+						}
+
+						if (ok)
+						{
+							Console.WriteLine(
+								"[combat-selftest]   feats: {0} registered; Tough +10 HP, Lucky {1:+0.0%;-0.0%} saves, Shield Master {2:+0.0%;-0.0%} Dex saves",
+								Feat.AllFeats.Count, gain, advGain);
+						}
+					}
+					finally
+					{
+						shielded.Delete();
+					}
+				}
+				finally
+				{
+					plain.Delete();
+				}
+
+				// An ability score increase folds into the score itself and stops at 20.
+				DnDPlayerMobile strong = MakeCharacter("Feat Cap", "Fighter", 5, 19, 12, 12);
+
+				try
+				{
+					strong.AddFeat(Feat.Parse("Ability Score Improvement (Str)"));
+
+					if (strong.AbilityScores.Str != 20)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Strength 19 plus 2 gave {0}, expected the cap of 20",
+							strong.AbilityScores.Str);
+
+						ok = false;
+					}
+
+					// At 20 it may not be taken again.
+					if (strong.AddFeat(Feat.Parse("Ability Score Improvement (Str)")))
+					{
+						Console.WriteLine("[combat-selftest] FAIL: an ability increase was allowed past 20");
+						ok = false;
+					}
+				}
+				finally
+				{
+					strong.Delete();
+				}
+
+				// War Caster is for spellcasters, and a Fighter is not one.
+				if (Feat.Parse("War Caster").CanSelect(pm))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a Fighter was offered War Caster");
+					ok = false;
+				}
+
+				// The path a player actually takes: a feat chosen in the level-up window, arriving
+				// as a name on the wire. This is where the ability increase used to be dropped -
+				// the handler added the feat to the list directly and never applied the rest of it.
+				DnDPlayerMobile viaLevelUp = MakeCharacter("Feat Wire", "Fighter", 4, 15, 12, 12);
+
+				try
+				{
+					viaLevelUp.PendingAbilityScorePoints = 2;
+
+					int strBefore = viaLevelUp.AbilityScores.Str;
+
+					var increases = new int[6];
+
+					Server.EventSink.InvokeDnDLevelUpSubmit(
+						new DnDLevelUpSubmitEventArgs(
+							viaLevelUp, increases, new int[0], String.Empty, "Resilient (Str)"));
+
+					if (!Feat.Has(viaLevelUp, "Resilient (Str)"))
+					{
+						Console.WriteLine("[combat-selftest] FAIL: a feat chosen at level-up was not applied");
+						ok = false;
+					}
+					else if (viaLevelUp.AbilityScores.Str != strBefore + 1)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Resilient took Strength {0} -> {1}, expected +1",
+							strBefore, viaLevelUp.AbilityScores.Str);
+
+						ok = false;
+					}
+					else if (viaLevelUp.PendingAbilityScorePoints != 0)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: a feat left {0} ability point(s) unspent",
+							viaLevelUp.PendingAbilityScorePoints);
+
+						ok = false;
+					}
+				}
+				finally
+				{
+					viaLevelUp.Delete();
+				}
+			}
+			finally
+			{
+				pm.Delete();
 			}
 
 			return ok;

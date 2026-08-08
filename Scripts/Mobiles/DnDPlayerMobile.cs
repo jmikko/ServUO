@@ -50,6 +50,51 @@ namespace Server.Mobiles
 
 		public List<Feat> Feats { get { return m_Feats; } }
 
+		/// <summary>
+		/// Takes a feat. Ability score increases are applied here and folded into the stored scores
+		/// rather than recomputed from the feat list on every read - a feat that raises a score is a
+		/// one-time event, and the character sheet should show the raised number as their own.
+		/// </summary>
+		public bool AddFeat(Feat feat)
+		{
+			if (feat == null || !feat.CanSelect(this))
+			{
+				return false;
+			}
+
+			m_Feats.Add(feat);
+
+			for (int i = 0; i < 6; ++i)
+			{
+				var ability = (AbilityScoreType)i;
+				int increase = feat.GetAbilityIncrease(ability);
+
+				if (increase > 0)
+				{
+					m_AbilityScores = m_AbilityScores.Increase(ability, increase);
+				}
+			}
+
+			feat.OnSelected(this);
+
+			SendMessage(0x35, "You gain the {0} feat.", feat.Name);
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
+			}
+
+			return true;
+		}
+
+		public void AddSkillProficiency(DnDSkill skill)
+		{
+			if (!m_SkillProficiencies.Contains(skill))
+			{
+				m_SkillProficiencies.Add(skill);
+			}
+		}
+
 		public bool IsAttunedTo(Item item)
 		{
 			return m_AttunedItems.Contains(item);
@@ -198,12 +243,12 @@ namespace Server.Mobiles
 					if (unarmored > baseAC + dexMod)
 					{
 						return Math.Max(unarmored, floor + dexMod) + shieldBonus + magicBonus
-							 + ClassFeatures.GetArmorClassBonus(this);
+								 + ClassFeatures.GetArmorClassBonus(this) + Feat.GetArmorClassBonus(this);
 					}
 				}
 
 				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus + magicBonus
-					 + ClassFeatures.GetArmorClassBonus(this);
+					 + ClassFeatures.GetArmorClassBonus(this) + Feat.GetArmorClassBonus(this);
 			}
 		}
 
@@ -239,13 +284,7 @@ namespace Server.Mobiles
 
 				totalHitPoints = Math.Max(TotalLevel, totalHitPoints); // Never below 1 HP per level
 
-				foreach (var feat in m_Feats)
-				{
-					if (feat is ToughFeat)
-					{
-						totalHitPoints += (TotalLevel * 2);
-					}
-				}
+				totalHitPoints += TotalLevel * Feat.GetHitPointsPerLevel(this);
 
 				return totalHitPoints;
 			}
