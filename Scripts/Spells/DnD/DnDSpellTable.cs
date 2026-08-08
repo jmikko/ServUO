@@ -21,6 +21,9 @@ namespace Server.Spells.DnD
 		/// <summary>Sets the target's armour class to a floor for a duration.</summary>
 		ArmorClass,
 
+		/// <summary>Inflicts a condition, subject to a saving throw where the spell allows one.</summary>
+		Condition,
+
 		/// <summary>Does nothing mechanical yet - flavour, light, and the like.</summary>
 		Utility
 	}
@@ -65,6 +68,18 @@ namespace Server.Spells.DnD
 		public int ArmorClassValue;
 
 		public TimeSpan Duration;
+
+		/// <summary>For Condition effects: what the spell inflicts.</summary>
+		public DnDCondition Condition;
+
+		/// <summary>
+		/// For Condition effects: the highest hit point total a creature can have and still be
+		/// affected. 0 means no limit. This is how Sleep works - it simply overwhelms the weak.
+		/// </summary>
+		public int HitPointThreshold;
+
+		public int AreaRadius;
+		public bool Concentration;
 
 		public string Description;
 
@@ -122,6 +137,10 @@ namespace Server.Spells.DnD
 				DicePerSlotLevel = ParseInt(el.GetAttribute("dicePerSlot")),
 				ScalesWithCantripDice = el.GetAttribute("cantripScaling") == "true",
 				ArmorClassValue = ParseInt(el.GetAttribute("armorClass")),
+				Condition = ParseEnum(el.GetAttribute("condition"), DnDCondition.None),
+				HitPointThreshold = ParseInt(el.GetAttribute("hitPointThreshold")),
+				AreaRadius = ParseInt(el.GetAttribute("radius")),
+				Concentration = el.GetAttribute("concentration") == "true",
 				Description = el.GetAttribute("description")
 			};
 
@@ -184,6 +203,9 @@ namespace Server.Spells.DnD
 		public override int Range { get { return m_Data.Range; } }
 		public override bool HalfDamageOnSave { get { return m_Data.HalfOnSave; } }
 		public override bool Beneficial { get { return m_Data.Beneficial; } }
+		public override int AreaRadius { get { return m_Data.AreaRadius; } }
+		public override bool RequiresConcentration { get { return m_Data.Concentration; } }
+		public override TimeSpan Duration { get { return m_Data.Duration; } }
 
 		public override void Effect(Mobile caster, IDnDCharacter character, Mobile target, int slotLevel)
 		{
@@ -210,12 +232,43 @@ namespace Server.Spells.DnD
 						DnDEffects.ApplyArmorClass(target, m_Data.ArmorClassValue, m_Data.Duration, Name);
 						break;
 					}
+				case SpellEffectKind.Condition:
+					{
+						ApplyCondition(caster, character, target);
+						break;
+					}
 				case SpellEffectKind.Utility:
 					{
 						caster.SendMessage("{0} takes effect.", Name);
 						break;
 					}
 			}
+		}
+
+		/// <summary>
+		/// Inflicts the spell's condition. A hit point threshold (Sleep) overrides the saving throw
+		/// entirely - the spell simply overwhelms creatures below it and cannot touch those above.
+		/// </summary>
+		private void ApplyCondition(Mobile caster, IDnDCharacter character, Mobile target)
+		{
+			if (m_Data.HitPointThreshold > 0)
+			{
+				if (target.Hits > m_Data.HitPointThreshold)
+				{
+					caster.SendMessage("{0} is too strong to be affected.", target.Name);
+					return;
+				}
+			}
+			else if (m_Data.Resolution == SpellResolution.SavingThrow &&
+					 CombatRules.CheckSave(target, m_Data.SaveAbility, Spellcasting.GetSaveDC(character)))
+			{
+				caster.SendMessage("{0} resists.", target.Name);
+				return;
+			}
+
+			DnDConditions.Add(target, m_Data.Condition, m_Data.Duration);
+
+			caster.SendMessage("{0} is {1}.", target.Name, m_Data.Condition.ToString().ToLowerInvariant());
 		}
 
 		/// <summary>

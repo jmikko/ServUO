@@ -70,6 +70,8 @@ namespace Server.Misc
 			ok &= CheckSpeciesRendering();
 			ok &= CheckEquipmentTables();
 			ok &= CheckSpellTable();
+			ok &= CheckConditions();
+			ok &= CheckConcentration();
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -274,6 +276,146 @@ namespace Server.Misc
 				utility);
 
 			return ok;
+		}
+
+		/// <summary>
+		/// Conditions have to actually swing the dice. A blinded attacker should hit noticeably
+		/// less often and a paralysed defender noticeably more, and one of each should cancel back
+		/// to roughly the normal rate - that cancelling is the part people get wrong.
+		/// </summary>
+		private static bool CheckConditions()
+		{
+			const int Rolls = 4000;
+
+			DnDPlayerMobile attacker = new DnDPlayerMobile { Name = "ConditionProbe", Body = 0x190 };
+
+			attacker.ApplyDnDSetup(
+				new AbilityScores(16, 12, 14, 10, 10, 10),
+				CharacterClass.Parse("Fighter"));
+
+			attacker.MoveToWorld(TestLocation, Map.Felucca);
+
+			SrdGoblin defender = new SrdGoblin { Blessed = true };
+			defender.MoveToWorld(TestLocation, Map.Felucca);
+
+			double normal = MeasureHitRate(attacker, defender, Rolls);
+
+			DnDConditions.Add(attacker, DnDCondition.Blinded, TimeSpan.FromMinutes(5));
+			double blinded = MeasureHitRate(attacker, defender, Rolls);
+
+			DnDConditions.Add(defender, DnDCondition.Paralyzed, TimeSpan.FromMinutes(5));
+			double cancelled = MeasureHitRate(attacker, defender, Rolls);
+
+			DnDConditions.Clear(attacker);
+			double advantaged = MeasureHitRate(attacker, defender, Rolls);
+
+			Console.WriteLine(
+				"[combat-selftest]   conditions: normal {0:P1}, blinded {1:P1}, blinded+paralysed {2:P1}, paralysed {3:P1}",
+				normal,
+				blinded,
+				cancelled,
+				advantaged);
+
+			bool ok = true;
+
+			if (blinded >= normal)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: disadvantage did not lower the hit rate");
+				ok = false;
+			}
+
+			if (advantaged <= normal)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: advantage did not raise the hit rate");
+				ok = false;
+			}
+
+			// One of each cancels, so this should sit near the unmodified rate rather than at
+			// either extreme.
+			if (Math.Abs(cancelled - normal) > 0.05)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: advantage and disadvantage did not cancel out");
+				ok = false;
+			}
+
+			// A paralysed creature simply fails Dexterity saves.
+			if (CombatRules.CheckSave(defender, AbilityScoreType.Dex, 5))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a paralysed creature passed a Dexterity save");
+				ok = false;
+			}
+
+			DnDConditions.Clear(defender);
+			attacker.Delete();
+			defender.Delete();
+
+			return ok;
+		}
+
+		private static double MeasureHitRate(Mobile attacker, Mobile defender, int rolls)
+		{
+			int hits = 0;
+
+			for (int i = 0; i < rolls; i++)
+			{
+				if (DnDCombat.RollAttack(attacker, defender, null).Hit)
+				{
+					++hits;
+				}
+			}
+
+			return hits / (double)rolls;
+		}
+
+		/// <summary>
+		/// Concentration holds one spell at a time and a second displaces the first. Damage risks
+		/// breaking it, so enough damage should eventually break it.
+		/// </summary>
+		private static bool CheckConcentration()
+		{
+			DnDPlayerMobile caster = new DnDPlayerMobile { Name = "ConcentrationProbe", Body = 0x190 };
+
+			caster.ApplyDnDSetup(
+				new AbilityScores(10, 10, 10, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			caster.MoveToWorld(TestLocation, Map.Felucca);
+
+			bool ok = true;
+
+			DnDConcentration.Begin(caster, "First Spell", TimeSpan.FromMinutes(10), null);
+			ok &= CheckText("concentrating", DnDConcentration.GetSpellName(caster), "First Spell");
+
+			// Starting another drops the first - a caster only ever holds one.
+			DnDConcentration.Begin(caster, "Second Spell", TimeSpan.FromMinutes(10), null);
+			ok &= CheckText("second spell displaces first", DnDConcentration.GetSpellName(caster), "Second Spell");
+
+			// A big enough hit should break it within a handful of attempts; the save is DC 10 or
+			// half the damage, so 60 damage is DC 30 and essentially unmakeable.
+			DnDConcentration.OnDamaged(caster, 60);
+
+			if (DnDConcentration.IsConcentrating(caster))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: concentration survived a DC 30 save");
+				ok = false;
+			}
+
+			Console.WriteLine("[combat-selftest]   concentration: one spell at a time, broken by heavy damage");
+
+			caster.Delete();
+
+			return ok;
+		}
+
+		private static bool CheckText(string label, string actual, string expected)
+		{
+			if (actual == expected)
+			{
+				return true;
+			}
+
+			Console.WriteLine("[combat-selftest] FAIL: {0} expected '{1}', got '{2}'", label, expected, actual);
+			return false;
 		}
 
 		/// <summary>

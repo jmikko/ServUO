@@ -46,6 +46,19 @@ namespace Server.Spells.DnD
 		/// <summary>A successful save halves the damage rather than negating it.</summary>
 		public virtual bool HalfDamageOnSave { get { return false; } }
 
+		/// <summary>
+		/// Radius in tiles around the chosen target that the spell also affects. 0 is single-target.
+		/// SRD cones and lines are approximated as a radius centred on the target - the shape
+		/// matters less here than the fact that several creatures are caught.
+		/// </summary>
+		public virtual int AreaRadius { get { return 0; } }
+
+		/// <summary>Whether holding this spell occupies the caster's concentration.</summary>
+		public virtual bool RequiresConcentration { get { return false; } }
+
+		/// <summary>How long a concentration or timed spell lasts.</summary>
+		public virtual TimeSpan Duration { get { return TimeSpan.Zero; } }
+
 		public bool IsCantrip { get { return Level == 0; } }
 
 		/// <summary>

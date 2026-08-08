@@ -44,7 +44,9 @@ namespace Server.Items
 			bool ranged = IsRanged(weapon);
 			bool finesse = weapon != null && weapon.IsFinesse;
 
-			result.Roll = Utility.RandomMinMax(1, 20);
+			// Conditions decide how the die is rolled: the attacker's own impairments give it
+			// disadvantage, the defender's give the attacker advantage, and one of each cancels.
+			result.Roll = CombatRules.RollD20(DnDConditions.GetAttackRollMode(attacker, defender));
 			result.Critical = result.Roll == 20;
 
 			if (result.Roll == 1)
@@ -95,6 +97,10 @@ namespace Server.Items
 			}
 
 			defender.Damage(result.Damage, attacker);
+
+			// Taking a hit risks dropping whatever the defender was concentrating on.
+			Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, result.Damage);
+
 			Announce(attacker, defender, result.Critical ? "critically hits" : "hits");
 
 			return SwingDelay;

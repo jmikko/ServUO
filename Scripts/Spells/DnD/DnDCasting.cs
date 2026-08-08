@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Server.Mobiles;
 
 namespace Server.Spells.DnD
@@ -75,9 +76,59 @@ namespace Server.Spells.DnD
 				}
 			}
 
-			spell.Effect(caster, caster, target ?? caster, slotLevel);
+			Mobile primary = target ?? caster;
+
+			if (spell.RequiresConcentration)
+			{
+				DnDConcentration.Begin(caster, spell.Name, spell.Duration, null);
+			}
+
+			if (spell.AreaRadius <= 0)
+			{
+				spell.Effect(caster, caster, primary, slotLevel);
+
+				return CastResult.Success;
+			}
+
+			foreach (Mobile affected in GetAreaTargets(caster, primary, spell))
+			{
+				spell.Effect(caster, caster, affected, slotLevel);
+			}
 
 			return CastResult.Success;
+		}
+
+		/// <summary>
+		/// Everything an area spell catches. A harmful area spares its caster - SRD areas are shapes
+		/// the caster places, and every one of them originates somewhere the caster is not - while a
+		/// beneficial one includes them.
+		/// </summary>
+		private static List<Mobile> GetAreaTargets(Mobile caster, Mobile centre, DnDSpell spell)
+		{
+			var targets = new List<Mobile>();
+
+			if (centre.Map == null || centre.Map == Map.Internal)
+			{
+				targets.Add(centre);
+				return targets;
+			}
+
+			foreach (Mobile m in centre.GetMobilesInRange(spell.AreaRadius))
+			{
+				if (m == null || m.Deleted || !m.Alive)
+				{
+					continue;
+				}
+
+				if (m == caster && !spell.Beneficial)
+				{
+					continue;
+				}
+
+				targets.Add(m);
+			}
+
+			return targets;
 		}
 
 		private static bool IsOnClassList(CharacterClass charClass, DnDSpell spell)
@@ -100,7 +151,9 @@ namespace Server.Spells.DnD
 			{
 				case SpellResolution.SpellAttack:
 					{
-						int roll = Utility.RandomMinMax(1, 20);
+						// A spell attack is still an attack roll, so conditions on either side
+						// swing it exactly as they do for a weapon swing.
+						int roll = CombatRules.RollD20(DnDConditions.GetAttackRollMode(caster, target));
 
 						if (roll == 1)
 						{
@@ -133,6 +186,8 @@ namespace Server.Spells.DnD
 			if (damage > 0)
 			{
 				target.Damage(damage, caster);
+
+				DnDConcentration.OnDamaged(target, damage);
 			}
 
 			return damage;

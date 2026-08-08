@@ -196,6 +196,13 @@ namespace Server
 
 		public static bool CheckSave(Mobile target, AbilityScoreType ability, int dc, RollMode mode)
 		{
+			// Paralysed, petrified, stunned and unconscious creatures do not get to roll at all
+			// against anything physical.
+			if (DnDConditions.AutoFailsSave(target, ability))
+			{
+				return false;
+			}
+
 			int roll = RollD20(mode);
 			int bonus = 0;
 
