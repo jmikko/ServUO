@@ -114,6 +114,7 @@ namespace Server.Misc
 			ok &= CheckSkillChoice();
 			ok &= CheckLevelUpWireFormat();
 			ok &= CheckSubclasses();
+			ok &= CheckClassFeatures();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -526,6 +527,192 @@ namespace Server.Misc
 			{
 				pm.AddClassLevel(into);
 			}
+		}
+
+		/// <summary>
+		/// Class features, each measured as a change to a number combat produces.
+		/// <para>
+		/// A feature that is registered but never consulted is this codebase's most common failure,
+		/// and it looks identical to a working one from the outside. So none of these check that a
+		/// feature exists - they check that damage output rises, that criticals get more frequent,
+		/// and that the extra dice appear only under the condition that earns them.
+		/// </para>
+		/// </summary>
+		private static bool CheckClassFeatures()
+		{
+			const int Swings = 6000;
+
+			bool ok = true;
+
+			SrdGoblin dummy = new SrdGoblin { Blessed = true };
+			dummy.MoveToWorld(TestLocation, Map.Felucca);
+
+			// EXTRA ATTACK - a 5th-level fighter should land close to twice as many hits per swing
+			// as a 1st-level one, since it is the same attack rolled twice.
+			DnDPlayerMobile novice = MakeFighter("FeatureProbeNovice", 1);
+			DnDPlayerMobile veteran = MakeFighter("FeatureProbeVeteran", 5);
+
+			ok &= CheckValue("level 1 fighter has no extra attack", ClassFeatures.GetExtraAttacks(novice), 0);
+			ok &= CheckValue("level 5 fighter has extra attack", ClassFeatures.GetExtraAttacks(veteran), 1);
+
+			double noviceHits = MeasureHitsPerSwing(novice, dummy, Swings);
+			double veteranHits = MeasureHitsPerSwing(veteran, dummy, Swings);
+
+			Console.WriteLine(
+				"[combat-selftest]   extra attack: level 1 lands {0:F2} hit(s) per action, level 5 lands {1:F2}",
+				noviceHits,
+				veteranHits);
+
+            // Two attacks at the same hit rate is double the hits; allow a wide band for the dice.
+			if (veteranHits < noviceHits * 1.6)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Extra Attack did not raise hits per action");
+				ok = false;
+			}
+
+			// IMPROVED CRITICAL - a Champion crits on 19, so roughly twice as often as a Fighter.
+			DnDPlayerMobile champion = MakeFighter("FeatureProbeChampion", 3, "Champion");
+
+			ok &= CheckValue("fighter crits on 20", ClassFeatures.GetCriticalThreshold(novice), 20);
+			ok &= CheckValue("champion crits on 19", ClassFeatures.GetCriticalThreshold(champion), 19);
+
+			double fighterCrits = MeasureCritRate(novice, dummy, Swings);
+			double championCrits = MeasureCritRate(champion, dummy, Swings);
+
+			Console.WriteLine(
+				"[combat-selftest]   improved critical: fighter {0:P1} of hits, champion {1:P1}",
+				fighterCrits,
+				championCrits);
+
+			if (championCrits <= fighterCrits * 1.3)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Improved Critical did not raise the critical rate");
+				ok = false;
+			}
+
+			// SNEAK ATTACK - extra dice, but only with advantage. Both halves matter: a rider that
+			// always applies is as wrong as one that never does.
+			DnDPlayerMobile rogue = MakeRogue("FeatureProbeRogue", 5);
+
+			int withoutAdvantage = ClassFeatures.RollBonusDamage(rogue, RollMode.Normal);
+			int withAdvantage = 0;
+
+			for (int i = 0; i < 50 && withAdvantage == 0; ++i)
+			{
+				withAdvantage = ClassFeatures.RollBonusDamage(rogue, RollMode.Advantage);
+			}
+
+			ok &= CheckValue("no sneak attack without advantage", withoutAdvantage, 0);
+
+			if (withAdvantage <= 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Sneak Attack rolled nothing with advantage");
+				ok = false;
+			}
+
+			// A 5th-level rogue is 3d6, so 3 to 18.
+			if (withAdvantage < 3 || withAdvantage > 18)
+			{
+				Console.WriteLine(
+					"[combat-selftest] FAIL: Sneak Attack rolled {0}, outside 3d6 for a 5th-level rogue", withAdvantage);
+
+				ok = false;
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   sneak attack: {0} without advantage, {1} with it (3d6 at level 5)",
+				withoutAdvantage,
+				withAdvantage);
+
+			novice.Delete();
+			veteran.Delete();
+			champion.Delete();
+			rogue.Delete();
+			dummy.Delete();
+
+			return ok;
+		}
+
+		private static DnDPlayerMobile MakeFighter(string name, int level, string className = "Fighter")
+		{
+			var pm = new DnDPlayerMobile { Name = name, Body = 0x190 };
+
+			pm.ApplyDnDSetup(new AbilityScores(16, 12, 14, 10, 10, 10), CharacterClass.Parse("Fighter"));
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			if (level > 1)
+			{
+				// Level as the base class, then specialise - which is what taking a subclass is.
+				// Adding the subclass as its own class instead leaves its features inactive.
+				AwardAndLevel(pm, Advancement.GetExperienceForLevel(level), CharacterClass.Parse("Fighter"));
+
+				if (className != "Fighter")
+				{
+					pm.ReplaceSubclass(CharacterClass.Parse("Fighter"), CharacterClass.Parse(className));
+				}
+			}
+
+			return pm;
+		}
+
+		private static DnDPlayerMobile MakeRogue(string name, int level)
+		{
+			var pm = new DnDPlayerMobile { Name = name, Body = 0x190 };
+
+			pm.ApplyDnDSetup(new AbilityScores(12, 16, 12, 10, 10, 10), CharacterClass.Parse("Rogue"));
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			if (level > 1)
+			{
+				AwardAndLevel(pm, Advancement.GetExperienceForLevel(level), CharacterClass.Parse("Rogue"));
+			}
+
+			return pm;
+		}
+
+		/// <summary>Hits landed per attack action, which is what Extra Attack changes.</summary>
+		private static double MeasureHitsPerSwing(Mobile attacker, Mobile defender, int actions)
+		{
+			int extra = ClassFeatures.GetExtraAttacks(attacker as IDnDCharacter);
+			int hits = 0;
+
+			for (int i = 0; i < actions; ++i)
+			{
+				for (int swing = 0; swing <= extra; ++swing)
+				{
+					if (DnDCombat.RollAttack(attacker, defender, null).Hit)
+					{
+						++hits;
+					}
+				}
+			}
+
+			return hits / (double)actions;
+		}
+
+		/// <summary>Criticals as a share of hits, which is what Improved Critical changes.</summary>
+		private static double MeasureCritRate(Mobile attacker, Mobile defender, int swings)
+		{
+			int hits = 0, crits = 0;
+
+			for (int i = 0; i < swings; ++i)
+			{
+				DnDCombat.AttackResult result = DnDCombat.RollAttack(attacker, defender, null);
+
+				if (!result.Hit)
+				{
+					continue;
+				}
+
+				++hits;
+
+				if (result.Critical)
+				{
+					++crits;
+				}
+			}
+
+			return hits == 0 ? 0.0 : crits / (double)hits;
 		}
 
 		/// <summary>

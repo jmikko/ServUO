@@ -31,5 +31,10 @@ namespace Server.Engines.Classes
 		{
 			get { return new[] { DnDSkill.Acrobatics, DnDSkill.Athletics, DnDSkill.History, DnDSkill.Insight, DnDSkill.Religion, DnDSkill.Stealth }; }
 		}
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ExtraAttackFeature() }; }
+		}
 	}
 }

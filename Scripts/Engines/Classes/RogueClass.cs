@@ -35,5 +35,10 @@ namespace Server.Engines.Classes
 		{
 			get { return new[] { DnDSkill.Acrobatics, DnDSkill.Athletics, DnDSkill.Deception, DnDSkill.Insight, DnDSkill.Intimidation, DnDSkill.Investigation, DnDSkill.Perception, DnDSkill.Performance, DnDSkill.Persuasion, DnDSkill.SleightOfHand, DnDSkill.Stealth }; }
 		}
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.SneakAttackFeature() }; }
+		}
 	}
 }

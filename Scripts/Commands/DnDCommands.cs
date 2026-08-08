@@ -92,7 +92,10 @@ namespace Server.Commands
 				return;
 			}
 
-			pm.AddClassLevel(into);
+			if (!Engines.Classes.ClassSystem.ApplyLevelChoice(pm, into))
+			{
+				return;
+			}
 
 			pm.SendMessage(
 				0x35,

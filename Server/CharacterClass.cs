@@ -92,6 +92,12 @@ namespace Server
 		/// Champion is a Fighter and trains as one.
 		/// </para>
 		/// </summary>
+		/// <summary>
+		/// What this class grants as it levels. A subclass inherits its parent's features and adds
+		/// its own, which is why a Champion is a Fighter that also crits on a 19.
+		/// </summary>
+		public virtual ClassFeature[] Features { get { return new ClassFeature[0]; } }
+
 		public virtual DnDSkill[] SkillChoices { get { return new DnDSkill[0]; } }
 
 		public virtual int SkillChoiceCount { get { return 2; } }

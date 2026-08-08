@@ -210,6 +210,48 @@ namespace Server.Engines.Classes
 			}
 		}
 
+		/// <summary>
+		/// Spends one pending level on a class.
+		/// <para>
+		/// Picking a subclass is a specialisation, not a multiclass: a Fighter who becomes a
+		/// Champion moves their Fighter levels across rather than starting a separate class at 1.
+		/// Adding it as a new class instead would leave a Fighter 2 / Champion 1 whose Champion
+		/// features - which start at 3rd - never switch on.
+		/// </para>
+		/// <para>
+		/// Shared so the client's level-up window and the [LevelUp command cannot drift apart; they
+		/// did, and the command quietly multiclassed anyone who named a subclass.
+		/// </para>
+		/// </summary>
+		public static bool ApplyLevelChoice(DnDPlayerMobile pm, CharacterClass chosen)
+		{
+			if (pm == null || chosen == null || pm.PendingLevels <= 0)
+			{
+				return false;
+			}
+
+			CharacterClass parent = chosen.GetParent();
+
+			if (parent != null)
+			{
+				if (!pm.Classes.ContainsKey(parent))
+				{
+					pm.SendMessage("You must be a {0} before you can become a {1}.", parent.Name, chosen.Name);
+					return false;
+				}
+
+				pm.ReplaceSubclass(parent, chosen);
+				pm.PendingLevels--;
+				pm.SendMessage(0x35, "You are now a {0}.", chosen.Name);
+
+				return true;
+			}
+
+			pm.AddClassLevel(chosen);
+
+			return true;
+		}
+
 		private static void OnDnDLevelUpSubmit(DnDLevelUpSubmitEventArgs e)
 		{
 			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
@@ -222,25 +264,8 @@ namespace Server.Engines.Classes
 			if (pm.PendingLevels > 0 && !string.IsNullOrEmpty(e.ChosenClass))
 			{
 				CharacterClass chosen = CharacterClass.Parse(e.ChosenClass);
-				if (chosen != null)
-				{
-					if (chosen.ParentClass != null)
-					{
-						// Subclass selected. Replace parent class with subclass.
-						CharacterClass parent = chosen.GetParent();
 
-						if (parent != null)
-						{
-							pm.ReplaceSubclass(parent, chosen);
-							pm.PendingLevels--;
-							pm.SendMessage(0x35, "You are now a {0}.", chosen.Name);
-						}
-					}
-					else
-					{
-						pm.AddClassLevel(chosen);
-					}
-				}
+				ApplyLevelChoice(pm, chosen);
 			}
 
 			// Validate and apply Feats

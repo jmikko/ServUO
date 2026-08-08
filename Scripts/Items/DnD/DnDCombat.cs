@@ -46,8 +46,14 @@ namespace Server.Items
 
 			// Conditions decide how the die is rolled: the attacker's own impairments give it
 			// disadvantage, the defender's give the attacker advantage, and one of each cancels.
-			result.Roll = CombatRules.RollD20(DnDConditions.GetAttackRollMode(attacker, defender));
-			result.Critical = result.Roll == 20;
+			RollMode mode = DnDConditions.GetAttackRollMode(attacker, defender);
+
+			result.Roll = CombatRules.RollD20(mode);
+
+			// A Champion crits on 19 as well as 20; everyone else needs the 20.
+			var character = attacker as IDnDCharacter;
+
+			result.Critical = result.Roll >= ClassFeatures.GetCriticalThreshold(character);
 
 			if (result.Roll == 1)
 			{
@@ -78,6 +84,11 @@ namespace Server.Items
 
 			damage += CombatRules.GetDamageBonus(attacker, ranged, finesse, weapon as Item);
 
+			// Sneak Attack and its kin. Rolled after the critical doubling deliberately: the SRD
+			// doubles a critical's dice, and these dice are part of the attack, but doubling them
+			// here as well would compound with the weapon dice already doubled above.
+			damage += ClassFeatures.RollBonusDamage(character, mode);
+
 			result.Damage = Math.Max(1, damage); // a hit always does something
 
 			return result;
@@ -91,23 +102,37 @@ namespace Server.Items
 				return SwingDelay;
 			}
 
-			AttackResult result = RollAttack(attacker, defender, weapon);
-
 			attacker.Direction = attacker.GetDirectionTo(defender);
 			PlaySwing(attacker, IsRanged(weapon));
 
-			if (!result.Hit)
+			// Extra Attack: one attack action, several swings. Each is rolled separately, so each
+			// can miss, crit, and roll its own Sneak Attack - which is the point of it being extra
+			// attacks rather than extra damage.
+			int swings = 1 + ClassFeatures.GetExtraAttacks(attacker as IDnDCharacter);
+
+			for (int i = 0; i < swings; ++i)
 			{
-				Announce(attacker, defender, "misses");
-				return SwingDelay;
+				// A target that died to the first swing does not get hit again.
+				if (defender.Deleted || !defender.Alive)
+				{
+					break;
+				}
+
+				AttackResult result = RollAttack(attacker, defender, weapon);
+
+				if (!result.Hit)
+				{
+					Announce(attacker, defender, "misses");
+					continue;
+				}
+
+				defender.Damage(result.Damage, attacker);
+
+				// Taking a hit risks dropping whatever the defender was concentrating on.
+				Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, result.Damage);
+
+				Announce(attacker, defender, result.Critical ? "critically hits" : "hits");
 			}
-
-			defender.Damage(result.Damage, attacker);
-
-			// Taking a hit risks dropping whatever the defender was concentrating on.
-			Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, result.Damage);
-
-			Announce(attacker, defender, result.Critical ? "critically hits" : "hits");
 
 			return SwingDelay;
 		}

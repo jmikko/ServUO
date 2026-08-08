@@ -26,5 +26,10 @@ namespace Server.Engines.Classes
 		{
 			get { return new[] { DnDSkill.AnimalHandling, DnDSkill.Athletics, DnDSkill.Intimidation, DnDSkill.Nature, DnDSkill.Perception, DnDSkill.Survival }; }
 		}
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ExtraAttackFeature() }; }
+		}
 	}
 }
