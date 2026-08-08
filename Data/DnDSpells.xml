@@ -75,7 +75,7 @@
          dice="3" die="4" bonus="1" dicePerSlot="1" range="24" classes="Sorcerer,Wizard"
          description="Three darts of force that never miss; one more per slot level above 1st." />
   <spell id="BurningHands"  name="Burning Hands"  level="1" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
-         dice="3" die="6" dicePerSlot="1" range="6" radius="3" classes="Sorcerer,Wizard" description="A cone of searing flame." />
+         dice="3" die="6" dicePerSlot="1" range="6" shape="Cone" size="3" classes="Sorcerer,Wizard" description="A 15-foot cone of searing flame." />
   <spell id="ChromaticOrb"  name="Chromatic Orb"  level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
          dice="3" die="8" dicePerSlot="1" range="18" classes="Sorcerer,Wizard" description="An orb of elemental energy." />
   <spell id="GuidingBolt"   name="Guiding Bolt"   level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
@@ -85,11 +85,11 @@
   <spell id="WitchBolt"     name="Witch Bolt"     level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
          dice="1" die="12" dicePerSlot="1" range="12" classes="Sorcerer,Warlock,Wizard" description="An arc of lightning that persists." />
   <spell id="Thunderwave"   name="Thunderwave"    level="1" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
-         dice="2" die="8" dicePerSlot="1" range="6" radius="3" classes="Bard,Druid,Sorcerer,Wizard" description="A wave of thunderous force." />
+         dice="2" die="8" dicePerSlot="1" range="6" shape="Cube" size="3" classes="Bard,Druid,Sorcerer,Wizard" description="A 15-foot cube of thunderous force." />
   <spell id="DissonantWhispers" name="Dissonant Whispers" level="1" school="Enchantment" kind="Damage" resolution="SavingThrow" save="Wis" halfOnSave="true"
          dice="3" die="6" dicePerSlot="1" range="24" classes="Bard" description="A discordant melody only the target hears." />
   <spell id="Sleep"         name="Sleep"          level="1" school="Enchantment" kind="Condition" condition="Unconscious"
-         hitPointThreshold="22" durationSeconds="60" radius="4" range="18"
+         hitPointThreshold="22" durationSeconds="60" shape="Sphere" size="4" range="18"
          classes="Bard,Sorcerer,Wizard" description="Overwhelms creatures with few hit points; the strong are unaffected." />
 
   <spell id="CureWounds"    name="Cure Wounds"    level="1" school="Abjuration" kind="Healing" resolution="Automatic"

@@ -78,7 +78,11 @@ namespace Server.Spells.DnD
 		/// </summary>
 		public int HitPointThreshold;
 
-		public int AreaRadius;
+		public SpellShape Shape;
+
+		/// <summary>Tiles: a sphere's radius, a cone or line's length, a cube's half-extent.</summary>
+		public int AreaSize;
+
 		public bool Concentration;
 
 		public string Description;
@@ -139,7 +143,8 @@ namespace Server.Spells.DnD
 				ArmorClassValue = ParseInt(el.GetAttribute("armorClass")),
 				Condition = ParseEnum(el.GetAttribute("condition"), DnDCondition.None),
 				HitPointThreshold = ParseInt(el.GetAttribute("hitPointThreshold")),
-				AreaRadius = ParseInt(el.GetAttribute("radius")),
+				Shape = ParseEnum(el.GetAttribute("shape"), SpellShape.Single),
+				AreaSize = ParseInt(el.GetAttribute("size")),
 				Concentration = el.GetAttribute("concentration") == "true",
 				Description = el.GetAttribute("description")
 			};
@@ -203,7 +208,8 @@ namespace Server.Spells.DnD
 		public override int Range { get { return m_Data.Range; } }
 		public override bool HalfDamageOnSave { get { return m_Data.HalfOnSave; } }
 		public override bool Beneficial { get { return m_Data.Beneficial; } }
-		public override int AreaRadius { get { return m_Data.AreaRadius; } }
+		public override SpellShape Shape { get { return m_Data.Shape; } }
+		public override int AreaSize { get { return m_Data.AreaSize; } }
 		public override bool RequiresConcentration { get { return m_Data.Concentration; } }
 		public override TimeSpan Duration { get { return m_Data.Duration; } }
 

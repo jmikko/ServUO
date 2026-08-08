@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Server.Items;
 using Server.Mobiles;
 using Server.Spells.DnD;
@@ -72,6 +73,7 @@ namespace Server.Misc
 			ok &= CheckSpellTable();
 			ok &= CheckConditions();
 			ok &= CheckConcentration();
+			ok &= CheckAreaShapes();
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -276,6 +278,96 @@ namespace Server.Misc
 				utility);
 
 			return ok;
+		}
+
+		/// <summary>
+		/// Area shapes, checked by placing dummies at known offsets from a caster facing east.
+		/// A cone is the one worth testing properly: it must widen with distance, must not reach
+		/// behind the caster, and must not catch someone standing wide of its mouth.
+		/// </summary>
+		private static bool CheckAreaShapes()
+		{
+			DnDPlayerMobile caster = new DnDPlayerMobile { Name = "AreaProbe", Body = 0x190 };
+
+			caster.ApplyDnDSetup(
+				new AbilityScores(10, 10, 10, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			caster.MoveToWorld(TestLocation, Map.Felucca);
+
+			// Dummies at offsets from the caster; the cone will be aimed due east.
+			var placed = new List<Mobile>();
+
+			Func<int, int, Mobile> place = (dx, dy) =>
+			{
+				var m = new SrdGoblin { Blessed = true };
+
+				m.MoveToWorld(new Point3D(TestLocation.X + dx, TestLocation.Y + dy, TestLocation.Z), Map.Felucca);
+				placed.Add(m);
+
+				return m;
+			};
+
+			Mobile aim = place(3, 0);      // straight ahead, at the far edge
+			Mobile near = place(1, 0);     // straight ahead, close
+			Mobile wide = place(1, 2);     // beside the mouth - too wide to be caught at distance 1
+			Mobile spread = place(3, 1);   // far along, where the cone is wide enough
+			Mobile behind = place(-2, 0);  // behind the caster
+			Mobile beyond = place(6, 0);   // straight ahead but past the end
+
+			var cone = DnDSpellArea.GetTargets(caster, aim, SpellShape.Cone, 3, false);
+
+			bool ok = true;
+
+			ok &= CheckContains("cone catches the aim point", cone, aim, true);
+			ok &= CheckContains("cone catches close ahead", cone, near, true);
+			ok &= CheckContains("cone widens with distance", cone, spread, true);
+			ok &= CheckContains("cone spares someone wide of its mouth", cone, wide, false);
+			ok &= CheckContains("cone does not reach behind", cone, behind, false);
+			ok &= CheckContains("cone stops at its length", cone, beyond, false);
+			ok &= CheckContains("cone spares its caster", cone, caster, false);
+
+			// A line is one tile wide however far it runs.
+			var line = DnDSpellArea.GetTargets(caster, aim, SpellShape.Line, 6, false);
+
+			ok &= CheckContains("line catches straight ahead", line, beyond, true);
+			ok &= CheckContains("line spares those to the side", line, spread, false);
+
+			// A sphere is centred on the target, not the caster, and does not care about facing.
+			var sphere = DnDSpellArea.GetTargets(caster, aim, SpellShape.Sphere, 2, false);
+
+			ok &= CheckContains("sphere catches near its centre", sphere, spread, true);
+			ok &= CheckContains("sphere ignores distant targets", sphere, beyond, false);
+
+			Console.WriteLine(
+				"[combat-selftest]   area shapes: cone caught {0}, line {1}, sphere {2}",
+				cone.Count,
+				line.Count,
+				sphere.Count);
+
+			foreach (Mobile m in placed)
+			{
+				m.Delete();
+			}
+
+			caster.Delete();
+
+			return ok;
+		}
+
+		private static bool CheckContains(string label, List<Mobile> targets, Mobile m, bool expected)
+		{
+			bool actual = targets.Contains(m);
+
+			if (actual == expected)
+			{
+				return true;
+			}
+
+			Console.WriteLine(
+				"[combat-selftest] FAIL: {0} - expected {1}, got {2}", label, expected, actual);
+
+			return false;
 		}
 
 		/// <summary>

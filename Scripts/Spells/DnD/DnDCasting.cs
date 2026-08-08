@@ -83,54 +83,27 @@ namespace Server.Spells.DnD
 				DnDConcentration.Begin(caster, spell.Name, spell.Duration, null);
 			}
 
-			if (spell.AreaRadius <= 0)
+			if (spell.Shape == SpellShape.Single || spell.AreaSize <= 0)
 			{
 				spell.Effect(caster, caster, primary, slotLevel);
 
 				return CastResult.Success;
 			}
 
-			foreach (Mobile affected in GetAreaTargets(caster, primary, spell))
+			List<Mobile> affected =
+				DnDSpellArea.GetTargets(caster, primary, spell.Shape, spell.AreaSize, spell.Beneficial);
+
+			foreach (Mobile m in affected)
 			{
-				spell.Effect(caster, caster, affected, slotLevel);
+				spell.Effect(caster, caster, m, slotLevel);
 			}
+
+			caster.SendMessage("{0} catches {1} creature(s).", spell.Name, affected.Count);
 
 			return CastResult.Success;
 		}
 
-		/// <summary>
-		/// Everything an area spell catches. A harmful area spares its caster - SRD areas are shapes
-		/// the caster places, and every one of them originates somewhere the caster is not - while a
-		/// beneficial one includes them.
-		/// </summary>
-		private static List<Mobile> GetAreaTargets(Mobile caster, Mobile centre, DnDSpell spell)
-		{
-			var targets = new List<Mobile>();
-
-			if (centre.Map == null || centre.Map == Map.Internal)
-			{
-				targets.Add(centre);
-				return targets;
-			}
-
-			foreach (Mobile m in centre.GetMobilesInRange(spell.AreaRadius))
-			{
-				if (m == null || m.Deleted || !m.Alive)
-				{
-					continue;
-				}
-
-				if (m == caster && !spell.Beneficial)
-				{
-					continue;
-				}
-
-				targets.Add(m);
-			}
-
-			return targets;
-		}
-
+		
 		private static bool IsOnClassList(CharacterClass charClass, DnDSpell spell)
 		{
 			return SpellRegistry.GetClassList(charClass.Name).Contains(spell);

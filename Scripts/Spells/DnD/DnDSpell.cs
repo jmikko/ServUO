@@ -46,12 +46,14 @@ namespace Server.Spells.DnD
 		/// <summary>A successful save halves the damage rather than negating it.</summary>
 		public virtual bool HalfDamageOnSave { get { return false; } }
 
+		/// <summary>The shape of the spell's area, if it has one.</summary>
+		public virtual SpellShape Shape { get { return SpellShape.Single; } }
+
 		/// <summary>
-		/// Radius in tiles around the chosen target that the spell also affects. 0 is single-target.
-		/// SRD cones and lines are approximated as a radius centred on the target - the shape
-		/// matters less here than the fact that several creatures are caught.
+		/// The size of that shape in tiles - a sphere's radius, a cone or line's length, a cube's
+		/// half-extent. One tile is 5 feet, so an SRD 15-foot cone is 3.
 		/// </summary>
-		public virtual int AreaRadius { get { return 0; } }
+		public virtual int AreaSize { get { return 0; } }
 
 		/// <summary>Whether holding this spell occupies the caster's concentration.</summary>
 		public virtual bool RequiresConcentration { get { return false; } }
