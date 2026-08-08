@@ -8,6 +8,5 @@ namespace Server.Mobiles
 
 		public SrdWight(Serial serial) : base(serial) { }
 
-		public override TribeType Tribe { get { return TribeType.Undead; } }
 	}
 }

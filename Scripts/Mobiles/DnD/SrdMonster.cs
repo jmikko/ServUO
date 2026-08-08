@@ -16,8 +16,8 @@ namespace Server.Mobiles
 		public int Body;
 		public int Hue;
 		public int SoundID;
-		public AIType AIType;
-		public FightMode FightMode;
+		public DnDAggression Aggression;
+
 		public int ArmorClass;
 		public int AttackBonus;
 		public string DamageDice;
@@ -40,7 +40,7 @@ namespace Server.Mobiles
 	/// from the same HP value IDnDCreature.HitPointsMaxDnD reports, rather than maintaining two
 	/// parallel HP tracks.
 	/// </summary>
-	public abstract class SrdMonster : BaseCreature, IDnDCreature
+	public abstract class SrdMonster : DnDCreature
 	{
 		private static readonly Dictionary<string, SrdMonsterData> m_Data = new Dictionary<string, SrdMonsterData>();
 
@@ -76,8 +76,7 @@ namespace Server.Mobiles
 					Body = ParseInt(el.GetAttribute("body")),
 					Hue = ParseInt(el.GetAttribute("hue")),
 					SoundID = ParseInt(el.GetAttribute("sound")),
-					AIType = (AIType)Enum.Parse(typeof(AIType), el.GetAttribute("ai")),
-					FightMode = (FightMode)Enum.Parse(typeof(FightMode), el.GetAttribute("fightMode")),
+					Aggression = el.GetAttribute("fightMode") == "Aggressor" ? DnDAggression.Defensive : DnDAggression.Hostile,
 					ArmorClass = ParseInt(el.GetAttribute("ac")),
 					AttackBonus = ParseInt(el.GetAttribute("attackBonus")),
 					DamageDice = el.GetAttribute("damageDice"),
@@ -126,7 +125,7 @@ namespace Server.Mobiles
 		private string m_MonsterId;
 
 		protected SrdMonster(string monsterId)
-			: base(GetData(monsterId).AIType, GetData(monsterId).FightMode, 10, 1, 0.2, 0.4)
+			: base(GetData(monsterId).Aggression)
 		{
 			m_MonsterId = monsterId;
 
@@ -142,7 +141,7 @@ namespace Server.Mobiles
 
 			BaseSoundID = data.SoundID;
 
-			SetHits(data.HitPoints, data.HitPoints);
+			Hits = data.HitPoints;
 
 			Fame = data.Fame;
 			Karma = data.Karma;
@@ -155,15 +154,10 @@ namespace Server.Mobiles
 		{
 		}
 
-		public int ArmorClass { get { return GetData(m_MonsterId).ArmorClass; } }
-		public int AttackBonus { get { return GetData(m_MonsterId).AttackBonus; } }
-		public string DamageDiceExpression { get { return GetData(m_MonsterId).DamageDice; } }
-		public int HitPointsMaxDnD { get { return GetData(m_MonsterId).HitPoints; } }
-
-		public override void GenerateLoot()
-		{
-			AddLoot(LootPack.Poor);
-		}
+		public override int ArmorClass { get { return GetData(m_MonsterId).ArmorClass; } }
+		public override int AttackBonus { get { return GetData(m_MonsterId).AttackBonus; } }
+		public override string DamageDiceExpression { get { return GetData(m_MonsterId).DamageDice; } }
+		public override int HitPointsMaxDnD { get { return GetData(m_MonsterId).HitPoints; } }
 
 		public override void Serialize(GenericWriter writer)
 		{
