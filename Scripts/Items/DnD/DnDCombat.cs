@@ -60,7 +60,7 @@ namespace Server.Items
 			int modifier = DnDRollModifiers.Roll(attacker, RollKind.Attack);
 
 			if (!result.Critical &&
-				result.Roll + modifier + CombatRules.GetAttackBonus(attacker, ranged, finesse) <
+				result.Roll + modifier + CombatRules.GetAttackBonus(attacker, ranged, finesse, weapon as Item) <
 				CombatRules.GetArmorClass(defender))
 			{
 				return result;
@@ -76,7 +76,7 @@ namespace Server.Items
 				damage += CombatRules.RollDice(dice);
 			}
 
-			damage += CombatRules.GetDamageBonus(attacker, ranged, finesse);
+			damage += CombatRules.GetDamageBonus(attacker, ranged, finesse, weapon as Item);
 
 			result.Damage = Math.Max(1, damage); // a hit always does something
 

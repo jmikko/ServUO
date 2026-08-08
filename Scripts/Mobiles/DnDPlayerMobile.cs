@@ -1,37 +1,123 @@
 using System;
+using System.Collections.Generic;
 using Server.Network;
+using Server.Engines.Classes.Feats;
 
 namespace Server.Mobiles
 {
-	/// <summary>
-	/// The player character.
-	/// <para>
-	/// Like <see cref="DnDCreature"/>, this sits directly on <see cref="Mobile"/> rather than
-	/// porting ServUO's PlayerMobile. That class is ~12k lines and threads bulk-order timers,
-	/// champion titles, virtue contexts, community-collection points, quest state, faction and
-	/// VvV membership through its serializer - all legacy UO systems with no D&amp;D equivalent,
-	/// and all of them dragging their subsystems back in behind them.
-	/// </para>
-	/// What remains here is the D&amp;D character sheet: ability scores, class, level, and the
-	/// derived AC / HP the rules core in Server/ reads through <see cref="IDnDCharacter"/>.
-	/// </summary>
 	public class DnDPlayerMobile : Mobile, IDnDCharacter
 	{
 		private bool m_DnDInitialized;
 		private AbilityScores m_AbilityScores;
-		private CharacterClass m_CharacterClass;
-		private int m_CharacterLevel;
+		private Dictionary<CharacterClass, int> m_Classes = new Dictionary<CharacterClass, int>();
+		private CharacterClass m_PrimaryClass;
+		private List<Feat> m_Feats = new List<Feat>();
+		private List<DnDSkill> m_SkillProficiencies = new List<DnDSkill>();
+
+		private int m_PendingAbilityScorePoints;
+		private int m_PendingSpellsKnown;
+		private int m_PendingLevels;
+		private List<int> m_KnownSpells = new List<int>();
+
+		private List<Item> m_AttunedItems = new List<Item>();
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int PendingAbilityScorePoints
+		{
+			get { return m_PendingAbilityScorePoints; }
+			set { m_PendingAbilityScorePoints = value; }
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int PendingSpellsKnown
+		{
+			get { return m_PendingSpellsKnown; }
+			set { m_PendingSpellsKnown = value; }
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int PendingLevels
+		{
+			get { return m_PendingLevels; }
+			set { m_PendingLevels = value; }
+		}
+
+		public List<int> KnownSpells { get { return m_KnownSpells; } }
+
+		public List<Item> AttunedItems { get { return m_AttunedItems; } }
+
+		public IReadOnlyDictionary<CharacterClass, int> Classes { get { return m_Classes; } }
+
+		public List<Feat> Feats { get { return m_Feats; } }
+
+		public bool IsAttunedTo(Item item)
+		{
+			return m_AttunedItems.Contains(item);
+		}
+
+		public bool IsProficient(DnDSkill skill)
+		{
+			return m_SkillProficiencies.Contains(skill);
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool DnDInitialized { get { return m_DnDInitialized; } }
 
-		public AbilityScores AbilityScores { get { return m_AbilityScores; } }
+		public AbilityScores AbilityScores { get { return m_AbilityScores; } set { m_AbilityScores = value; } }
+
+		public AbilityScores EffectiveAbilityScores
+		{
+			get
+			{
+
+				int str = m_AbilityScores.Str;
+				int dex = m_AbilityScores.Dex;
+				int con = m_AbilityScores.Con;
+				int @int = m_AbilityScores.Int;
+				int wis = m_AbilityScores.Wis;
+				int cha = m_AbilityScores.Cha;
+
+				foreach (Item item in m_AttunedItems)
+				{
+					if (item != null && !item.Deleted && item is IDnDMagicItem magicItem)
+					{
+						int strOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Str);
+						if (strOverride > str) str = strOverride;
+
+						int dexOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Dex);
+						if (dexOverride > dex) dex = dexOverride;
+
+						int conOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Con);
+						if (conOverride > con) con = conOverride;
+
+						int intOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Int);
+						if (intOverride > @int) @int = intOverride;
+
+						int wisOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Wis);
+						if (wisOverride > wis) wis = wisOverride;
+
+						int chaOverride = magicItem.GetAbilityScoreOverride(AbilityScoreType.Cha);
+						if (chaOverride > cha) cha = chaOverride;
+					}
+				}
+
+				return new AbilityScores(str, dex, con, @int, wis, cha);
+			}
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public CharacterClass CharacterClass { get { return m_CharacterClass; } }
+		public CharacterClass PrimaryClass { get { return m_PrimaryClass; } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public int CharacterLevel { get { return m_CharacterLevel; } }
+		public int TotalLevel
+		{
+			get
+			{
+				int total = 0;
+				foreach (var kv in m_Classes) total += kv.Value;
+				return total;
+			}
+		}
 
 		public DnDPlayerMobile()
 		{
@@ -45,31 +131,15 @@ namespace Server.Mobiles
 		public override bool NewGuildDisplay { get { return true; } }
 
 		#region Account bookkeeping
-		/// <summary>When the current play session began; Account totals game time from this.</summary>
 		public DateTime SessionStart { get; set; }
 
-		/// <summary>Accumulated played time across sessions.</summary>
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TimeSpan GameTime { get; set; }
 
-		/// <summary>
-		/// UO's "young player" new-player protection has no D&amp;D equivalent and is not
-		/// implemented. Account still reads and clears the flag, so it is kept as an
-		/// always-false property whose setter is a no-op.
-		/// </summary>
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Young { get { return false; } set { } }
 		#endregion
 
-		/// <summary>
-		/// SRD armour class. Unarmoured is 10 + Dex mod; body armour replaces the 10 with its own
-		/// base and caps the Dex contribution; a shield adds on top.
-		/// <para>
-		/// The Dex cap comes from the armour's own row in Data/DnDArmor.xml rather than from its
-		/// category, because the categories are not uniform - Light caps nothing, Medium caps at
-		/// +2, Heavy allows none - and a future piece may want its own.
-		/// </para>
-		/// </summary>
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ArmorClass
 		{
@@ -78,9 +148,18 @@ namespace Server.Mobiles
 				int baseAC = 10;
 				int shieldBonus = 0;
 				int maxDex = int.MaxValue;
+				int magicBonus = 0;
 
 				foreach (Item item in Items)
 				{
+					if (item is IDnDMagicItem magicItem)
+					{
+						if (!magicItem.RequiresAttunement || m_AttunedItems.Contains(item))
+						{
+							magicBonus += magicItem.ArmorClassBonus;
+						}
+					}
+
 					IDnDEquipment eq = item as IDnDEquipment;
 
 					if (eq == null || eq.ArmorCategory == ArmorCategory.None)
@@ -98,39 +177,62 @@ namespace Server.Mobiles
 
 					Items.DnDArmor armor = item as Items.DnDArmor;
 
-					// -1 in the table means the full Dexterity modifier applies.
 					if (armor != null && armor.MaxDexBonus >= 0)
 					{
 						maxDex = armor.MaxDexBonus;
 					}
 				}
 
-				int dexMod = Math.Min(m_AbilityScores.DexMod, maxDex);
+				AbilityScores effectiveStats = EffectiveAbilityScores;
+				int dexMod = Math.Min(effectiveStats.DexMod, maxDex);
 
-				// Mage Armor and its relatives set a floor rather than adding: they replace a low
-				// unarmoured AC and do nothing for someone already better protected. A shield still
-				// stacks on top either way.
 				int floor = Spells.DnD.DnDEffects.GetArmorClassFloor(this);
 
-				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus;
+				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus + magicBonus;
 			}
 		}
 
-		/// <summary>
-		/// SRD hit points: the full hit die at 1st level, the die's average each level after, plus
-		/// the Constitution modifier every level.
-		/// </summary>
 		public override int HitsMax
 		{
 			get
 			{
-				if (m_DnDInitialized && m_CharacterClass != null)
+				if (!m_DnDInitialized || m_PrimaryClass == null || m_Classes.Count == 0)
 				{
-					return Advancement.GetMaxHitPoints(
-						m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel);
+					return 10;
 				}
 
-				return 10;
+				int totalHitPoints = 0;
+				bool firstClass = true;
+				int conMod = EffectiveAbilityScores.ConMod;
+
+				foreach (var kv in m_Classes)
+				{
+					int hitDie = kv.Key.HitDie;
+					int level = kv.Value;
+					int perLevelAverage = (hitDie / 2) + 1;
+
+					if (firstClass)
+					{
+						totalHitPoints += hitDie + conMod + ((level - 1) * (perLevelAverage + conMod));
+						firstClass = false;
+					}
+					else
+					{
+						totalHitPoints += level * (perLevelAverage + conMod);
+					}
+				}
+
+				totalHitPoints = Math.Max(TotalLevel, totalHitPoints); // Never below 1 HP per level
+
+				foreach (var feat in m_Feats)
+				{
+					if (feat is ToughFeat)
+					{
+						totalHitPoints += (TotalLevel * 2);
+					}
+				}
+
+				return totalHitPoints;
 			}
 		}
 
@@ -141,14 +243,9 @@ namespace Server.Mobiles
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int Experience { get { return m_Experience; } }
 
-		/// <summary>
-		/// Adds experience and applies every level it earns. Levelling is not a choice a player
-		/// makes here - crossing the threshold applies it immediately, which keeps hit points,
-		/// proficiency bonus and spell slots from ever disagreeing with the experience total.
-		/// </summary>
 		public void AwardExperience(int amount)
 		{
-			if (!m_DnDInitialized || amount <= 0 || m_CharacterLevel >= Advancement.MaxLevel)
+			if (!m_DnDInitialized || amount <= 0 || TotalLevel + m_PendingLevels >= Advancement.MaxLevel)
 			{
 				return;
 			}
@@ -158,26 +255,45 @@ namespace Server.Mobiles
 			SendMessage("You gain {0} experience.", amount);
 
 			int newLevel = Advancement.GetLevelForExperience(m_Experience);
+			int currentEffectiveLevel = TotalLevel + m_PendingLevels;
 
-			while (m_CharacterLevel < newLevel)
+			if (newLevel > currentEffectiveLevel)
 			{
-				++m_CharacterLevel;
-				OnLevelUp();
+				m_PendingLevels += (newLevel - currentEffectiveLevel);
+				SendMessage(0x35, "You have gained enough experience to reach level {0}!", newLevel);
+				Spells.DnD.DnDSpellPackets.Send_DnDLevelUpPrompt(this);
 			}
 		}
 
-		/// <summary>
-		/// A new level is worth its hit points immediately - the character gains the difference in
-		/// current hit points as well as maximum, so levelling up is never a reason to go and rest.
-		/// New spell slots come from the level itself; unspent ones are not refilled.
-		/// </summary>
-		private void OnLevelUp()
+		public void AddClassLevel(CharacterClass c)
 		{
+			if (m_PendingLevels <= 0) return;
+
 			int before = Hits;
+			m_PendingLevels--;
 
-			Hits = Math.Min(HitsMax, before + GainedHitPointsThisLevel());
+			if (!m_Classes.ContainsKey(c)) m_Classes[c] = 0;
+			m_Classes[c]++;
 
-			SendMessage(0x35, "You are now level {0}.", m_CharacterLevel);
+			if (m_PrimaryClass == null)
+			{
+				m_PrimaryClass = c;
+			}
+
+			Hits = Math.Min(HitsMax, before + GainedHitPointsThisLevel(c));
+
+			int currentClassLevel = m_Classes[c];
+			m_PendingAbilityScorePoints += c.GetAbilityScoreImprovements(currentClassLevel);
+
+			int spellsBefore = c.GetSpellsKnown(currentClassLevel - 1);
+			int spellsNow = c.GetSpellsKnown(currentClassLevel);
+
+			if (spellsNow > spellsBefore && spellsNow != int.MaxValue)
+			{
+				m_PendingSpellsKnown += (spellsNow - spellsBefore);
+			}
+
+			SendMessage(0x35, "You are now a level {0} {1}.", currentClassLevel, c.Name);
 
 			Delta(MobileDelta.Hits);
 
@@ -186,19 +302,26 @@ namespace Server.Mobiles
 				NetState.Send(new DnDStatSync(this));
 			}
 
-			// A level can unlock a whole new spell level, so the list is resent, not just the slots.
 			Spells.DnD.DnDSpellPackets.SendSpellList(this);
 		}
 
-		private int GainedHitPointsThisLevel()
+		public void ReplaceSubclass(CharacterClass parent, CharacterClass subclass)
 		{
-			if (m_CharacterClass == null)
+			if (m_Classes.ContainsKey(parent))
 			{
-				return 0;
+				int level = m_Classes[parent];
+				m_Classes.Remove(parent);
+				m_Classes[subclass] = level;
+				if (m_PrimaryClass == parent) m_PrimaryClass = subclass;
 			}
+		}
 
-			return Advancement.GetMaxHitPoints(m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel) -
-				   Advancement.GetMaxHitPoints(m_CharacterClass.HitDie, m_AbilityScores.ConMod, m_CharacterLevel - 1);
+		private int GainedHitPointsThisLevel(CharacterClass c)
+		{
+			int hitDie = c.HitDie;
+			int perLevelAverage = (hitDie / 2) + 1;
+			int gained = perLevelAverage + EffectiveAbilityScores.ConMod;
+			return Math.Max(1, gained);
 		}
 
 		#endregion
@@ -207,13 +330,35 @@ namespace Server.Mobiles
 		{
 			if (m_DnDInitialized)
 			{
-				return; // one-time only; guards against a replayed setup packet
+				return;
 			}
 
 			m_AbilityScores = scores;
-			m_CharacterClass = characterClass;
-			m_CharacterLevel = 1;
+			m_PrimaryClass = characterClass;
+			m_Classes[characterClass] = 1;
 			m_DnDInitialized = true;
+
+			m_SkillProficiencies.Clear();
+			if (characterClass.Name == "Wizard" || characterClass.Name == "Sorcerer")
+			{
+				m_SkillProficiencies.Add(DnDSkill.Arcana);
+				m_SkillProficiencies.Add(DnDSkill.History);
+			}
+			else if (characterClass.Name == "Rogue" || characterClass.Name == "Ranger" || characterClass.Name == "Monk")
+			{
+				m_SkillProficiencies.Add(DnDSkill.Acrobatics);
+				m_SkillProficiencies.Add(DnDSkill.Stealth);
+			}
+			else if (characterClass.Name == "Cleric" || characterClass.Name == "Paladin")
+			{
+				m_SkillProficiencies.Add(DnDSkill.Religion);
+				m_SkillProficiencies.Add(DnDSkill.Medicine);
+			}
+			else
+			{
+				m_SkillProficiencies.Add(DnDSkill.Athletics);
+				m_SkillProficiencies.Add(DnDSkill.Survival);
+			}
 
 			Hits = HitsMax;
 
@@ -222,17 +367,36 @@ namespace Server.Mobiles
 
 		#region Spell slots
 
-		// Index 0 holds 1st-level slots; cantrips cost nothing and so are not tracked here.
 		private int[] m_SpellSlotsUsed = new int[Spellcasting.MaxSpellLevel];
 
 		public int GetMaxSpellSlots(int spellLevel)
 		{
-			if (!m_DnDInitialized || m_CharacterClass == null)
+			if (!m_DnDInitialized || m_Classes.Count == 0)
 			{
 				return 0;
 			}
 
-			return Spellcasting.GetMaxSlots(m_CharacterClass.SpellProgression, m_CharacterLevel, spellLevel);
+			int totalCasterLevel = 0;
+			int pactMagicLevel = 0;
+
+			foreach (var kv in m_Classes)
+			{
+				if (kv.Key.SpellProgression == SpellProgression.Full) totalCasterLevel += kv.Value;
+				else if (kv.Key.SpellProgression == SpellProgression.Half) totalCasterLevel += kv.Value / 2;
+				else if (kv.Key.SpellProgression == SpellProgression.Third) totalCasterLevel += kv.Value / 3;
+				else if (kv.Key.SpellProgression == SpellProgression.Pact) pactMagicLevel += kv.Value;
+			}
+
+			int multiclassSlots = Spellcasting.GetMaxSlots(SpellProgression.Full, totalCasterLevel, spellLevel);
+			int pactSlots = pactMagicLevel > 0 ? Spellcasting.GetMaxSlots(SpellProgression.Pact, pactMagicLevel, spellLevel) : 0;
+
+			if (m_Classes.Count == 1 && pactMagicLevel == 0)
+			{
+				foreach(var kv in m_Classes)
+					return Spellcasting.GetMaxSlots(kv.Key.SpellProgression, kv.Value, spellLevel);
+			}
+
+			return multiclassSlots + pactSlots;
 		}
 
 		public int GetAvailableSpellSlots(int spellLevel)
@@ -245,7 +409,6 @@ namespace Server.Mobiles
 			return Math.Max(0, GetMaxSpellSlots(spellLevel) - m_SpellSlotsUsed[spellLevel - 1]);
 		}
 
-		/// <summary>Spends one slot of the given level, or reports that there wasn't one.</summary>
 		public bool ConsumeSpellSlot(int spellLevel)
 		{
 			if (GetAvailableSpellSlots(spellLevel) <= 0)
@@ -257,10 +420,6 @@ namespace Server.Mobiles
 			return true;
 		}
 
-		/// <summary>
-		/// The lowest unspent slot that can carry a spell of this level, or 0 if there is none.
-		/// Casting from the smallest slot that fits is what a player would pick by hand.
-		/// </summary>
 		public int FindSlotFor(int spellLevel)
 		{
 			for (int level = Math.Max(1, spellLevel); level <= Spellcasting.MaxSpellLevel; ++level)
@@ -282,36 +441,33 @@ namespace Server.Mobiles
 			}
 		}
 
-		/// <summary>
-		/// A long rest: hit points to full and every spell slot back.
-		/// </summary>
 		public void LongRest()
 		{
 			Hits = HitsMax;
-
 			RestoreAllSpellSlots();
-
 			SendMessage(0x35, "You finish a long rest.");
-
 			if (NetState != null)
 			{
 				NetState.Send(new DnDStatSync(this));
 			}
 		}
 
-		/// <summary>
-		/// A short rest. Only Pact Magic comes back - that is the whole point of the Warlock's small
-		/// slot pool. Hit dice spending is not modelled yet, so this restores no hit points.
-		/// </summary>
 		public void ShortRest()
 		{
-			if (m_CharacterClass != null && m_CharacterClass.SpellProgression == SpellProgression.Pact)
+			// Pact magic recovers on short rest. For multiclassing we'd have to track slots separately.
+			// As a simplification for now, if they have pact magic we just restore all.
+			bool hasPact = false;
+			foreach(var kv in m_Classes)
+			{
+				if (kv.Key.SpellProgression == SpellProgression.Pact) hasPact = true;
+			}
+
+			if (hasPact)
 			{
 				RestoreAllSpellSlots();
 			}
 
 			SendMessage(0x35, "You finish a short rest.");
-
 			if (NetState != null)
 			{
 				NetState.Send(new DnDStatSync(this));
@@ -320,24 +476,26 @@ namespace Server.Mobiles
 
 		#endregion
 
-		/// <summary>
-		/// D&amp;D proficiency is enforced at the actual equip boundary, rather than only when the
-		/// initial kit is granted. This also covers gear received from future loot, vendors, or
-		/// GM-created test items.
-		/// </summary>
 		public override bool OnEquip(Item item)
 		{
 			if (m_DnDInitialized && AccessLevel < AccessLevel.GameMaster)
 			{
-				if (m_CharacterClass != null && !m_CharacterClass.IsProficientWith(item))
+				bool proficient = false;
+				foreach (var kv in m_Classes)
+				{
+					if (kv.Key.IsProficientWith(item))
+					{
+						proficient = true;
+						break;
+					}
+				}
+
+				if (!proficient)
 				{
 					SendMessage("You are not proficient with that equipment.");
 					return false;
 				}
 
-				// The heaviest SRD armour needs the Strength to carry it. SRD applies a speed
-				// penalty rather than a block; without a movement-speed system to slow, refusing
-				// the equip is the closest honest equivalent.
 				Items.DnDArmor armor = item as Items.DnDArmor;
 
 				if (armor != null && armor.MinimumStrength > m_AbilityScores.Str)
@@ -354,17 +512,6 @@ namespace Server.Mobiles
 			return base.OnEquip(item);
 		}
 
-		/// <summary>
-		/// Drops hair and facial hair the new species has no art for.
-		/// <para>
-		/// Hair, beard and body are separate layers drawn together by the client, and each race has
-		/// its own art ranges. Nothing validates them on a race change, so a character created as a
-		/// human and then made an Elf keeps a human hairstyle - which the client happily draws on
-		/// top of the elven body, producing what looks like two overlapping figures. Stock ServUO
-		/// handles this in PlayerMobile.ValidateEquipment; this is the part of it that still
-		/// applies here.
-		/// </para>
-		/// </summary>
 		protected override void OnRaceChange(Race oldRace)
 		{
 			base.OnRaceChange(oldRace);
@@ -387,13 +534,10 @@ namespace Server.Mobiles
 			}
 		}
 
-		/// <summary>Species darkvision, surfaced through the light-level calculation.</summary>
 		public override void ComputeBaseLightLevels(out int global, out int personal)
 		{
 			global = LightCycleGlobal;
-
 			bool darkvision = m_DnDInitialized && (Race as IDnDSpecies)?.HasDarkvision == true;
-
 			personal = darkvision ? 30 : LightCyclePersonal;
 		}
 
@@ -404,25 +548,54 @@ namespace Server.Mobiles
 		{
 			base.Serialize(writer);
 
-			writer.Write(2); // version
+			writer.Write((int)6); // version 6
 
 			writer.Write(m_DnDInitialized);
 
 			if (m_DnDInitialized)
 			{
 				m_AbilityScores.Serialize(writer);
-				writer.Write(m_CharacterClass == null ? "" : m_CharacterClass.Name);
-				writer.Write(m_CharacterLevel);
+				
+				writer.Write(m_Classes.Count);
+				foreach (var kv in m_Classes)
+				{
+					writer.Write(kv.Key.Name);
+					writer.Write(kv.Value);
+				}
 
-				// version 1: spent spell slots
+				writer.Write(m_PrimaryClass == null ? "" : m_PrimaryClass.Name);
+
+				writer.Write(m_PendingLevels);
+
+				writer.Write(m_Feats.Count);
+				foreach (var f in m_Feats)
+				{
+					writer.Write(f.Name);
+				}
+
 				writer.Write(m_SpellSlotsUsed.Length);
-
 				for (int i = 0; i < m_SpellSlotsUsed.Length; ++i)
 				{
 					writer.Write(m_SpellSlotsUsed[i]);
 				}
 
-				writer.Write(m_Experience); // version 2
+				writer.Write(m_Experience);
+
+				writer.Write(m_SkillProficiencies.Count);
+				foreach (DnDSkill skill in m_SkillProficiencies)
+				{
+					writer.Write((int)skill);
+				}
+
+				writer.Write(m_PendingAbilityScorePoints);
+				writer.Write(m_PendingSpellsKnown);
+				writer.Write(m_KnownSpells.Count);
+				foreach (int spellId in m_KnownSpells)
+				{
+					writer.Write(spellId);
+				}
+
+				writer.WriteItemList(m_AttunedItems);
 			}
 		}
 
@@ -437,8 +610,37 @@ namespace Server.Mobiles
 			if (m_DnDInitialized)
 			{
 				m_AbilityScores = AbilityScores.Deserialize(reader);
-				m_CharacterClass = CharacterClass.Parse(reader.ReadString());
-				m_CharacterLevel = reader.ReadInt();
+
+				if (version >= 6)
+				{
+					int count = reader.ReadInt();
+					for (int i = 0; i < count; i++)
+					{
+						CharacterClass c = CharacterClass.Parse(reader.ReadString());
+						int lvl = reader.ReadInt();
+						if (c != null) m_Classes[c] = lvl;
+					}
+
+					m_PrimaryClass = CharacterClass.Parse(reader.ReadString());
+					m_PendingLevels = reader.ReadInt();
+
+					int featCount = reader.ReadInt();
+					for (int i = 0; i < featCount; i++)
+					{
+						Feat f = Feat.Parse(reader.ReadString());
+						if (f != null) m_Feats.Add(f);
+					}
+				}
+				else
+				{
+					CharacterClass singleClass = CharacterClass.Parse(reader.ReadString());
+					int singleLevel = reader.ReadInt();
+					if (singleClass != null)
+					{
+						m_Classes[singleClass] = singleLevel;
+						m_PrimaryClass = singleClass;
+					}
+				}
 
 				if (version >= 1)
 				{
@@ -447,8 +649,6 @@ namespace Server.Mobiles
 					for (int i = 0; i < count; ++i)
 					{
 						int used = reader.ReadInt();
-
-						// Tolerate a save written when MaxSpellLevel was larger than it is now.
 						if (i < m_SpellSlotsUsed.Length)
 						{
 							m_SpellSlotsUsed[i] = used;
@@ -459,6 +659,31 @@ namespace Server.Mobiles
 				if (version >= 2)
 				{
 					m_Experience = reader.ReadInt();
+				}
+
+				if (version >= 3)
+				{
+					int count = reader.ReadInt();
+					for (int i = 0; i < count; i++)
+					{
+						m_SkillProficiencies.Add((DnDSkill)reader.ReadInt());
+					}
+				}
+
+				if (version >= 4)
+				{
+					m_PendingAbilityScorePoints = reader.ReadInt();
+					m_PendingSpellsKnown = reader.ReadInt();
+					int count = reader.ReadInt();
+					for (int i = 0; i < count; i++)
+					{
+						m_KnownSpells.Add(reader.ReadInt());
+					}
+				}
+
+				if (version >= 5)
+				{
+					m_AttunedItems = reader.ReadStrongItemList();
 				}
 			}
 		}

@@ -25,14 +25,14 @@ namespace Server.Spells.DnD
 		/// Casts <paramref name="spell"/>, spending the smallest slot that fits (cantrips spend
 		/// nothing). Returns why it failed, if it did.
 		/// </summary>
-		public static CastResult Cast(DnDPlayerMobile caster, DnDSpell spell, Mobile target)
+		public static CastResult Cast(DnDPlayerMobile caster, DnDSpell spell, Mobile target, Point3D targetLocation = default(Point3D))
 		{
 			if (caster == null || spell == null)
 			{
 				return CastResult.NotACaster;
 			}
 
-			CharacterClass charClass = caster.CharacterClass;
+			CharacterClass charClass = caster.PrimaryClass;
 
 			if (!caster.DnDInitialized || charClass == null || !charClass.CanCastSpells)
 			{
@@ -44,7 +44,19 @@ namespace Server.Spells.DnD
 				return CastResult.NotOnClassList;
 			}
 
-			if (spell.RequiresTarget)
+			if (spell.TargetType == SpellTargetType.Location)
+			{
+				if (targetLocation == Point3D.Zero)
+				{
+					return CastResult.NoTarget;
+				}
+
+				if (!caster.InRange(targetLocation, Math.Max(1, spell.Range)))
+				{
+					return CastResult.OutOfRange;
+				}
+			}
+			else if (spell.TargetType == SpellTargetType.Mobile && spell.RequiresTarget)
 			{
 				if (target == null || target.Deleted || !target.Alive)
 				{
@@ -85,7 +97,7 @@ namespace Server.Spells.DnD
 
 			if (spell.Shape == SpellShape.Single || spell.AreaSize <= 0)
 			{
-				spell.Effect(caster, caster, primary, slotLevel);
+				spell.Effect(caster, caster, primary, targetLocation, slotLevel);
 
 				return CastResult.Success;
 			}
@@ -95,7 +107,7 @@ namespace Server.Spells.DnD
 
 			foreach (Mobile m in affected)
 			{
-				spell.Effect(caster, caster, m, slotLevel);
+				spell.Effect(caster, caster, m, targetLocation, slotLevel);
 			}
 
 			caster.SendMessage("{0} catches {1} creature(s).", spell.Name, affected.Count);

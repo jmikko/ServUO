@@ -501,6 +501,27 @@ namespace Server.Misc
 			return ok;
 		}
 
+		/// <summary>
+		/// Earns experience and then spends every level it granted on one class.
+		/// <para>
+		/// Levelling is two steps now: experience grants PENDING levels, and the player chooses
+		/// which class each one goes into - that choice is what multiclassing is. Tests that only
+		/// award experience leave a character sitting at their old level with an unanswered prompt,
+		/// which is exactly what a player who ignores the gump gets.
+		/// </para>
+		/// </summary>
+		private static void AwardAndLevel(DnDPlayerMobile pm, int experience, CharacterClass into)
+		{
+			pm.AwardExperience(experience);
+
+			// Guard rather than while(PendingLevels > 0): if AddClassLevel ever stopped consuming
+			// one, the loop would hang the server at boot rather than failing a check.
+			for (int i = 0; i < Advancement.MaxLevel && pm.PendingLevels > 0; ++i)
+			{
+				pm.AddClassLevel(into);
+			}
+		}
+
 		private static bool CheckText(string label, string actual, string expected)
 		{
 			if (actual == expected)
@@ -623,6 +644,8 @@ namespace Server.Misc
 
 			novice.MoveToWorld(TestLocation, Map.Felucca);
 
+			novice.KnownSpells.Add(SpellRegistry.GetId(fireball));
+
 			// A 1st-level wizard has no 3rd-level slot, so the spell is on the list but unreachable.
 			bool ok = !SpellRegistry.GetAvailable(novice).Contains(fireball);
 
@@ -632,13 +655,20 @@ namespace Server.Misc
 			}
 
 			// Level up to 5th, which is where the third-level slots arrive.
-			novice.AwardExperience(6500);
+			AwardAndLevel(novice, 6500, novice.PrimaryClass);
 
-			ok &= CheckValue("wizard level for Fireball", novice.CharacterLevel, 5);
+			ok &= CheckValue("wizard level for Fireball", novice.TotalLevel, 5);
 
 			if (!SpellRegistry.GetAvailable(novice).Contains(fireball))
 			{
 				Console.WriteLine("[combat-selftest] FAIL: a 5th-level wizard was not offered Fireball");
+				Console.WriteLine("[combat-selftest] DEBUG: highest slot = {0}, known spells count = {1}, knows fireball = {2}", 
+					Spellcasting.GetHighestSlotLevel(novice.PrimaryClass.SpellProgression, novice.TotalLevel),
+					novice.KnownSpells.Count,
+					novice.KnownSpells.Contains(SpellRegistry.GetId(fireball)));
+				foreach(var s in SpellRegistry.GetAvailable(novice)) {
+					Console.WriteLine("[combat-selftest] DEBUG available: " + s.Name);
+				}
 				ok = false;
 			}
 
@@ -1376,20 +1406,20 @@ namespace Server.Misc
 			ok &= CheckValue("level 1 HP", hero.HitsMax, 8);
 			ok &= CheckValue("level 1 slots", hero.GetMaxSpellSlots(1), 2);
 
-			hero.AwardExperience(299);
-			ok &= CheckValue("still level 1", hero.CharacterLevel, 1);
+			AwardAndLevel(hero, 299, hero.PrimaryClass);
+			ok &= CheckValue("still level 1", hero.TotalLevel, 1);
 
-			hero.AwardExperience(1);
-			ok &= CheckValue("level after 300 XP", hero.CharacterLevel, 2);
+			AwardAndLevel(hero, 1, hero.PrimaryClass);
+			ok &= CheckValue("level after 300 XP", hero.TotalLevel, 2);
 			ok &= CheckValue("level 2 HP", hero.HitsMax, 14);
 			ok &= CheckValue("level 2 slots", hero.GetMaxSpellSlots(1), 3);
 
 			// One award crossing several thresholds at once must apply every level it earns.
-			hero.AwardExperience(6200);
-			ok &= CheckValue("level after 6500 XP", hero.CharacterLevel, 5);
-			ok &= CheckValue("level 5 proficiency", hero.CharacterClass.GetProficiencyBonus(hero.CharacterLevel), 3);
+			AwardAndLevel(hero, 6200, hero.PrimaryClass);
+			ok &= CheckValue("level after 6500 XP", hero.TotalLevel, 5);
+			ok &= CheckValue("level 5 proficiency", hero.PrimaryClass.GetProficiencyBonus(hero.TotalLevel), 3);
 			ok &= CheckValue("level 5 3rd-level slots", hero.GetMaxSpellSlots(3), 2);
-			ok &= CheckValue("level 5 cantrip dice", Spellcasting.GetCantripDice(hero.CharacterLevel), 2);
+			ok &= CheckValue("level 5 cantrip dice", Spellcasting.GetCantripDice(hero.TotalLevel), 2);
 
 			// Levelling grants its hit points immediately rather than leaving the character hurt.
 			ok &= CheckValue("HP kept up with level", hero.Hits, hero.HitsMax);
@@ -1404,10 +1434,10 @@ namespace Server.Misc
 
 			Console.WriteLine(
 				"[combat-selftest]   advancement: level {0}, {1} XP, HP {2}, proficiency +{3}",
-				hero.CharacterLevel,
+				hero.TotalLevel,
 				hero.Experience,
 				hero.HitsMax,
-				hero.CharacterClass.GetProficiencyBonus(hero.CharacterLevel));
+				hero.PrimaryClass.GetProficiencyBonus(hero.TotalLevel));
 
 			hero.Delete();
 

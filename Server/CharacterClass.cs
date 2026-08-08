@@ -38,6 +38,8 @@ namespace Server
 		}
 
 		public abstract string Name { get; }
+		
+		public virtual Type ParentClass { get { return null; } }
 
 		/// <summary>
 		/// The class' hit die, e.g. 10 for a d10.
@@ -116,6 +118,29 @@ namespace Server
 			}
 
 			return true;
+		}
+
+		/// <summary>
+		/// Returns the number of Ability Score Improvement (ASI) points this class grants at the given level.
+		/// Each ASI typically provides 2 points to spend. By default, classes get an ASI at levels 4, 8, 12, 16, 19.
+		/// </summary>
+		public virtual int GetAbilityScoreImprovements(int level)
+		{
+			if (level == 4 || level == 8 || level == 12 || level == 16 || level == 19)
+			{
+				return 2;
+			}
+			return 0;
+		}
+
+		/// <summary>
+		/// Returns the maximum number of spells a character of this class knows at the given level.
+		/// Non-casters or classes that prepare from their entire list (Cleric, Druid, Paladin) return 0 or int.MaxValue.
+		/// Default is 0. Overridden by spells-known classes.
+		/// </summary>
+		public virtual int GetSpellsKnown(int level)
+		{
+			return 0;
 		}
 	}
 }

@@ -18,6 +18,8 @@ namespace Server.Commands
 			CommandSystem.Register("rest", AccessLevel.Player, LongRest_OnCommand);
 			CommandSystem.Register("shortrest", AccessLevel.Player, ShortRest_OnCommand);
 			CommandSystem.Register("spells", AccessLevel.Player, Spells_OnCommand);
+			CommandSystem.Register("Attune", AccessLevel.Player, Attune_OnCommand);
+			CommandSystem.Register("Unattune", AccessLevel.Player, Unattune_OnCommand);
 		}
 
 		[Usage("sheet")]
@@ -32,10 +34,10 @@ namespace Server.Commands
 			}
 
 			AbilityScores scores = pm.AbilityScores;
-			CharacterClass charClass = pm.CharacterClass;
+			CharacterClass charClass = pm.PrimaryClass;
 
 			pm.SendMessage(0x35, "--- {0} ---", pm.Name);
-			pm.SendMessage("Level {0} {1}{2}", pm.CharacterLevel, charClass.Name, SpeciesSuffix(pm));
+			pm.SendMessage("Level {0} {1}{2}", pm.TotalLevel, charClass.Name, SpeciesSuffix(pm));
 
 			pm.SendMessage(
 				"Str {0} ({1})  Dex {2} ({3})  Con {4} ({5})",
@@ -54,14 +56,14 @@ namespace Server.Commands
 				pm.ArmorClass,
 				pm.Hits,
 				pm.HitsMax,
-				Signed(charClass.GetProficiencyBonus(pm.CharacterLevel)));
+				Signed(charClass.GetProficiencyBonus(pm.TotalLevel)));
 
 			int toNext = Advancement.GetExperienceToNextLevel(pm.Experience);
 
 			pm.SendMessage(
 				"Experience {0}{1}",
 				pm.Experience,
-				toNext > 0 ? String.Format(" ({0} to level {1})", toNext, pm.CharacterLevel + 1) : " (maximum level)");
+				toNext > 0 ? String.Format(" ({0} to level {1})", toNext, pm.TotalLevel + 1) : " (maximum level)");
 
 			if (charClass.CanCastSpells)
 			{
@@ -87,7 +89,7 @@ namespace Server.Commands
 				return;
 			}
 
-			if (!pm.CharacterClass.CanCastSpells)
+			if (!pm.PrimaryClass.CanCastSpells)
 			{
 				pm.SendMessage("You are not a spellcaster.");
 				return;
@@ -166,7 +168,7 @@ namespace Server.Commands
 				return false;
 			}
 
-			if (!pm.DnDInitialized || pm.CharacterClass == null)
+			if (!pm.DnDInitialized || pm.PrimaryClass == null)
 			{
 				pm.SendMessage("Your character has not been set up yet.");
 				return false;
@@ -207,6 +209,124 @@ namespace Server.Commands
 		private static string Signed(int value)
 		{
 			return value >= 0 ? "+" + value : value.ToString();
+		}
+
+		[Usage("Attune")]
+		[Description("Attunes to a magical item. You can attune up to 3 items.")]
+		private static void Attune_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (pm.AttunedItems.Count >= 3)
+			{
+				pm.SendMessage("You are already attuned to 3 items. You must unattune from one first.");
+				return;
+			}
+
+			pm.SendMessage("Target the item you wish to attune to.");
+			pm.Target = new AttuneTarget(pm);
+		}
+
+		[Usage("Unattune")]
+		[Description("Removes attunement from a magical item.")]
+		private static void Unattune_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (pm.AttunedItems.Count == 0)
+			{
+				pm.SendMessage("You are not attuned to any items.");
+				return;
+			}
+
+			pm.SendMessage("Target the item you wish to unattune from.");
+			pm.Target = new UnattuneTarget(pm);
+		}
+	}
+
+	public class AttuneTarget : Server.Targeting.Target
+	{
+		private DnDPlayerMobile m_Mobile;
+
+		public AttuneTarget(DnDPlayerMobile m) : base(-1, false, Server.Targeting.TargetFlags.None)
+		{
+			m_Mobile = m;
+		}
+
+		protected override void OnTarget(Mobile from, object targeted)
+		{
+			if (targeted is Item item)
+			{
+				if (!item.IsChildOf(m_Mobile.Backpack) && item.Parent != m_Mobile)
+				{
+					from.SendMessage("The item must be in your pack or equipped to attune to it.");
+					return;
+				}
+
+				if (targeted is IDnDMagicItem magicItem)
+				{
+					if (!magicItem.RequiresAttunement)
+					{
+						from.SendMessage("That item does not require attunement.");
+						return;
+					}
+
+					if (m_Mobile.AttunedItems.Contains(item))
+					{
+						from.SendMessage("You are already attuned to that item.");
+						return;
+					}
+
+					m_Mobile.AttunedItems.Add(item);
+					from.SendMessage($"You attune to {item.Name ?? "the item"}.");
+					m_Mobile.Delta(MobileDelta.Armor | MobileDelta.Hits | MobileDelta.Stat);
+				}
+				else
+				{
+					from.SendMessage("That item does not require attunement.");
+				}
+			}
+			else
+			{
+				from.SendMessage("You can only attune to items.");
+			}
+		}
+	}
+
+	public class UnattuneTarget : Server.Targeting.Target
+	{
+		private DnDPlayerMobile m_Mobile;
+
+		public UnattuneTarget(DnDPlayerMobile m) : base(-1, false, Server.Targeting.TargetFlags.None)
+		{
+			m_Mobile = m;
+		}
+
+		protected override void OnTarget(Mobile from, object targeted)
+		{
+			if (targeted is Item item)
+			{
+				if (m_Mobile.AttunedItems.Contains(item))
+				{
+					m_Mobile.AttunedItems.Remove(item);
+					from.SendMessage($"You unattune from {item.Name ?? "the item"}.");
+					m_Mobile.Delta(MobileDelta.Armor | MobileDelta.Hits | MobileDelta.Stat);
+				}
+				else
+				{
+					from.SendMessage("You are not attuned to that item.");
+				}
+			}
 		}
 	}
 }

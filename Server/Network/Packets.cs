@@ -839,7 +839,10 @@ namespace Server.Network
 			IDnDCharacter dnd = m as IDnDCharacter;
 
 			AbilityScores scores = dnd == null ? new AbilityScores() : dnd.AbilityScores;
-			CharacterClass charClass = dnd == null ? null : dnd.CharacterClass;
+			// The client's sheet shows one class and one level. A multiclass character is reported
+			// by their starting class and their total level, which is also what the proficiency
+			// bonus below derives from.
+			CharacterClass charClass = dnd == null ? null : dnd.PrimaryClass;
 
 			m_Stream.Write((byte)scores.Str);
 			m_Stream.Write((byte)scores.Dex);
@@ -849,7 +852,7 @@ namespace Server.Network
 			m_Stream.Write((byte)scores.Cha);
 
 			int classId = charClass == null ? -1 : CharacterClass.AllClasses.IndexOf(charClass);
-			int level = dnd == null ? 0 : dnd.CharacterLevel;
+			int level = dnd == null ? 0 : dnd.TotalLevel;
 
 			m_Stream.Write((byte)classId);
 			m_Stream.Write((byte)level);
@@ -933,6 +936,52 @@ namespace Server.Network
 			m_Stream.Write((short)0x43);
 			m_Stream.Write((short)spellId);
 			m_Stream.Write((byte)result);
+		}
+	}
+
+	/// <summary>
+	/// Prompts the client to make level-up choices (ASIs, Spells Known). Extended (0xBF)
+	/// subcommand 0x44. The client responds with 0x45 (DnDLevelUpSubmit).
+	/// </summary>
+	public sealed class DnDLevelUpPrompt : Packet
+	{
+		public DnDLevelUpPrompt(int pendingLevels, int pendingASI, int pendingSpellsKnown, IEnumerable<DnDSpellInfo> availableSpells)
+			: base(0xBF)
+		{
+			EnsureCapacity(4096);
+
+			m_Stream.Write((short)0x44);
+
+			m_Stream.Write((byte)pendingLevels);
+			m_Stream.Write((byte)pendingASI);
+			m_Stream.Write((byte)pendingSpellsKnown);
+
+			var classes = CharacterClass.AllClasses;
+			m_Stream.Write((short)classes.Count);
+			foreach (var c in classes)
+			{
+				m_Stream.WriteAsciiNull(c.Name);
+				m_Stream.WriteAsciiNull(c.ParentClass != null ? c.ParentClass.Name : "");
+			}
+
+			var feats = Feat.AllFeats;
+			m_Stream.Write((short)feats.Count);
+			foreach (var f in feats)
+			{
+				m_Stream.WriteAsciiNull(f.Name);
+			}
+
+			var list = new List<DnDSpellInfo>(availableSpells);
+
+			m_Stream.Write((short)list.Count);
+
+			foreach (DnDSpellInfo spell in list)
+			{
+				m_Stream.Write((short)spell.Id);
+				m_Stream.Write((byte)spell.Level);
+				m_Stream.Write((byte)spell.School);
+				m_Stream.WriteAsciiNull(spell.Name);
+			}
 		}
 	}
 

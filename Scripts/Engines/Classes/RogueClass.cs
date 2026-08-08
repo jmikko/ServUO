@@ -19,5 +19,14 @@ namespace Server.Engines.Classes
 		public override ArmorCategory ArmorProficiencies { get { return ArmorCategory.Light; } }
 
 		public override bool CanCastSpells { get { return false; } }
+
+		public override int GetAbilityScoreImprovements(int level)
+		{
+			if (level == 4 || level == 8 || level == 10 || level == 12 || level == 16 || level == 19)
+			{
+				return 2;
+			}
+			return 0;
+		}
 	}
 }

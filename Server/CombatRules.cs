@@ -112,8 +112,17 @@ namespace Server
 		/// characters get ability modifier + proficiency bonus, using Dex for ranged weapons, Str
 		/// for ordinary melee weapons, and the better of Str/Dex for finesse weapons.
 		/// </summary>
-		public static int GetAttackBonus(Mobile attacker, bool ranged, bool finesse = false)
+		public static int GetAttackBonus(Mobile attacker, bool ranged, bool finesse = false, Item weapon = null)
 		{
+			int magicBonus = 0;
+			if (weapon is IDnDMagicItem magicWeapon)
+			{
+				IDnDCharacter c = attacker as IDnDCharacter;
+				if (!magicWeapon.RequiresAttunement || (c != null && c.IsAttunedTo(weapon)))
+				{
+					magicBonus += magicWeapon.AttackBonus;
+				}
+			}
 			IDnDCreature creature = attacker as IDnDCreature;
 
 			if (creature != null)
@@ -123,35 +132,45 @@ namespace Server
 
 			IDnDCharacter character = attacker as IDnDCharacter;
 
-			if (character != null && character.CharacterClass != null)
+			if (character != null && character.PrimaryClass != null)
 			{
 				int abilityMod = GetWeaponAbilityModifier(character, ranged, finesse);
 
-				return abilityMod + character.CharacterClass.GetProficiencyBonus(character.CharacterLevel);
+				return abilityMod + character.PrimaryClass.GetProficiencyBonus(character.TotalLevel) + magicBonus;
 			}
 
-			return 0;
+			return magicBonus;
 		}
 
 		/// <summary>
 		/// The damage bonus added to a weapon's dice. Monsters bake theirs into the dice expression,
 		/// so they get none here.
 		/// </summary>
-		public static int GetDamageBonus(Mobile attacker, bool ranged, bool finesse = false)
+		public static int GetDamageBonus(Mobile attacker, bool ranged, bool finesse = false, Item weapon = null)
 		{
+			int magicBonus = 0;
+			if (weapon is IDnDMagicItem magicWeapon)
+			{
+				IDnDCharacter c = attacker as IDnDCharacter;
+				if (!magicWeapon.RequiresAttunement || (c != null && c.IsAttunedTo(weapon)))
+				{
+					magicBonus += magicWeapon.DamageBonus;
+				}
+			}
+
 			if (attacker is IDnDCreature)
 			{
-				return 0;
+				return magicBonus;
 			}
 
 			IDnDCharacter character = attacker as IDnDCharacter;
 
 			if (character != null)
 			{
-				return GetWeaponAbilityModifier(character, ranged, finesse);
+				return GetWeaponAbilityModifier(character, ranged, finesse) + magicBonus;
 			}
 
-			return 0;
+			return magicBonus;
 		}
 
 		private static int GetWeaponAbilityModifier(IDnDCharacter character, bool ranged, bool finesse)
@@ -214,9 +233,65 @@ namespace Server
 			{
 				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
 
-				if (character.CharacterClass != null && character.CharacterClass.IsProficientSave(ability))
+				if (character.PrimaryClass != null && character.PrimaryClass.IsProficientSave(ability))
 				{
-					bonus += character.CharacterClass.GetProficiencyBonus(character.CharacterLevel);
+					bonus += character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
+				}
+
+				foreach (Item item in target.Items)
+				{
+					if (item is IDnDMagicItem magicItem)
+					{
+						if (!magicItem.RequiresAttunement || character.IsAttunedTo(item))
+						{
+							bonus += magicItem.SavingThrowBonus;
+						}
+					}
+				}
+			}
+
+			return roll + bonus >= dc;
+		}
+
+		/// <summary>
+		/// Rolls an ability check: d20 + ability modifier.
+		/// </summary>
+		public static bool CheckAbility(Mobile target, AbilityScoreType ability, int dc, RollMode mode = RollMode.Normal)
+		{
+			// Bless does not apply to ability checks, but Guidance does.
+			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.AbilityCheck);
+			int bonus = 0;
+
+			IDnDCharacter character = target as IDnDCharacter;
+
+			if (character != null && character.DnDInitialized)
+			{
+				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+			}
+
+			return roll + bonus >= dc;
+		}
+
+		/// <summary>
+		/// Rolls a skill check, which is an ability check that adds the proficiency bonus
+		/// if the character is proficient.
+		/// </summary>
+		public static bool CheckSkill(Mobile target, DnDSkill skill, int dc, RollMode mode = RollMode.Normal)
+		{
+			AbilityScoreType ability = DnDSkills.GetPrimaryAbility(skill);
+
+			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.AbilityCheck);
+			int bonus = 0;
+
+			IDnDCharacter character = target as IDnDCharacter;
+
+			if (character != null && character.DnDInitialized)
+			{
+				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+
+				if (character.IsProficient(skill) && character.PrimaryClass != null)
+				{
+					bonus += character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
 				}
 			}
 

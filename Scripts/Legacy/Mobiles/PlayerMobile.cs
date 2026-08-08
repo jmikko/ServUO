@@ -1,4 +1,4 @@
-﻿#region References
+#region References
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -345,6 +345,20 @@ namespace Server.Mobiles
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int CharacterLevel { get { return m_CharacterLevel; } }
+
+		public IReadOnlyDictionary<CharacterClass, int> Classes
+		{
+			get
+			{
+				var dict = new System.Collections.Generic.Dictionary<CharacterClass, int>();
+				if (m_CharacterClass != null) dict[m_CharacterClass] = m_CharacterLevel;
+				return dict;
+			}
+		}
+
+		public int TotalLevel { get { return m_CharacterLevel; } }
+		
+		public System.Collections.Generic.List<Feat> Feats { get { return new System.Collections.Generic.List<Feat>(); } }
 
 		public void ApplyDnDSetup(AbilityScores scores, CharacterClass characterClass)
 		{

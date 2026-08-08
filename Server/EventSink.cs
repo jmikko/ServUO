@@ -100,6 +100,7 @@ namespace Server
     public delegate void SetAbilityEventHandler(SetAbilityEventArgs e);
 
     public delegate void DnDCharacterSetupEventHandler(DnDCharacterSetupEventArgs e);
+    public delegate void DnDLevelUpSubmitEventHandler(DnDLevelUpSubmitEventArgs e);
 
     public delegate void DnDCastRequestEventHandler(DnDCastRequestEventArgs e);
 
@@ -338,6 +339,30 @@ namespace Server
 		}
 	}
 
+	public class DnDLevelUpSubmitEventArgs : EventArgs
+	{
+		private readonly Mobile m_Mobile;
+		private readonly int[] m_AbilityIncreases;
+		private readonly int[] m_SpellIds;
+		private readonly string m_ChosenClass;
+		private readonly string m_ChosenFeat;
+
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int[] AbilityIncreases { get { return m_AbilityIncreases; } }
+		public int[] SpellIds { get { return m_SpellIds; } }
+		public string ChosenClass { get { return m_ChosenClass; } }
+		public string ChosenFeat { get { return m_ChosenFeat; } }
+
+		public DnDLevelUpSubmitEventArgs(Mobile mobile, int[] abilityIncreases, int[] spellIds, string chosenClass, string chosenFeat)
+		{
+			m_Mobile = mobile;
+			m_AbilityIncreases = abilityIncreases;
+			m_SpellIds = spellIds;
+			m_ChosenClass = chosenClass;
+			m_ChosenFeat = chosenFeat;
+		}
+	}
+
 	public class DnDCharacterSetupEventArgs : EventArgs
 	{
 		private readonly Mobile m_Mobile;
@@ -374,18 +399,22 @@ namespace Server
 		private readonly Mobile m_Mobile;
 		private readonly int m_SpellId;
 		private readonly Serial m_TargetSerial;
+		private readonly Point3D m_TargetLocation;
 
 		public Mobile Mobile { get { return m_Mobile; } }
 		public int SpellId { get { return m_SpellId; } }
 
-		/// <summary>Serial.Zero when the spell is being cast on the caster.</summary>
+		/// <summary>Serial.Zero when the spell is being cast on the caster, or on a location.</summary>
 		public Serial TargetSerial { get { return m_TargetSerial; } }
 
-		public DnDCastRequestEventArgs(Mobile mobile, int spellId, Serial targetSerial)
+		public Point3D TargetLocation { get { return m_TargetLocation; } }
+
+		public DnDCastRequestEventArgs(Mobile mobile, int spellId, Serial targetSerial, Point3D targetLocation)
 		{
 			m_Mobile = mobile;
 			m_SpellId = spellId;
 			m_TargetSerial = targetSerial;
+			m_TargetLocation = targetLocation;
 		}
 	}
 
@@ -1788,6 +1817,7 @@ namespace Server
         public static event AfterWorldSaveEventHandler AfterWorldSave;
         public static event SetAbilityEventHandler SetAbility;
         public static event DnDCharacterSetupEventHandler DnDCharacterSetup;
+        public static event DnDLevelUpSubmitEventHandler DnDLevelUpSubmit;
 		public static event DnDCastRequestEventHandler DnDCastRequest;
 		public static event FastWalkEventHandler FastWalk;
 		public static event CreateGuildHandler CreateGuild;
@@ -1910,6 +1940,14 @@ namespace Server
 			if (DnDCharacterSetup != null)
 			{
 				DnDCharacterSetup(e);
+			}
+		}
+
+		public static void InvokeDnDLevelUpSubmit(DnDLevelUpSubmitEventArgs e)
+		{
+			if (DnDLevelUpSubmit != null)
+			{
+				DnDLevelUpSubmit(e);
 			}
 		}
 

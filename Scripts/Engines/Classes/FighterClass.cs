@@ -1,6 +1,6 @@
 namespace Server.Engines.Classes
 {
-	public sealed class FighterClass : CharacterClass
+	public class FighterClass : CharacterClass
 	{
 		public override string Name { get { return "Fighter"; } }
 
@@ -16,5 +16,14 @@ namespace Server.Engines.Classes
 		public override ArmorCategory ArmorProficiencies { get { return ArmorCategory.All; } }
 
 		public override bool CanCastSpells { get { return false; } }
+
+		public override int GetAbilityScoreImprovements(int level)
+		{
+			if (level == 4 || level == 6 || level == 8 || level == 12 || level == 14 || level == 16 || level == 19)
+			{
+				return 2;
+			}
+			return 0;
+		}
 	}
 }

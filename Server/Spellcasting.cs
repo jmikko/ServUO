@@ -37,6 +37,13 @@ namespace Server
 		None,
 		Full,
 		Half,
+
+		/// <summary>
+		/// A third-caster - the Eldritch Knight and Arcane Trickster subclasses. Gains its first
+		/// slot at 3rd level and advances at a third of a full caster's rate.
+		/// </summary>
+		Third,
+
 		Pact
 	}
 
@@ -115,6 +122,12 @@ namespace Server
 						// not a 2nd. Rounding down here silently costs half-casters a spell level.
 						return classLevel < 2 ? 0 : ReadFullCasterTable((classLevel + 1) / 2, spellLevel);
 					}
+				case SpellProgression.Third:
+					{
+						// Nothing until 3rd level, then a third of a full caster's rate, rounded up
+						// for the same reason half-casters round up.
+						return classLevel < 3 ? 0 : ReadFullCasterTable((classLevel + 2) / 3, spellLevel);
+					}
 				case SpellProgression.Pact:
 					{
 						int index = Math.Min(classLevel, PactSlotCount.Length) - 1;
@@ -150,38 +163,84 @@ namespace Server
 			return 0;
 		}
 
+		/// <summary>
+		/// Which class's magic a character casts with.
+		/// <para>
+		/// Multiclassing makes this genuinely ambiguous: a Wizard/Cleric has two spellcasting
+		/// abilities, and by the SRD each spell uses the one belonging to the class it was learnt
+		/// from. Spells here are not tagged with the class they came from, so this picks the
+		/// character's starting class when it casts, and otherwise the first class that does. That
+		/// is right for the overwhelmingly common case of a single-class caster and stable for a
+		/// multiclass one, which matters more than being right for a case the data cannot express.
+		/// </para>
+		/// </summary>
+		public static CharacterClass GetSpellcastingClass(IDnDCharacter character)
+		{
+			if (character == null)
+			{
+				return null;
+			}
+
+			if (character.PrimaryClass != null && character.PrimaryClass.CanCastSpells)
+			{
+				return character.PrimaryClass;
+			}
+
+			if (character.Classes != null)
+			{
+				foreach (var entry in character.Classes)
+				{
+					if (entry.Key != null && entry.Key.CanCastSpells)
+					{
+						return entry.Key;
+					}
+				}
+			}
+
+			return character.PrimaryClass;
+		}
+
 		public static int GetCastingAbilityModifier(IDnDCharacter character)
 		{
-			if (character == null || character.CharacterClass == null)
+			CharacterClass castingClass = GetSpellcastingClass(character);
+
+			if (castingClass == null)
 			{
 				return 0;
 			}
 
-			return GetModifier(character.AbilityScores, character.CharacterClass.SpellcastingAbility);
+			return GetModifier(character.AbilityScores, castingClass.SpellcastingAbility);
 		}
 
-		/// <summary>SRD: 8 + proficiency bonus + spellcasting ability modifier.</summary>
+		/// <summary>
+		/// SRD: 8 + proficiency bonus + spellcasting ability modifier. The proficiency bonus comes
+		/// from total level across all classes, not from the casting class alone.
+		/// </summary>
 		public static int GetSaveDC(IDnDCharacter character)
 		{
-			if (character == null || character.CharacterClass == null)
+			CharacterClass castingClass = GetSpellcastingClass(character);
+
+			if (castingClass == null)
 			{
 				return 8;
 			}
 
 			return 8 +
-				   character.CharacterClass.GetProficiencyBonus(character.CharacterLevel) +
+				   castingClass.GetProficiencyBonus(character.TotalLevel) +
 				   GetCastingAbilityModifier(character);
 		}
 
 		/// <summary>SRD: proficiency bonus + spellcasting ability modifier.</summary>
 		public static int GetSpellAttackBonus(IDnDCharacter character)
 		{
-			if (character == null || character.CharacterClass == null)
+			CharacterClass castingClass = GetSpellcastingClass(character);
+
+			if (castingClass == null)
 			{
 				return 0;
 			}
 
-			return character.CharacterClass.GetProficiencyBonus(character.CharacterLevel) +
+			return castingClass.GetProficiencyBonus(character.TotalLevel) +
 				   GetCastingAbilityModifier(character);
 		}
 

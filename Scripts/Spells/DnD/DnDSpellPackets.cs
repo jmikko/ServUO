@@ -41,7 +41,7 @@ namespace Server.Spells.DnD
 
 			Mobile target = e.TargetSerial == Serial.Zero ? pm : World.FindMobile(e.TargetSerial);
 
-			CastResult result = DnDCasting.Cast(pm, spell, target);
+			CastResult result = DnDCasting.Cast(pm, spell, target, e.TargetLocation);
 
 			pm.SendMessage(DescribeResult(spell, result));
 
@@ -81,6 +81,29 @@ namespace Server.Spells.DnD
 			}
 
 			pm.NetState.Send(new DnDSpellList(infos, available, max));
+		}
+
+		/// <summary>
+		/// Sends the prompt for pending level-up choices (ASI, Spells Known).
+		/// Calculates the available spells that the character could learn (on their list, castable level, not yet known).
+		/// </summary>
+		public static void Send_DnDLevelUpPrompt(DnDPlayerMobile pm)
+		{
+			if (pm == null || pm.NetState == null || !pm.DnDInitialized)
+			{
+				return;
+			}
+
+			var infos = new List<DnDSpellInfo>();
+			if (pm.PendingSpellsKnown > 0)
+			{
+				foreach (DnDSpell spell in SpellRegistry.GetLearnable(pm))
+				{
+					infos.Add(new DnDSpellInfo(SpellRegistry.GetId(spell), spell.Level, spell.School, spell.Name));
+				}
+			}
+
+			pm.NetState.Send(new DnDLevelUpPrompt(pm.PendingLevels, pm.PendingAbilityScorePoints, pm.PendingSpellsKnown, infos));
 		}
 
 		private static void Send(DnDPlayerMobile pm, Packet packet)

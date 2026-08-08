@@ -20,5 +20,10 @@ namespace Server.Engines.Classes
 		public override SpellProgression SpellProgression { get { return SpellProgression.Half; } }
 
 		public override AbilityScoreType SpellcastingAbility { get { return AbilityScoreType.Cha; } }
+
+		public override int GetSpellsKnown(int level)
+		{
+			return int.MaxValue;
+		}
 	}
 }

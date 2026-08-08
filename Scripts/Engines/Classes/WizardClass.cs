@@ -1,6 +1,6 @@
 namespace Server.Engines.Classes
 {
-	public sealed class WizardClass : CharacterClass
+	public class WizardClass : CharacterClass
 	{
 		public override string Name { get { return "Wizard"; } }
 
@@ -23,5 +23,11 @@ namespace Server.Engines.Classes
 		public override SpellProgression SpellProgression { get { return SpellProgression.Full; } }
 
 		public override AbilityScoreType SpellcastingAbility { get { return AbilityScoreType.Int; } }
+
+		public override int GetSpellsKnown(int level)
+		{
+			if (level < 1) return 0;
+			return 6 + (level - 1) * 2;
+		}
 	}
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Server.Engines.Classes;
+using Server.Mobiles;
 
 namespace Server.Spells.DnD
 {
@@ -16,6 +18,13 @@ namespace Server.Spells.DnD
 
 		/// <summary>The target rolls a saving throw against the caster's spell save DC.</summary>
 		SavingThrow
+	}
+
+	public enum SpellTargetType
+	{
+		Mobile,
+		Location,
+		Item
 	}
 
 	/// <summary>
@@ -68,10 +77,12 @@ namespace Server.Spells.DnD
 		/// which is what upcasting reads - it equals <see cref="Level"/> unless the caster chose to
 		/// burn something bigger.
 		/// </summary>
-		public abstract void Effect(Mobile caster, IDnDCharacter character, Mobile target, int slotLevel);
+		public abstract void Effect(Mobile caster, IDnDCharacter character, Mobile targetMobile, Point3D targetLocation, int slotLevel);
 
 		/// <summary>Whether this spell needs a target other than the caster.</summary>
 		public virtual bool RequiresTarget { get { return true; } }
+
+		public virtual SpellTargetType TargetType { get { return SpellTargetType.Mobile; } }
 
 		/// <summary>
 		/// Whether the spell helps rather than harms. Used to keep healing off enemies and damage
@@ -174,23 +185,59 @@ namespace Server.Spells.DnD
 		{
 			var available = new List<DnDSpell>();
 
-			if (character == null || character.CharacterClass == null)
+			if (character == null || character.PrimaryClass == null)
 			{
 				return available;
 			}
 
 			int highest = Spellcasting.GetHighestSlotLevel(
-				character.CharacterClass.SpellProgression, character.CharacterLevel);
+				character.PrimaryClass.SpellProgression, character.TotalLevel);
 
-			foreach (DnDSpell spell in GetClassList(character.CharacterClass.Name))
+			int maxSpells = character.PrimaryClass.GetSpellsKnown(character.TotalLevel);
+			bool knowsAll = (maxSpells == int.MaxValue);
+
+			DnDPlayerMobile pm = character as DnDPlayerMobile;
+			List<int> knownIds = pm != null ? pm.KnownSpells : new List<int>();
+
+			foreach (DnDSpell spell in GetClassList(character.PrimaryClass.Name))
 			{
 				if (spell.IsCantrip || spell.Level <= highest)
 				{
-					available.Add(spell);
+					if (spell.IsCantrip || knowsAll || knownIds.Contains(GetId(spell)))
+					{
+						available.Add(spell);
+					}
 				}
 			}
 
 			return available;
+		}
+
+		/// <summary>Spells the character could learn (on class list, castable level, not a cantrip, not already known).</summary>
+		public static List<DnDSpell> GetLearnable(IDnDCharacter character)
+		{
+			var learnable = new List<DnDSpell>();
+
+			if (character == null || character.PrimaryClass == null)
+			{
+				return learnable;
+			}
+
+			int highest = Spellcasting.GetHighestSlotLevel(
+				character.PrimaryClass.SpellProgression, character.TotalLevel);
+
+			DnDPlayerMobile pm = character as DnDPlayerMobile;
+			List<int> knownIds = pm != null ? pm.KnownSpells : new List<int>();
+
+			foreach (DnDSpell spell in GetClassList(character.PrimaryClass.Name))
+			{
+				if (!spell.IsCantrip && spell.Level <= highest && !knownIds.Contains(GetId(spell)))
+				{
+					learnable.Add(spell);
+				}
+			}
+
+			return learnable;
 		}
 	}
 }

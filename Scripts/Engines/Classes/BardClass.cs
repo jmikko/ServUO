@@ -23,5 +23,13 @@ namespace Server.Engines.Classes
 		public override SpellProgression SpellProgression { get { return SpellProgression.Full; } }
 
 		public override AbilityScoreType SpellcastingAbility { get { return AbilityScoreType.Cha; } }
+
+		private static readonly int[] m_SpellsKnown = { 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 22 };
+
+		public override int GetSpellsKnown(int level)
+		{
+			if (level < 1) return 0;
+			return m_SpellsKnown[System.Math.Min(level, m_SpellsKnown.Length) - 1];
+		}
 	}
 }

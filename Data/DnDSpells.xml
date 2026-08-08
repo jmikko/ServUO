@@ -174,8 +174,8 @@
          classes="Cleric" description="Healing for everyone nearby." />
   <spell id="LesserRestoration" name="Lesser Restoration" level="2" school="Abjuration" kind="Utility" range="1" beneficial="true"
          classes="Bard,Cleric,Druid,Paladin,Ranger" description="Ends one disease or condition. Not yet modelled." />
-  <spell id="MistyStep"     name="Misty Step"     level="2" school="Conjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
-         classes="Sorcerer,Warlock,Wizard" description="A short teleport. Not yet modelled." />
+  <spell id="MistyStep"     name="Misty Step"     level="2" school="Conjuration" kind="Teleport" targetType="Location" range="6" beneficial="true"
+         classes="Sorcerer,Warlock,Wizard" description="A short teleport." />
   <spell id="MirrorImage"   name="Mirror Image"   level="2" school="Illusion" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Sorcerer,Warlock,Wizard" description="Illusory duplicates. Not yet modelled." />
   <spell id="SpiritualWeapon" name="Spiritual Weapon" level="2" school="Evocation" kind="Damage" resolution="SpellAttack"
@@ -250,8 +250,8 @@
          classes="Sorcerer,Warlock,Wizard" description="Interrupts another caster. Not yet modelled." />
   <spell id="Haste"         name="Haste"          level="3" school="Transmutation" kind="Utility" range="6" beneficial="true" concentration="true"
          classes="Sorcerer,Wizard" description="Doubles speed and grants an extra action. Not yet modelled." />
-  <spell id="Fly"           name="Fly"            level="3" school="Transmutation" kind="Utility" range="1" beneficial="true" concentration="true"
-         classes="Sorcerer,Warlock,Wizard" description="Grants a flying speed. Not yet modelled." />
+  <spell id="Fly"           name="Fly"            level="3" school="Transmutation" kind="MovementMode" durationSeconds="600" range="1" beneficial="true" concentration="true"
+         classes="Sorcerer,Warlock,Wizard" description="Grants a flying speed." />
   <spell id="ProtectionFromEnergy" name="Protection from Energy" level="3" school="Abjuration" kind="Utility" range="1" beneficial="true" concentration="true"
          classes="Cleric,Druid,Ranger,Sorcerer,Wizard" description="Resistance to one damage type. Not yet modelled." />
   <spell id="RemoveCurse"   name="Remove Curse"   level="3" school="Abjuration" kind="Utility" range="1" beneficial="true"
@@ -293,8 +293,8 @@
          classes="Bard,Sorcerer,Wizard" description="Invisibility that survives attacking." />
   <spell id="DeathWard"     name="Death Ward"     level="4" school="Abjuration" kind="Utility" range="1" beneficial="true"
          classes="Cleric,Paladin" description="Cheats death once. Not yet modelled." />
-  <spell id="DimensionDoor" name="Dimension Door" level="4" school="Conjuration" kind="Utility" range="100" beneficial="true" selfOnly="true"
-         classes="Bard,Sorcerer,Warlock,Wizard" description="A long teleport. Not yet modelled." />
+  <spell id="DimensionDoor" name="Dimension Door" level="4" school="Conjuration" kind="Teleport" targetType="Location" range="100" beneficial="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A long teleport." />
   <spell id="Polymorph"     name="Polymorph"      level="4" school="Transmutation" kind="Utility" range="12" concentration="true"
          classes="Bard,Druid,Sorcerer,Wizard" description="Transforms a creature into a beast. Not yet modelled." />
   <spell id="FreedomOfMovement" name="Freedom of Movement" level="4" school="Abjuration" kind="Utility" range="1" beneficial="true"
@@ -400,8 +400,8 @@
          classes="Bard,Cleric" description="Returns the long dead to life. Not yet modelled." />
   <spell id="PlaneShift"    name="Plane Shift"    level="7" school="Conjuration" kind="Utility" range="1"
          classes="Cleric,Druid,Sorcerer,Warlock,Wizard" description="Travel to another plane. Not yet modelled." />
-  <spell id="Teleport"      name="Teleport"       level="7" school="Conjuration" kind="Utility" range="1" beneficial="true"
-         classes="Bard,Sorcerer,Wizard" description="Instant travel across the world. Not yet modelled." />
+  <spell id="Teleport"      name="Teleport"       level="7" school="Conjuration" kind="Teleport" targetType="Location" range="10000" beneficial="true"
+         classes="Bard,Sorcerer,Wizard" description="Instant travel across the world." />
   <spell id="Etherealness"  name="Etherealness"   level="7" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Bard,Cleric,Sorcerer,Warlock,Wizard" description="Step onto the Ethereal Plane. Not yet modelled." />
   <spell id="ReverseGravity" name="Reverse Gravity" level="7" school="Transmutation" kind="Utility" shape="Sphere" size="10" range="20" concentration="true"

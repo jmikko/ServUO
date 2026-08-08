@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Server
 {
 	/// <summary>
@@ -9,10 +11,26 @@ namespace Server
 	{
 		bool DnDInitialized { get; }
 		AbilityScores AbilityScores { get; }
-		CharacterClass CharacterClass { get; }
-		int CharacterLevel { get; }
+		AbilityScores EffectiveAbilityScores { get; }
+		IReadOnlyDictionary<CharacterClass, int> Classes { get; }
+
+		/// <summary>
+		/// The class this character started as. Multiclassing grants saving throw proficiencies
+		/// from the first class only, so the engine needs to know which one that was - the Classes
+		/// dictionary cannot answer it, since a dictionary has no first entry.
+		/// </summary>
+		CharacterClass PrimaryClass { get; }
+
+		/// <summary>
+		/// Levels across every class. Proficiency bonus derives from this rather than from any one
+		/// class, which is what stops multiclassing being a way to farm proficiency.
+		/// </summary>
+		int TotalLevel { get; }
+		System.Collections.Generic.List<Feat> Feats { get; }
 		int ArmorClass { get; }
 		int Experience { get; }
+		bool IsProficient(DnDSkill skill);
+		bool IsAttunedTo(Item item);
 
 		/// <summary>
 		/// Adds experience and levels the character up if that crosses a threshold. Implemented in

@@ -169,6 +169,7 @@ namespace Server.Network
 
 			RegisterEncoded(0x40, true, DnDCharacterSetup);
 			RegisterEncoded(0x41, true, DnDCastRequest);
+			RegisterEncoded(0x45, true, DnDLevelUpSubmit);
 		}
 
 		public static void Register(int packetID, int length, bool ingame, OnPacketReceive onReceive)
@@ -371,6 +372,40 @@ namespace Server.Network
 		}
 
 		/// <summary>
+		/// Receives the D&D 5.5e level-up choices (ASI allocations, spells to learn). Encoded (0xD7) subcommand 0x45.
+		/// Payload: the chosen class and feat names as strings, then six ReadInt32() fields in order -
+		/// str, dex, con, int, wis, cha increases. Then one ReadInt32() for spell count, followed by
+		/// that many ReadInt32() spell IDs.
+		/// </summary>
+		public static void DnDLevelUpSubmit(NetState state, IEntity e, EncodedReader reader)
+		{
+			IDnDCharacter dnd = state.Mobile as IDnDCharacter;
+
+			if (dnd == null)
+			{
+				return;
+			}
+
+			string chosenClass = reader.ReadUnicodeStringSafe();
+			string chosenFeat = reader.ReadUnicodeStringSafe();
+
+			int[] abilityIncreases = new int[6];
+			for (int i = 0; i < 6; i++)
+			{
+				abilityIncreases[i] = reader.ReadInt32();
+			}
+
+			int spellCount = reader.ReadInt32();
+			int[] spellIds = new int[spellCount];
+			for (int i = 0; i < spellCount; i++)
+			{
+				spellIds[i] = reader.ReadInt32();
+			}
+
+			EventSink.InvokeDnDLevelUpSubmit(new DnDLevelUpSubmitEventArgs(state.Mobile, abilityIncreases, spellIds, chosenClass, chosenFeat));
+		}
+
+		/// <summary>
 		/// A client asking to cast a spell (0xD7 encoded subcommand 0x41): spell id, then the target
 		/// serial (0 for self).
 		/// <para>
@@ -389,9 +424,10 @@ namespace Server.Network
 
 			int spellId = reader.ReadInt32();
 			int targetSerial = reader.ReadInt32();
+			Point3D targetLocation = reader.ReadPoint3D();
 
 			EventSink.InvokeDnDCastRequest(
-				new DnDCastRequestEventArgs(state.Mobile, spellId, (Serial)targetSerial));
+				new DnDCastRequestEventArgs(state.Mobile, spellId, (Serial)targetSerial, targetLocation));
 		}
 
 		public static void EncodedCommand(NetState state, PacketReader pvSrc)

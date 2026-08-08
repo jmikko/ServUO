@@ -28,7 +28,13 @@ namespace Server.Spells.DnD
 		RollModifier,
 
 		/// <summary>Does nothing mechanical yet - flavour, light, and the like.</summary>
-		Utility
+		Utility,
+
+		/// <summary>Teleports the caster to a location.</summary>
+		Teleport,
+
+		/// <summary>Grants a movement mode (like flying) for a duration.</summary>
+		MovementMode
 	}
 
 	/// <summary>
@@ -49,6 +55,7 @@ namespace Server.Spells.DnD
 		public int Range;
 		public bool Beneficial;
 		public bool SelfOnly;
+		public SpellTargetType TargetType;
 
 		/// <summary>Dice per "step" - one step for a cantrip at 1st level, or one slot level.</summary>
 		public int DiceCount;
@@ -143,6 +150,7 @@ namespace Server.Spells.DnD
 				Resolution = ParseEnum(el.GetAttribute("resolution"), SpellResolution.Automatic),
 				SaveAbility = ParseEnum(el.GetAttribute("save"), AbilityScoreType.Dex),
 				HalfOnSave = el.GetAttribute("halfOnSave") == "true",
+				TargetType = ParseEnum(el.GetAttribute("targetType"), SpellTargetType.Mobile),
 				Range = ParseInt(el.GetAttribute("range"), 12),
 				Beneficial = el.GetAttribute("beneficial") == "true",
 				SelfOnly = el.GetAttribute("selfOnly") == "true",
@@ -240,13 +248,14 @@ namespace Server.Spells.DnD
 		public override AbilityScoreType SaveAbility { get { return m_Data.SaveAbility; } }
 		public override int Range { get { return m_Data.Range; } }
 		public override bool HalfDamageOnSave { get { return m_Data.HalfOnSave; } }
+		public override SpellTargetType TargetType { get { return m_Data.TargetType; } }
 		public override bool Beneficial { get { return m_Data.Beneficial; } }
 		public override SpellShape Shape { get { return m_Data.Shape; } }
 		public override int AreaSize { get { return m_Data.AreaSize; } }
 		public override bool RequiresConcentration { get { return m_Data.Concentration; } }
 		public override TimeSpan Duration { get { return m_Data.Duration; } }
 
-		public override void Effect(Mobile caster, IDnDCharacter character, Mobile target, int slotLevel)
+		public override void Effect(Mobile caster, IDnDCharacter character, Mobile target, Point3D targetLocation, int slotLevel)
 		{
 			switch (m_Data.Kind)
 			{
@@ -284,6 +293,17 @@ namespace Server.Spells.DnD
 				case SpellEffectKind.Utility:
 					{
 						caster.SendMessage("{0} takes effect.", Name);
+						break;
+					}
+				case SpellEffectKind.Teleport:
+					{
+						caster.MoveToWorld(targetLocation, caster.Map);
+						caster.PlaySound(0x1FE); // Teleport sound
+						break;
+					}
+				case SpellEffectKind.MovementMode:
+					{
+						DnDEffects.ApplyFlying(target, m_Data.Duration, Name);
 						break;
 					}
 			}
@@ -367,7 +387,7 @@ namespace Server.Spells.DnD
 
 			if (m_Data.ScalesWithCantripDice)
 			{
-				dice *= Spellcasting.GetCantripDice(character.CharacterLevel);
+				dice *= Spellcasting.GetCantripDice(character.TotalLevel);
 			}
 			else if (m_Data.DicePerSlotLevel > 0)
 			{

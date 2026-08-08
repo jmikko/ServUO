@@ -52,6 +52,7 @@ adding one is a row plus, where reflection needs it, a six-line stub.
 | 14 conditions | feeding advantage and disadvantage into every roll |
 | Area shapes | cones, lines, spheres, cubes with real geometry |
 | Client | character setup, character sheet, spellbook with click-to-target casting |
+| Skills & Ability Checks | 18 SRD skills, ability checks and skill checks with proficiency |
 
 Verified end to end in the actual game client: log in, create a character, pick a species and
 class, receive a spellbook, click a spell, target something, and have the server resolve it.
@@ -72,12 +73,10 @@ lists and cost slots, and each says *"Not yet modelled"* in its own description 
 silently doing nothing. They need: movement and teleportation (Misty Step, Dimension Door,
 Teleport, Fly), or systems well outside combat (Polymorph, Animate Dead, True Resurrection, Wish).
 
-**No skill system.** The 18 SRD skills, proficiency in them, and ability checks do not exist.
-This is the largest missing pillar. `RollKind.AbilityCheck` exists and Guidance writes to it, so
-the plumbing is half there.
-
 **Level-up makes no choices.** A level is purely numeric growth — no ability score improvements,
 subclasses, or new spells known. Hit dice spending on a short rest is unmodelled.
+
+**Skill proficiencies are auto-assigned.** While the 18 SRD skills and the `CheckAbility` and `CheckSkill` mechanics are implemented, there is no UI yet for players to choose their skill proficiencies upon character creation. They are currently assigned default proficiencies based on their class.
 
 **Some spell tactics are approximated.** Damage numbers are SRD-accurate, but Scorching Ray rolls
 6d6 as one lump rather than three separately-aimed rays, and Chain Lightning is a sphere rather
@@ -95,15 +94,13 @@ been exercised from the real client.
 
 In the order I would take them:
 
-1. **Skills and ability checks.** The last big pillar with nothing behind it. 18 skills, proficiency,
-   and a `CheckAbility` that mirrors `CheckSave`. Makes Guidance mean something, gives Thieves'
-   Tools and Stealth a reason to exist, and unlocks tools and kits as content.
-2. **Movement spells.** Misty Step, Dimension Door, Teleport, Fly — a large slice of the 64
+1. **Movement spells.** Misty Step, Dimension Door, Teleport, Fly — a large slice of the 64
    placeholders, and mostly one mechanism.
-3. **Level-up choices.** Ability score improvements at 4/8/12/16/19, and spells known per class.
-4. **Magic items.** Needs an attunement layer and bonus stacking; unlocks a whole content category.
-5. **Client polish.** The spellbook renders a flat list; at 27 spells for a 1st-level wizard it
+2. **Level-up choices.** Ability score improvements at 4/8/12/16/19, and spells known per class.
+3. **Magic items.** Needs an attunement layer and bonus stacking; unlocks a whole content category.
+4. **Client polish.** The spellbook renders a flat list; at 27 spells for a 1st-level wizard it
    wants grouping by level and a slot bar.
+5. **Skill choice UI.** Allowing players to choose their skill proficiencies during character setup.
 
 ---
 

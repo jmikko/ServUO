@@ -35,6 +35,7 @@ namespace Server.Engines.Classes
 			CharacterClass.Register(new WizardClass());
 
 			EventSink.DnDCharacterSetup += OnDnDCharacterSetup;
+			EventSink.DnDLevelUpSubmit += OnDnDLevelUpSubmit;
 		}
 
 		/// <summary>
@@ -185,6 +186,108 @@ namespace Server.Engines.Classes
 			if (pm.NetState != null)
 			{
 				pm.NetState.Send(new DnDStatSync(pm));
+			}
+		}
+
+		private static void OnDnDLevelUpSubmit(DnDLevelUpSubmitEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (pm == null || !pm.DnDInitialized)
+			{
+				return;
+			}
+
+			if (pm.PendingLevels > 0 && !string.IsNullOrEmpty(e.ChosenClass))
+			{
+				CharacterClass chosen = CharacterClass.Parse(e.ChosenClass);
+				if (chosen != null)
+				{
+					if (chosen.ParentClass != null)
+					{
+						// Subclass selected. Replace parent class with subclass.
+						CharacterClass parent = CharacterClass.Parse(chosen.ParentClass.Name);
+						if (parent != null)
+						{
+							pm.ReplaceSubclass(parent, chosen);
+							pm.PendingLevels--;
+							pm.SendMessage(0x35, "You are now a {0}.", chosen.Name);
+						}
+					}
+					else
+					{
+						pm.AddClassLevel(chosen);
+					}
+				}
+			}
+
+			// Validate and apply Feats
+			if (!string.IsNullOrEmpty(e.ChosenFeat))
+			{
+				Feat f = Feat.Parse(e.ChosenFeat);
+				if (f != null && pm.PendingAbilityScorePoints >= 2) // Assume feat costs 1 ASI (2 points)
+				{
+					if (f.CanSelect(pm))
+					{
+						pm.Feats.Add(f);
+						f.OnSelected(pm);
+						pm.PendingAbilityScorePoints -= 2;
+						pm.SendMessage("You have gained the {0} feat.", f.Name);
+					}
+				}
+			}
+
+			// Validate and apply ASI
+			int asiSum = 0;
+			for (int i = 0; i < 6; i++)
+			{
+				asiSum += e.AbilityIncreases[i];
+			}
+
+			if (asiSum > 0 && asiSum <= pm.PendingAbilityScorePoints)
+			{
+				AbilityScores scores = pm.AbilityScores;
+				int newStr = scores.Str + e.AbilityIncreases[0];
+				int newDex = scores.Dex + e.AbilityIncreases[1];
+				int newCon = scores.Con + e.AbilityIncreases[2];
+				int newInt = scores.Int + e.AbilityIncreases[3];
+				int newWis = scores.Wis + e.AbilityIncreases[4];
+				int newCha = scores.Cha + e.AbilityIncreases[5];
+
+				if (newStr <= 20 && newDex <= 20 && newCon <= 20 && newInt <= 20 && newWis <= 20 && newCha <= 20)
+				{
+					pm.AbilityScores = new AbilityScores(newStr, newDex, newCon, newInt, newWis, newCha);
+					pm.PendingAbilityScorePoints -= asiSum;
+				}
+			}
+
+			// Validate and apply Spells
+			if (e.SpellIds != null && e.SpellIds.Length > 0 && e.SpellIds.Length <= pm.PendingSpellsKnown)
+			{
+				int learned = 0;
+				foreach (int spellId in e.SpellIds)
+				{
+					if (!pm.KnownSpells.Contains(spellId))
+					{
+						Server.Spells.DnD.DnDSpell spell = Server.Spells.DnD.SpellRegistry.FindById(spellId);
+						if (spell != null)
+						{
+							pm.KnownSpells.Add(spellId);
+							learned++;
+						}
+					}
+				}
+				pm.PendingSpellsKnown -= learned;
+			}
+
+			if (pm.NetState != null)
+			{
+				pm.NetState.Send(new DnDStatSync(pm));
+				Server.Spells.DnD.DnDSpellPackets.SendSpellList(pm);
+				if (pm.PendingLevels > 0 || pm.PendingAbilityScorePoints > 0 || pm.PendingSpellsKnown > 0)
+				{
+					Server.Spells.DnD.DnDSpellPackets.Send_DnDLevelUpPrompt(pm);
+				}
 			}
 		}
 	}
