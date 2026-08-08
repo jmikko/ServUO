@@ -85,9 +85,15 @@ needs ki.
 These need no new system and are simply not done:
 
 - The 60 spells registered with no mechanical effect (see `DND_STATUS.md`)
-- Magic item catalogue beyond the four types that exist
 
-Death saves, hit dice and feats are done. What they left behind:
+Death saves, hit dice, feats and the wondrous item table are done. What they left behind:
+
+- **Four wondrous items are flavour only.** Boots and Cloak of Elvenkind, the Hat of Disguise and
+  Winged Boots have no numbers, because what they do is stealth, disguise and flight - none of
+  which the rules engine has. The self-test names them at boot rather than letting them look
+  finished.
+- **Magic items that do something on use.** Potions, wands, a bag of holding. The table covers
+  standing bonuses only, which is why it is a table; anything with an activation needs code.
 
 - **Dying has no client UI.** The successes and failures arrive as system messages. They want to be
   three pips somewhere visible, since the whole tension of the rule is watching the count.

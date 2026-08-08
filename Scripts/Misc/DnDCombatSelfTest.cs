@@ -1109,6 +1109,127 @@ namespace Server.Misc
 		}
 
 		/// <summary>
+		/// The wondrous item table: every row has a class, every class builds, and the bonuses
+		/// reach the character rather than merely being stored on the item.
+		/// <para>
+		/// The reflection stubs are generated from the table, so a row added without regenerating
+		/// them produces an item that exists in the data and cannot be spawned - which looks like
+		/// nothing at all until someone tries to [add it. That is what the first half checks. The
+		/// second half wears one and reads the armour class back.
+		/// </para>
+		/// </summary>
+		private static bool CheckWondrousItems()
+		{
+			bool ok = true;
+
+			if (DnDWondrousTable.Count == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: no wondrous items loaded");
+				return false;
+			}
+
+			int made = 0;
+
+			foreach (DnDWondrousData data in DnDWondrousTable.Items)
+			{
+				Type type = ScriptCompiler.FindTypeByName("DnD" + data.Id);
+
+				if (type == null)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: magic item '{0}' has no DnD{0} class - regenerate the stubs",
+						data.Id);
+
+					ok = false;
+					continue;
+				}
+
+				var item = Activator.CreateInstance(type) as DnDWondrousItem;
+
+				if (item == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: DnD{0} is not a DnDWondrousItem", data.Id);
+					ok = false;
+					continue;
+				}
+
+				// An item that does nothing at all is a row someone forgot to fill in.
+				bool doesSomething = data.ArmorClassBonus != 0 || data.AttackBonus != 0
+					|| data.DamageBonus != 0 || data.SavingThrowBonus != 0;
+
+				for (int i = 0; i < data.AbilityOverrides.Length; ++i)
+				{
+					doesSomething |= data.AbilityOverrides[i] > 0;
+				}
+
+				if (!doesSomething)
+				{
+					Console.WriteLine("[combat-selftest]   note: {0} has no mechanical effect yet", data.Id);
+				}
+
+				++made;
+				item.Delete();
+			}
+
+			// Worn, attuned, and read back through ArmorClass - the path that matters. Bracers of
+			// Defense are +2, and the character must actually be 2 higher for it to have worked.
+			DnDPlayerMobile pm = MakeCharacter("Wondrous Test", "Fighter", 1, 12, 10, 12);
+
+			try
+			{
+				int before = pm.ArmorClass;
+
+				var bracers = new DnDBracersOfDefense();
+
+				pm.EquipItem(bracers);
+				pm.AttunedItems.Add(bracers);
+
+				if (pm.ArmorClass != before + 2)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Bracers of Defense took armour class {0} -> {1}, expected +2",
+						before, pm.ArmorClass);
+
+					ok = false;
+				}
+
+				// And an ability-setting item must raise the score it names and nothing else.
+				var gauntlets = new DnDGauntletsOfOgrePower();
+
+				pm.EquipItem(gauntlets);
+				pm.AttunedItems.Add(gauntlets);
+
+				if (pm.EffectiveAbilityScores.Str != 19)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Gauntlets of Ogre Power gave Strength {0}, expected 19",
+						pm.EffectiveAbilityScores.Str);
+
+					ok = false;
+				}
+
+				if (pm.AbilityScores.Str != 12)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a worn item changed the character's own Strength");
+					ok = false;
+				}
+
+				if (ok)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   wondrous items: {0} row(s), all with a class; bracers {1} -> {2} AC, gauntlets Str 12 -> 19",
+						made, before, pm.ArmorClass);
+				}
+			}
+			finally
+			{
+				pm.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
 		/// Feats, read back through the rules they modify rather than out of the feat list.
 		/// <para>
 		/// This is the check that would have caught the shape the feat system was in: the hooks and
@@ -2081,6 +2202,7 @@ namespace Server.Misc
 			}
 
 			ok &= CheckArmorClassMath();
+			ok &= CheckWondrousItems();
 
 			Console.WriteLine(
 				"[combat-selftest]   equipment: {0} weapon(s), {1} armour piece(s) all instantiate",

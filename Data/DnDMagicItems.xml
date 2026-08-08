@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Wondrous items: the SRD magic items whose whole effect is a standing bonus while worn.
+
+    These are rows in a table for the same reason the weapons and armour are - a Ring of Protection
+    is not a behaviour, it is +1 to armour class and +1 to saves, and writing fifty lines of C# per
+    such item buys nothing. Items that actually *do* something on use (potions, wands, a bag of
+    holding) are not here; they need code and belong in their own file.
+
+    attunement  true if the bonuses only apply while attuned. Three attuned items is the limit.
+    ac/attack/damage/save  flat bonuses, applied while worn.
+    str..cha    an ability score the item *sets* if it is higher than your own - not a bonus. This is
+                how the SRD writes Gauntlets of Ogre Power and the Amulet of Health, and it is why
+                they are worth less to a character who already has the score.
+    layer       the paperdoll slot. Two items on the same layer cannot both be worn, which is the
+                only balancing this table does.
+-->
+<magicitems>
+
+  <!-- ===== Rings ===== -->
+  <item id="RingOfProtection"    name="a Ring of Protection"       attunement="true"  ac="1" save="1"                      itemID="0x108A" layer="Ring"       hue="1150" weight="0.1" cost="350000" />
+  <item id="RingOfEvasion"       name="a Ring of Evasion"          attunement="true"  save="2"                             itemID="0x108A" layer="Ring"       hue="1153" weight="0.1" cost="400000" />
+  <item id="RingOfFreeAction"    name="a Ring of Free Action"      attunement="true"  save="1"                             itemID="0x108A" layer="Ring"       hue="1109" weight="0.1" cost="300000" />
+
+  <!-- ===== Neck ===== -->
+  <item id="AmuletOfHealth"      name="an Amulet of Health"        attunement="true"  con="19"                             itemID="0x1088" layer="Neck"       hue="1150" weight="1"   cost="400000" />
+  <item id="PeriaptOfWoundClosure" name="a Periapt of Wound Closure" attunement="true" save="1"                            itemID="0x1088" layer="Neck"       hue="1157" weight="1"   cost="250000" />
+  <item id="AmuletOfProofAgainstDetection" name="an Amulet of Proof against Detection" attunement="true" save="1"          itemID="0x1088" layer="Neck"       hue="1175" weight="1"   cost="200000" />
+
+  <!-- ===== Hands: the ability-setting items ===== -->
+  <item id="GauntletsOfOgrePower" name="Gauntlets of Ogre Power"   attunement="true"  str="19"                             itemID="0x13C6" layer="Gloves"     hue="1150" weight="2"   cost="400000" />
+  <item id="GlovesOfMissileSnaring" name="Gloves of Missile Snaring" attunement="true" ac="1"                              itemID="0x13C6" layer="Gloves"     hue="1153" weight="1"   cost="200000" />
+
+  <!-- ===== Head ===== -->
+  <item id="HeadbandOfIntellect" name="a Headband of Intellect"    attunement="true"  int="19"                             itemID="0x1544" layer="Helm"       hue="1150" weight="1"   cost="400000" />
+  <item id="HatOfDisguise"       name="a Hat of Disguise"          attunement="true"                                       itemID="0x1718" layer="Helm"       hue="1175" weight="1"   cost="150000" />
+
+  <!-- ===== Waist: the belts, one giant apiece ===== -->
+  <item id="BeltOfGiantStrengthHill" name="a Belt of Hill Giant Strength" attunement="true" str="21"                       itemID="0x1541" layer="Waist"      hue="1150" weight="3"   cost="800000" />
+  <item id="BeltOfDwarvenkind"   name="a Belt of Dwarvenkind"      attunement="true"  con="19" save="2"                    itemID="0x1541" layer="Waist"      hue="1109" weight="3"   cost="700000" />
+
+  <!-- ===== Feet ===== -->
+  <item id="BootsOfElvenkind"    name="Boots of Elvenkind"                                                                 itemID="0x170B" layer="Shoes"      hue="1153" weight="2"   cost="150000" />
+  <item id="BootsOfSpeed"        name="Boots of Speed"             attunement="true"  ac="1"                               itemID="0x170B" layer="Shoes"      hue="1150" weight="2"   cost="400000" />
+  <item id="WingedBoots"         name="Winged Boots"               attunement="true"                                       itemID="0x170B" layer="Shoes"      hue="1157" weight="2"   cost="350000" />
+
+  <!-- ===== Cloaks ===== -->
+  <item id="CloakOfProtection"   name="a Cloak of Protection"      attunement="true"  ac="1" save="1"                      itemID="0x1515" layer="Cloak"      hue="1150" weight="3"   cost="350000" />
+  <item id="CloakOfElvenkind"    name="a Cloak of Elvenkind"       attunement="true"                                       itemID="0x1515" layer="Cloak"      hue="1153" weight="3"   cost="250000" />
+  <item id="CloakOfDisplacement" name="a Cloak of Displacement"    attunement="true"  ac="2"                               itemID="0x1515" layer="Cloak"      hue="1175" weight="3"   cost="600000" />
+
+  <!-- ===== Bracers ===== -->
+  <item id="BracersOfDefense"    name="Bracers of Defense"         attunement="true"  ac="2"                               itemID="0x1086" layer="Bracelet"   hue="1150" weight="2"   cost="500000" />
+  <item id="BracersOfArchery"    name="Bracers of Archery"         attunement="true"  attack="1"                           itemID="0x1086" layer="Bracelet"   hue="1153" weight="2"   cost="300000" />
+
+  <!-- ===== Charisma and Wisdom, to round out the six ===== -->
+  <item id="MedallionOfThoughts" name="a Medallion of Thoughts"    attunement="true"  wis="19"                             itemID="0x1088" layer="Talisman"   hue="1150" weight="1"   cost="400000" />
+  <item id="EyesOfCharming"      name="Eyes of Charming"           attunement="true"  cha="19"                             itemID="0x1015" layer="Earrings"   hue="1150" weight="0.1" cost="400000" />
+
+</magicitems>
