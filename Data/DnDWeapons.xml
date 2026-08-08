@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The SRD weapon table. Every weapon in the game lives here rather than in a class of its own -
+    the same data-driven approach Data/DnDMonsters.xml uses, for the same reason: these are rows in
+    a table, not behaviours.
+
+    category   SimpleMelee | SimpleRanged | MartialMelee | MartialRanged
+    damage     dice expression; versatile carries the two-handed die separately
+    type       Bludgeoning | Piercing | Slashing
+    properties comma-separated WeaponProperty values
+    itemID     UO art. Reused from the closest-looking legacy item; several weapons share art
+               where UO has no distinct graphic (there is no glaive or pike tile, for instance).
+    layer      OneHanded unless the weapon needs both hands
+-->
+<weapons>
+
+  <!-- ===== Simple Melee ===== -->
+  <weapon id="Club"          name="a club"           category="SimpleMelee" damage="1d4"  type="Bludgeoning" itemID="0x13B4" weight="2" cost="10" />
+  <weapon id="Dagger"        name="a dagger"         category="SimpleMelee" damage="1d4"  type="Piercing"    itemID="0x0F52" weight="1" cost="200"  properties="Finesse,Light,Thrown" />
+  <weapon id="Greatclub"     name="a greatclub"      category="SimpleMelee" damage="1d8"  type="Bludgeoning" itemID="0x13B0" weight="10" cost="20"  properties="TwoHanded" layer="TwoHanded" />
+  <weapon id="Handaxe"       name="a handaxe"        category="SimpleMelee" damage="1d6"  type="Slashing"    itemID="0x0F43" weight="2" cost="500"  properties="Light,Thrown" />
+  <weapon id="Javelin"       name="a javelin"        category="SimpleMelee" damage="1d6"  type="Piercing"    itemID="0x1401" weight="2" cost="50"   properties="Thrown" />
+  <weapon id="LightHammer"   name="a light hammer"   category="SimpleMelee" damage="1d4"  type="Bludgeoning" itemID="0x13E3" weight="2" cost="200"  properties="Light,Thrown" />
+  <weapon id="Mace"          name="a mace"           category="SimpleMelee" damage="1d6"  type="Bludgeoning" itemID="0x0F5C" weight="4" cost="500" />
+  <weapon id="Quarterstaff"  name="a quarterstaff"   category="SimpleMelee" damage="1d6"  type="Bludgeoning" itemID="0x0E89" weight="4" cost="20"   properties="Versatile" versatile="1d8" />
+  <weapon id="Sickle"        name="a sickle"         category="SimpleMelee" damage="1d4"  type="Slashing"    itemID="0x0DF3" weight="2" cost="100"  properties="Light" />
+  <weapon id="Spear"         name="a spear"          category="SimpleMelee" damage="1d6"  type="Piercing"    itemID="0x0F62" weight="3" cost="100"  properties="Thrown,Versatile" versatile="1d8" />
+
+  <!-- ===== Simple Ranged ===== -->
+  <weapon id="LightCrossbow" name="a light crossbow" category="SimpleRanged" damage="1d8" type="Piercing"    itemID="0x13FD" weight="5" cost="2500" properties="Ammunition,Loading,TwoHanded" layer="TwoHanded" range="32" />
+  <weapon id="Dart"          name="a dart"           category="SimpleRanged" damage="1d4" type="Piercing"    itemID="0x1BFB" weight="1" cost="5"    properties="Finesse,Thrown" range="8" />
+  <weapon id="Shortbow"      name="a shortbow"       category="SimpleRanged" damage="1d6" type="Piercing"    itemID="0x13B1" weight="2" cost="2500" properties="Ammunition,TwoHanded" layer="TwoHanded" range="32" />
+  <weapon id="Sling"         name="a sling"          category="SimpleRanged" damage="1d4" type="Bludgeoning" itemID="0x13B4" weight="0" cost="10"   properties="Ammunition" range="24" />
+
+  <!-- ===== Martial Melee ===== -->
+  <weapon id="Battleaxe"     name="a battleaxe"      category="MartialMelee" damage="1d8"  type="Slashing"    itemID="0x0F47" weight="4" cost="1000" properties="Versatile" versatile="1d10" />
+  <weapon id="Flail"         name="a flail"          category="MartialMelee" damage="1d8"  type="Bludgeoning" itemID="0x13F8" weight="2" cost="1000" />
+  <weapon id="Glaive"        name="a glaive"         category="MartialMelee" damage="1d10" type="Slashing"    itemID="0x13FF" weight="6" cost="2000" properties="Heavy,Reach,TwoHanded" layer="TwoHanded" />
+  <weapon id="Greataxe"      name="a greataxe"       category="MartialMelee" damage="1d12" type="Slashing"    itemID="0x0F45" weight="7" cost="3000" properties="Heavy,TwoHanded" layer="TwoHanded" />
+  <weapon id="Greatsword"    name="a greatsword"     category="MartialMelee" damage="2d6"  type="Slashing"    itemID="0x0F61" weight="6" cost="5000" properties="Heavy,TwoHanded" layer="TwoHanded" />
+  <weapon id="Halberd"       name="a halberd"        category="MartialMelee" damage="1d10" type="Slashing"    itemID="0x143E" weight="6" cost="2000" properties="Heavy,Reach,TwoHanded" layer="TwoHanded" />
+  <weapon id="Lance"         name="a lance"          category="MartialMelee" damage="1d12" type="Piercing"    itemID="0x26C0" weight="6" cost="1000" properties="Reach,Special" />
+  <weapon id="Longsword"     name="a longsword"      category="MartialMelee" damage="1d8"  type="Slashing"    itemID="0x0F5E" weight="3" cost="1500" properties="Versatile" versatile="1d10" />
+  <weapon id="Maul"          name="a maul"           category="MartialMelee" damage="2d6"  type="Bludgeoning" itemID="0x143B" weight="10" cost="1000" properties="Heavy,TwoHanded" layer="TwoHanded" />
+  <weapon id="Morningstar"   name="a morningstar"    category="MartialMelee" damage="1d8"  type="Piercing"    itemID="0x1400" weight="4" cost="1500" />
+  <weapon id="Pike"          name="a pike"           category="MartialMelee" damage="1d10" type="Piercing"    itemID="0x26BD" weight="18" cost="500" properties="Heavy,Reach,TwoHanded" layer="TwoHanded" />
+  <weapon id="Rapier"        name="a rapier"         category="MartialMelee" damage="1d8"  type="Piercing"    itemID="0x0F5F" weight="2" cost="2500" properties="Finesse" />
+  <weapon id="Scimitar"      name="a scimitar"       category="MartialMelee" damage="1d6"  type="Slashing"    itemID="0x13B6" weight="3" cost="2500" properties="Finesse,Light" />
+  <weapon id="Shortsword"    name="a shortsword"     category="MartialMelee" damage="1d6"  type="Piercing"    itemID="0x13B4" weight="2" cost="1000" properties="Finesse,Light" />
+  <weapon id="Trident"       name="a trident"        category="MartialMelee" damage="1d6"  type="Piercing"    itemID="0x1403" weight="4" cost="500"  properties="Thrown,Versatile" versatile="1d8" />
+  <weapon id="WarPick"       name="a war pick"       category="MartialMelee" damage="1d8"  type="Piercing"    itemID="0x1439" weight="2" cost="500" />
+  <weapon id="Warhammer"     name="a warhammer"      category="MartialMelee" damage="1d8"  type="Bludgeoning" itemID="0x1439" weight="2" cost="1500" properties="Versatile" versatile="1d10" />
+  <weapon id="Whip"          name="a whip"           category="MartialMelee" damage="1d4"  type="Slashing"    itemID="0x166F" weight="3" cost="200"  properties="Finesse,Reach" />
+
+  <!-- ===== Martial Ranged ===== -->
+  <weapon id="Blowgun"       name="a blowgun"        category="MartialRanged" damage="1d1" type="Piercing" itemID="0x2CE0" weight="1" cost="1000" properties="Ammunition,Loading" range="20" />
+  <weapon id="HandCrossbow"  name="a hand crossbow"  category="MartialRanged" damage="1d6" type="Piercing" itemID="0x13FD" weight="3" cost="7500" properties="Ammunition,Light,Loading" range="24" />
+  <weapon id="HeavyCrossbow" name="a heavy crossbow" category="MartialRanged" damage="1d10" type="Piercing" itemID="0x13FD" weight="18" cost="5000" properties="Ammunition,Heavy,Loading,TwoHanded" layer="TwoHanded" range="40" />
+  <weapon id="Longbow"       name="a longbow"        category="MartialRanged" damage="1d8" type="Piercing" itemID="0x13B2" weight="2" cost="5000" properties="Ammunition,Heavy,TwoHanded" layer="TwoHanded" range="60" />
+  <weapon id="Net"           name="a net"            category="MartialRanged" damage="1d1" type="Bludgeoning" itemID="0x0DCA" weight="3" cost="100" properties="Thrown,Special" range="5" />
+
+</weapons>

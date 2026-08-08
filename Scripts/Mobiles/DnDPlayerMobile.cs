@@ -63,7 +63,12 @@ namespace Server.Mobiles
 
 		/// <summary>
 		/// SRD armour class. Unarmoured is 10 + Dex mod; body armour replaces the 10 with its own
-		/// base and caps the Dex contribution (medium +2, heavy +0); a shield adds on top.
+		/// base and caps the Dex contribution; a shield adds on top.
+		/// <para>
+		/// The Dex cap comes from the armour's own row in Data/DnDArmor.xml rather than from its
+		/// category, because the categories are not uniform - Light caps nothing, Medium caps at
+		/// +2, Heavy allows none - and a future piece may want its own.
+		/// </para>
 		/// </summary>
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ArmorClass
@@ -86,19 +91,17 @@ namespace Server.Mobiles
 					if (eq.ArmorCategory == ArmorCategory.Shield)
 					{
 						shieldBonus += eq.ArmorBonus;
+						continue;
 					}
-					else
-					{
-						baseAC = eq.ArmorBonus;
 
-						if (eq.ArmorCategory == ArmorCategory.Medium)
-						{
-							maxDex = 2;
-						}
-						else if (eq.ArmorCategory == ArmorCategory.Heavy)
-						{
-							maxDex = 0;
-						}
+					baseAC = eq.ArmorBonus;
+
+					Items.DnDArmor armor = item as Items.DnDArmor;
+
+					// -1 in the table means the full Dexterity modifier applies.
+					if (armor != null && armor.MaxDexBonus >= 0)
+					{
+						maxDex = armor.MaxDexBonus;
 					}
 				}
 
@@ -319,11 +322,28 @@ namespace Server.Mobiles
 		/// </summary>
 		public override bool OnEquip(Item item)
 		{
-			if (m_DnDInitialized && AccessLevel < AccessLevel.GameMaster &&
-				m_CharacterClass != null && !m_CharacterClass.IsProficientWith(item))
+			if (m_DnDInitialized && AccessLevel < AccessLevel.GameMaster)
 			{
-				SendMessage("You are not proficient with that equipment.");
-				return false;
+				if (m_CharacterClass != null && !m_CharacterClass.IsProficientWith(item))
+				{
+					SendMessage("You are not proficient with that equipment.");
+					return false;
+				}
+
+				// The heaviest SRD armour needs the Strength to carry it. SRD applies a speed
+				// penalty rather than a block; without a movement-speed system to slow, refusing
+				// the equip is the closest honest equivalent.
+				Items.DnDArmor armor = item as Items.DnDArmor;
+
+				if (armor != null && armor.MinimumStrength > m_AbilityScores.Str)
+				{
+					SendMessage(
+						"You need a Strength of {0} to wear that; yours is {1}.",
+						armor.MinimumStrength,
+						m_AbilityScores.Str);
+
+					return false;
+				}
 			}
 
 			return base.OnEquip(item);

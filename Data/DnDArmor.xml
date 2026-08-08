@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The SRD armour table.
+
+    baseAC    the AC this armour sets outright, not a bonus added to 10. A shield is the exception
+              and adds its value on top.
+    maxDex    the Dexterity modifier cap: -1 means uncapped (Light), 2 for Medium, 0 for Heavy.
+    minStr    Strength score required to wear it without a speed penalty; 0 for none.
+    stealth   true if the armour imposes disadvantage on Stealth checks.
+    layer     which paperdoll slot it occupies.
+-->
+<armor>
+
+  <!-- ===== Light: full Dexterity modifier applies ===== -->
+  <piece id="PaddedArmor"        name="padded armor"          category="Light"  baseAC="11" maxDex="-1" minStr="0"  stealth="true"  itemID="0x1C08" weight="8"  cost="500"   layer="InnerTorso" />
+  <piece id="LeatherArmor"       name="leather armor"         category="Light"  baseAC="11" maxDex="-1" minStr="0"  stealth="false" itemID="0x13CC" weight="10" cost="1000"  layer="InnerTorso" />
+  <piece id="StuddedLeather"     name="studded leather armor" category="Light"  baseAC="12" maxDex="-1" minStr="0"  stealth="false" itemID="0x13DC" weight="13" cost="4500"  layer="InnerTorso" />
+
+  <!-- ===== Medium: Dexterity modifier capped at +2 ===== -->
+  <piece id="HideArmor"          name="hide armor"            category="Medium" baseAC="12" maxDex="2"  minStr="0"  stealth="false" itemID="0x13CB" weight="12" cost="1000"  layer="InnerTorso" />
+  <piece id="ChainShirt"         name="a chain shirt"         category="Medium" baseAC="13" maxDex="2"  minStr="0"  stealth="false" itemID="0x13BF" weight="20" cost="5000"  layer="InnerTorso" />
+  <piece id="ScaleMail"          name="scale mail"            category="Medium" baseAC="14" maxDex="2"  minStr="0"  stealth="true"  itemID="0x1C04" weight="45" cost="5000"  layer="InnerTorso" />
+  <piece id="Breastplate"        name="a breastplate"         category="Medium" baseAC="14" maxDex="2"  minStr="0"  stealth="false" itemID="0x1415" weight="20" cost="40000" layer="InnerTorso" />
+  <piece id="HalfPlate"          name="half plate armor"      category="Medium" baseAC="15" maxDex="2"  minStr="0"  stealth="true"  itemID="0x1412" weight="40" cost="75000" layer="InnerTorso" />
+
+  <!-- ===== Heavy: no Dexterity modifier at all ===== -->
+  <piece id="RingMail"           name="ring mail"             category="Heavy"  baseAC="14" maxDex="0"  minStr="0"  stealth="true"  itemID="0x13EC" weight="40" cost="3000"   layer="InnerTorso" />
+  <piece id="ChainMail"          name="chain mail"            category="Heavy"  baseAC="16" maxDex="0"  minStr="13" stealth="true"  itemID="0x13BF" weight="55" cost="7500"   layer="InnerTorso" />
+  <piece id="SplintArmor"        name="splint armor"          category="Heavy"  baseAC="17" maxDex="0"  minStr="15" stealth="true"  itemID="0x1C00" weight="60" cost="20000"  layer="InnerTorso" />
+  <piece id="PlateArmor"         name="plate armor"           category="Heavy"  baseAC="18" maxDex="0"  minStr="15" stealth="true"  itemID="0x1415" weight="65" cost="150000" layer="InnerTorso" />
+
+  <!-- ===== Shield: adds to AC rather than setting it ===== -->
+  <piece id="Shield"             name="a shield"              category="Shield" baseAC="2"  maxDex="-1" minStr="0"  stealth="false" itemID="0x1B76" weight="6"  cost="1000"  layer="TwoHanded" />
+
+</armor>

@@ -68,6 +68,7 @@ namespace Server.Misc
 
 			ok &= CheckMovementWorks(fighter);
 			ok &= CheckSpeciesRendering();
+			ok &= CheckEquipmentTables();
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -82,8 +83,17 @@ namespace Server.Misc
 			ok &= CheckWeaponResolves(fighter);
 
 			// Armed: the wielded weapon must be what Mobile.Weapon returns, and its dice - not the
-			// unarmed 1d1 - must be what damage comes from.
-			ok &= RunSwings("fighter w/ longsword", fighter, goblin, sword, 1, 8, 0, 3);
+			// unarmed 1d1 - must be what damage comes from. A longsword is Versatile, so with the
+			// off-hand free it rolls its two-handed die.
+			ok &= RunSwings("longsword, off-hand free", fighter, goblin, sword, 1, 10, 0, 3);
+
+			// Fill the off-hand and the same weapon drops to its one-handed die.
+			DnDShield shield = new DnDShield();
+			fighter.EquipItem(shield);
+
+			ok &= RunSwings("longsword + shield", fighter, goblin, sword, 1, 8, 0, 3);
+
+			shield.Delete();
 
 			// The creature's own attack: damage comes from its stat block, with no ability modifier
 			// added on top (the stat block already bakes one in).
@@ -182,6 +192,155 @@ namespace Server.Misc
 				"[combat-selftest]   species art: {0} race(s) checked, {1} mismatch(es)",
 				Race.AllRaces.Count,
 				bad);
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Every weapon and armour row has to instantiate, and every generated class has to have a
+		/// row behind it. A typo in either direction throws only when someone spawns that one item,
+		/// which on a 50-item table is a bad way to find out.
+		/// </summary>
+		private static bool CheckEquipmentTables()
+		{
+			bool ok = true;
+			int weapons = 0, armor = 0;
+
+			foreach (DnDWeaponData data in DnDEquipmentTable.Weapons)
+			{
+				Type type = ScriptCompiler.FindTypeByName("DnD" + data.Id);
+
+				if (type == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: weapon '{0}' has no DnD{0} class", data.Id);
+					ok = false;
+					continue;
+				}
+
+				DnDWeapon weapon = Activator.CreateInstance(type) as DnDWeapon;
+
+				if (weapon == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: DnD{0} is not a DnDWeapon", data.Id);
+					ok = false;
+					continue;
+				}
+
+				int min, max;
+				CombatRules.GetDiceRange(weapon.DamageDiceExpression, out min, out max);
+
+				if (min <= 0 || max < min)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0} has an unusable damage expression '{1}'",
+						data.Id,
+						weapon.DamageDiceExpression);
+
+					ok = false;
+				}
+
+				// A two-handed weapon that is also versatile makes no sense - versatile exists
+				// precisely to describe what happens when the other hand is free.
+				if (data.Has(WeaponProperty.TwoHanded) && data.Has(WeaponProperty.Versatile))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} is both TwoHanded and Versatile", data.Id);
+					ok = false;
+				}
+
+				if (data.Has(WeaponProperty.Versatile) && String.IsNullOrEmpty(data.VersatileDamage))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} is Versatile with no two-handed die", data.Id);
+					ok = false;
+				}
+
+				++weapons;
+				weapon.Delete();
+			}
+
+			foreach (DnDArmorData data in DnDEquipmentTable.Armor)
+			{
+				Type type = ScriptCompiler.FindTypeByName("DnD" + data.Id);
+
+				if (type == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: armour '{0}' has no DnD{0} class", data.Id);
+					ok = false;
+					continue;
+				}
+
+				DnDArmor piece = Activator.CreateInstance(type) as DnDArmor;
+
+				if (piece == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: DnD{0} is not a DnDArmor", data.Id);
+					ok = false;
+					continue;
+				}
+
+				if (piece.ArmorBonus <= 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} grants no armour class", data.Id);
+					ok = false;
+				}
+
+				++armor;
+				piece.Delete();
+			}
+
+			ok &= CheckArmorClassMath();
+
+			Console.WriteLine(
+				"[combat-selftest]   equipment: {0} weapon(s), {1} armour piece(s) all instantiate",
+				weapons,
+				armor);
+
+			return ok;
+		}
+
+		/// <summary>
+		/// The three Dexterity-cap behaviours, plus a shield stacking on top, against a character
+		/// whose Dexterity is high enough for the cap to actually bite.
+		/// </summary>
+		private static bool CheckArmorClassMath()
+		{
+			DnDPlayerMobile pm = new DnDPlayerMobile { Name = "ArmorProbe", Body = 0x190 };
+
+			// Str 15 so heavy armour is wearable; Dex 18 (+4) so the caps are visible.
+			pm.ApplyDnDSetup(
+				new AbilityScores(15, 18, 12, 10, 10, 10),
+				CharacterClass.Parse("Fighter"));
+
+			bool ok = true;
+
+			ok &= CheckValue("AC unarmoured", pm.ArmorClass, 14); // 10 + 4
+
+			ok &= CheckArmorPiece(pm, new DnDLeatherArmor(), "AC leather", 15);   // 11 + 4 uncapped
+			ok &= CheckArmorPiece(pm, new DnDChainShirt(), "AC chain shirt", 15); // 13 + 2 capped
+			ok &= CheckArmorPiece(pm, new DnDPlateArmor(), "AC plate", 18);       // 18 + 0 capped
+
+			// Shield stacks on top of whatever body armour is worn.
+			DnDPlateArmor plate = new DnDPlateArmor();
+			DnDShield shield = new DnDShield();
+
+			pm.EquipItem(plate);
+			pm.EquipItem(shield);
+
+			ok &= CheckValue("AC plate + shield", pm.ArmorClass, 20);
+
+			plate.Delete();
+			shield.Delete();
+			pm.Delete();
+
+			return ok;
+		}
+
+		private static bool CheckArmorPiece(DnDPlayerMobile pm, DnDArmor piece, string label, int expected)
+		{
+			pm.EquipItem(piece);
+
+			bool ok = CheckValue(label, pm.ArmorClass, expected);
+
+			piece.Delete();
 
 			return ok;
 		}
