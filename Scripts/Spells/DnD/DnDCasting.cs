@@ -118,7 +118,7 @@ namespace Server.Spells.DnD
 		
 		private static bool IsOnClassList(CharacterClass charClass, DnDSpell spell)
 		{
-			return SpellRegistry.GetClassList(charClass.Name).Contains(spell);
+			return SpellRegistry.GetClassList(charClass).Contains(spell);
 		}
 
 		/// <summary>

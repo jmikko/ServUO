@@ -961,7 +961,7 @@ namespace Server.Network
 			foreach (var c in classes)
 			{
 				m_Stream.WriteAsciiNull(c.Name);
-				m_Stream.WriteAsciiNull(c.ParentClass != null ? c.ParentClass.Name : "");
+				m_Stream.WriteAsciiNull(c.GetParent() != null ? c.GetParent().Name : "");
 			}
 
 			var feats = Feat.AllFeats;

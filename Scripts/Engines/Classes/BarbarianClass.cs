@@ -1,6 +1,6 @@
 namespace Server.Engines.Classes
 {
-	public sealed class BarbarianClass : CharacterClass
+	public class BarbarianClass : CharacterClass
 	{
 		public override string Name { get { return "Barbarian"; } }
 

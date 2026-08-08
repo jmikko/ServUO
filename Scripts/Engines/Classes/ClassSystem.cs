@@ -34,6 +34,24 @@ namespace Server.Engines.Classes
 			CharacterClass.Register(new WarlockClass());
 			CharacterClass.Register(new WizardClass());
 
+			// Subclasses, registered after their parents so GetParent() can find them. One per
+			// class, which is what the SRD publishes - a character picks theirs at 3rd level and it
+			// replaces the parent class in their record rather than adding to it.
+			//
+			// These were written but never registered, so they have never been offered to anyone.
+			CharacterClass.Register(new Subclasses.ChampionClass());
+			CharacterClass.Register(new Subclasses.BerserkerClass());
+			CharacterClass.Register(new Subclasses.LoreBardClass());
+			CharacterClass.Register(new Subclasses.LifeDomainClass());
+			CharacterClass.Register(new Subclasses.LandDruidClass());
+			CharacterClass.Register(new Subclasses.OpenHandMonkClass());
+			CharacterClass.Register(new Subclasses.DevotionPaladinClass());
+			CharacterClass.Register(new Subclasses.HunterRangerClass());
+			CharacterClass.Register(new Subclasses.ThiefRogueClass());
+			CharacterClass.Register(new Subclasses.DraconicSorcererClass());
+			CharacterClass.Register(new Subclasses.FiendWarlockClass());
+			CharacterClass.Register(new Subclasses.EvokerClass());
+
 			EventSink.DnDCharacterSetup += OnDnDCharacterSetup;
 			EventSink.DnDLevelUpSubmit += OnDnDLevelUpSubmit;
 		}
@@ -209,7 +227,8 @@ namespace Server.Engines.Classes
 					if (chosen.ParentClass != null)
 					{
 						// Subclass selected. Replace parent class with subclass.
-						CharacterClass parent = CharacterClass.Parse(chosen.ParentClass.Name);
+						CharacterClass parent = chosen.GetParent();
+
 						if (parent != null)
 						{
 							pm.ReplaceSubclass(parent, chosen);

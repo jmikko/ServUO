@@ -180,6 +180,32 @@ namespace Server.Spells.DnD
 			return new List<DnDSpell>();
 		}
 
+		/// <summary>
+		/// A class' spells including those it inherits from the class it specialises.
+		/// <para>
+		/// Spells are registered against base class names, so an Evoker - whose name is "Evoker",
+		/// not "Wizard" - would otherwise lose every spell the moment the subclass was taken. A
+		/// subclass casts what its parent casts, plus anything registered to it directly.
+		/// </para>
+		/// </summary>
+		public static List<DnDSpell> GetClassList(CharacterClass characterClass)
+		{
+			var result = new List<DnDSpell>();
+
+			for (CharacterClass c = characterClass; c != null; c = c.GetParent())
+			{
+				foreach (DnDSpell spell in GetClassList(c.Name))
+				{
+					if (!result.Contains(spell))
+					{
+						result.Add(spell);
+					}
+				}
+			}
+
+			return result;
+		}
+
 		/// <summary>The spells a specific character can actually cast right now.</summary>
 		public static List<DnDSpell> GetAvailable(IDnDCharacter character)
 		{
@@ -199,7 +225,7 @@ namespace Server.Spells.DnD
 			DnDPlayerMobile pm = character as DnDPlayerMobile;
 			List<int> knownIds = pm != null ? pm.KnownSpells : new List<int>();
 
-			foreach (DnDSpell spell in GetClassList(character.PrimaryClass.Name))
+			foreach (DnDSpell spell in GetClassList(character.PrimaryClass))
 			{
 				if (spell.IsCantrip || spell.Level <= highest)
 				{
@@ -229,7 +255,7 @@ namespace Server.Spells.DnD
 			DnDPlayerMobile pm = character as DnDPlayerMobile;
 			List<int> knownIds = pm != null ? pm.KnownSpells : new List<int>();
 
-			foreach (DnDSpell spell in GetClassList(character.PrimaryClass.Name))
+			foreach (DnDSpell spell in GetClassList(character.PrimaryClass))
 			{
 				if (!spell.IsCantrip && spell.Level <= highest && !knownIds.Contains(GetId(spell)))
 				{

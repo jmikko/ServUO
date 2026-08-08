@@ -39,7 +39,36 @@ namespace Server
 
 		public abstract string Name { get; }
 		
+		/// <summary>The class this one specialises, or null if it is a base class.</summary>
 		public virtual Type ParentClass { get { return null; } }
+
+		/// <summary>
+		/// The registered instance of <see cref="ParentClass"/>.
+		/// <para>
+		/// Needed because a Type's Name is its C# identifier - "FighterClass" - while a class is
+		/// registered and looked up under its display name, "Fighter". Parsing the Type's name
+		/// therefore never found anything, and subclass selection silently did nothing.
+		/// </para>
+		/// </summary>
+		public CharacterClass GetParent()
+		{
+			Type parentType = ParentClass;
+
+			if (parentType == null)
+			{
+				return null;
+			}
+
+			for (int i = 0; i < m_AllClasses.Count; ++i)
+			{
+				if (m_AllClasses[i].GetType() == parentType)
+				{
+					return m_AllClasses[i];
+				}
+			}
+
+			return null;
+		}
 
 		/// <summary>
 		/// The class' hit die, e.g. 10 for a d10.

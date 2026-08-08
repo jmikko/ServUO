@@ -113,6 +113,7 @@ namespace Server.Misc
 			ok &= CheckAttunement();
 			ok &= CheckSkillChoice();
 			ok &= CheckLevelUpWireFormat();
+			ok &= CheckSubclasses();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -525,6 +526,94 @@ namespace Server.Misc
 			{
 				pm.AddClassLevel(into);
 			}
+		}
+
+		/// <summary>
+		/// Subclasses. Both of the ways these break are silent: a subclass that is never registered
+		/// is simply never offered, and one whose parent cannot be resolved is offered but does
+		/// nothing when chosen. Neither logs anything.
+		/// </summary>
+		private static bool CheckSubclasses()
+		{
+			bool ok = true;
+			int subclasses = 0;
+
+			foreach (CharacterClass c in CharacterClass.AllClasses)
+			{
+				if (c.ParentClass == null)
+				{
+					continue;
+				}
+
+				++subclasses;
+
+				CharacterClass parent = c.GetParent();
+
+				if (parent == null)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0}'s parent {1} is not registered, so choosing it does nothing",
+						c.Name,
+						c.ParentClass.Name);
+
+					ok = false;
+					continue;
+				}
+
+				// A subclass inherits its parent's rules; if it did not, taking one would silently
+				// change a character's hit die or saving throws.
+				if (c.HitDie != parent.HitDie)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} has a different hit die from {1}", c.Name, parent.Name);
+					ok = false;
+				}
+
+				// The one that actually bit: spells are registered under base class names, so a
+				// caster subclass must still find its parent's list.
+				if (parent.CanCastSpells)
+				{
+					int own = SpellRegistry.GetClassList(c).Count;
+					int parentSpells = SpellRegistry.GetClassList(parent).Count;
+
+					if (own < parentSpells)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: {0} sees {1} spell(s) but {2} has {3}",
+							c.Name,
+							own,
+							parent.Name,
+							parentSpells);
+
+						ok = false;
+					}
+				}
+			}
+
+			// Every base class should have somewhere to specialise into.
+			int baseClasses = 0;
+
+			foreach (CharacterClass c in CharacterClass.AllClasses)
+			{
+				if (c.ParentClass == null)
+				{
+					++baseClasses;
+				}
+			}
+
+			if (subclasses < baseClasses)
+			{
+				Console.WriteLine(
+					"[combat-selftest] FAIL: {0} base class(es) but only {1} subclass(es)", baseClasses, subclasses);
+
+				ok = false;
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   subclasses: {0} for {1} base class(es), all resolving their parent",
+				subclasses,
+				baseClasses);
+
+			return ok;
 		}
 
 		/// <summary>
