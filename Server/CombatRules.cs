@@ -177,12 +177,12 @@ namespace Server
 		{
 			if (ranged)
 			{
-				return character.AbilityScores.DexMod;
+				return character.EffectiveAbilityScores.DexMod;
 			}
 
 			return finesse
-				? Math.Max(character.AbilityScores.StrMod, character.AbilityScores.DexMod)
-				: character.AbilityScores.StrMod;
+				? Math.Max(character.EffectiveAbilityScores.StrMod, character.EffectiveAbilityScores.DexMod)
+				: character.EffectiveAbilityScores.StrMod;
 		}
 
 		/// <summary>
@@ -231,7 +231,7 @@ namespace Server
 
 			if (character != null && character.DnDInitialized)
 			{
-				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+				bonus = Spellcasting.GetModifier(character.EffectiveAbilityScores, ability);
 
 				if (character.PrimaryClass != null && character.PrimaryClass.IsProficientSave(ability))
 				{
@@ -266,7 +266,7 @@ namespace Server
 
 			if (character != null && character.DnDInitialized)
 			{
-				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+				bonus = Spellcasting.GetModifier(character.EffectiveAbilityScores, ability);
 			}
 
 			return roll + bonus >= dc;
@@ -287,7 +287,7 @@ namespace Server
 
 			if (character != null && character.DnDInitialized)
 			{
-				bonus = Spellcasting.GetModifier(character.AbilityScores, ability);
+				bonus = Spellcasting.GetModifier(character.EffectiveAbilityScores, ability);
 
 				if (character.IsProficient(skill) && character.PrimaryClass != null)
 				{

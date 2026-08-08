@@ -51,11 +51,29 @@ adding one is a row plus, where reflection needs it, a six-line stub.
 | 29 monsters | SRD stat blocks, spawning in the world |
 | 14 conditions | feeding advantage and disadvantage into every roll |
 | Area shapes | cones, lines, spheres, cubes with real geometry |
-| Client | character setup, character sheet, spellbook with click-to-target casting |
-| Skills & Ability Checks | 18 SRD skills, ability checks and skill checks with proficiency |
+| Client | character setup, character sheet, spellbook, level-up gump |
+| 18 skills | all SRD, with ability checks and skill checks that add proficiency |
+| Multiclassing | levels tracked per class; SRD multiclass slot table |
+| Advancement choices | level-up is a player decision: which class, ability improvements, spells learnt |
+| Magic items | attunement, capped at three, with attack/damage/save bonuses |
 
 Verified end to end in the actual game client: log in, create a character, pick a species and
 class, receive a spellbook, click a spell, target something, and have the server resolve it.
+
+### Two rules that are easy to get wrong
+
+Multiclassing splits what used to be one number, and the two halves are not interchangeable:
+
+- **Proficiency bonus comes from `TotalLevel`** — levels across every class. Deriving it from a
+  single class would make multiclassing a way to farm proficiency.
+- **Saving throw proficiencies come from `PrimaryClass`** — the class you started as, and only
+  that one. A dictionary has no first entry, which is why `PrimaryClass` exists on the interface
+  at all.
+
+**Levelling is two steps.** Experience grants *pending* levels; choosing which class each one goes
+into is what multiclassing is. A character whose player never answers the prompt stays at their old
+level — which means **a client build without `DnDLevelUpGump` cannot level up at all.** Republish
+the client before testing advancement.
 
 ### What is deliberately gone
 
@@ -68,15 +86,21 @@ only difficulty measure a D&D monster has and it is what the XP award derives fr
 
 ## Honest gaps
 
-**64 of the 174 spells have no mechanical effect.** They are registered so they appear on spell
+**60 of the 174 spells have no mechanical effect.** They are registered so they appear on spell
 lists and cost slots, and each says *"Not yet modelled"* in its own description rather than
-silently doing nothing. They need: movement and teleportation (Misty Step, Dimension Door,
-Teleport, Fly), or systems well outside combat (Polymorph, Animate Dead, True Resurrection, Wish).
+silently doing nothing. What remains needs systems well outside combat — Polymorph, Animate Dead,
+True Resurrection, Wish — or fine-grained targeting the data cannot yet express.
 
-**Level-up makes no choices.** A level is purely numeric growth — no ability score improvements,
-subclasses, or new spells known. Hit dice spending on a short rest is unmodelled.
+**Skill proficiencies are auto-assigned.** The 18 skills and both check paths work, but a
+character gets a default set from their class; there is no way to choose at creation.
 
-**Skill proficiencies are auto-assigned.** While the 18 SRD skills and the `CheckAbility` and `CheckSkill` mechanics are implemented, there is no UI yet for players to choose their skill proficiencies upon character creation. They are currently assigned default proficiencies based on their class.
+**Feats and subclasses are one example each, not a system's worth.** One feat (Tough) and two
+subclasses (Champion, Evoker) prove the mechanism. SRD has roughly 40 and 24.
+
+**Magic items are four types.** Ring of Protection, Amulet of Health, and abstract magic
+weapon/armour bases. Attunement and bonus stacking work; the catalogue does not exist.
+
+**Hit dice spending on a short rest is unmodelled.**
 
 **Some spell tactics are approximated.** Damage numbers are SRD-accurate, but Scorching Ray rolls
 6d6 as one lump rather than three separately-aimed rays, and Chain Lightning is a sphere rather
@@ -94,13 +118,14 @@ been exercised from the real client.
 
 In the order I would take them:
 
-1. **Movement spells.** Misty Step, Dimension Door, Teleport, Fly — a large slice of the 64
-   placeholders, and mostly one mechanism.
-2. **Level-up choices.** Ability score improvements at 4/8/12/16/19, and spells known per class.
-3. **Magic items.** Needs an attunement layer and bonus stacking; unlocks a whole content category.
+1. **Skill proficiency choice at creation.** Finishes a system that is otherwise complete, and the
+   character-setup packet already carries per-character choices.
+2. **Fill out feats and subclasses.** The mechanism works; it needs content. Subclasses are the
+   larger win — they are what makes two Fighters play differently.
+3. **Magic item catalogue.** Attunement and stacking already work, so this is mostly rows.
 4. **Client polish.** The spellbook renders a flat list; at 27 spells for a 1st-level wizard it
    wants grouping by level and a slot bar.
-5. **Skill choice UI.** Allowing players to choose their skill proficiencies during character setup.
+5. **Hit dice on a short rest**, and the remaining spell placeholders.
 
 ---
 

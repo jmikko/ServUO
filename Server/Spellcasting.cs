@@ -209,7 +209,7 @@ namespace Server
 				return 0;
 			}
 
-			return GetModifier(character.AbilityScores, castingClass.SpellcastingAbility);
+			return GetModifier(character.EffectiveAbilityScores, castingClass.SpellcastingAbility);
 		}
 
 		/// <summary>

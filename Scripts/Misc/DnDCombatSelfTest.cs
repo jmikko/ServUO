@@ -108,6 +108,9 @@ namespace Server.Misc
 			ok &= CheckSpellSlotTables();
 			ok &= CheckSpellcasting(fighter);
 			ok &= CheckAdvancement();
+			ok &= CheckMulticlassing();
+			ok &= CheckSkills();
+			ok &= CheckAttunement();
 
 			fighter.Delete();
 			goblin.Delete();
@@ -520,6 +523,226 @@ namespace Server.Misc
 			{
 				pm.AddClassLevel(into);
 			}
+		}
+
+		/// <summary>
+		/// Multiclassing splits one number into two that are easy to confuse. Proficiency bonus must
+		/// come from TOTAL level - otherwise multiclassing is a way to farm it - while saving throw
+		/// proficiencies must come from the STARTING class only.
+		/// </summary>
+		private static bool CheckMulticlassing()
+		{
+			DnDPlayerMobile pm = new DnDPlayerMobile { Name = "MulticlassProbe", Body = 0x190 };
+
+			pm.ApplyDnDSetup(
+				new AbilityScores(14, 14, 14, 14, 14, 14),
+				CharacterClass.Parse("Fighter"));
+
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			bool ok = CheckValue("starts level 1", pm.TotalLevel, 1);
+
+			// Five Fighter levels, then three Wizard: 8 total, so proficiency is +3.
+			AwardAndLevel(pm, Advancement.GetExperienceForLevel(5), CharacterClass.Parse("Fighter"));
+			AwardAndLevel(pm, Advancement.GetExperienceForLevel(8) - pm.Experience, CharacterClass.Parse("Wizard"));
+
+			ok &= CheckValue("total level", pm.TotalLevel, 8);
+			ok &= CheckValue("classes held", pm.Classes.Count, 2);
+
+			ok &= CheckValue(
+				"proficiency from total level",
+				pm.PrimaryClass.GetProficiencyBonus(pm.TotalLevel),
+				3);
+
+			// The starting class stays the starting class, however many levels go elsewhere.
+			ok &= CheckText("primary class unchanged", pm.PrimaryClass.Name, "Fighter");
+
+			// Saving throws follow the Fighter (Str, Con) and NOT the Wizard (Int, Wis), which is
+			// the rule multiclassing most often gets wrong.
+			if (!pm.PrimaryClass.IsProficientSave(AbilityScoreType.Str))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: lost the starting class' save proficiency");
+				ok = false;
+			}
+
+			if (pm.PrimaryClass.IsProficientSave(AbilityScoreType.Int))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: gained a save proficiency from a later class");
+				ok = false;
+			}
+
+			// Slots come only from the caster levels - three Wizard levels here, not the total of
+			// eight. A 3rd-level full caster has 4 first-level slots and 2 second-level.
+			ok &= CheckValue("wizard levels", pm.Classes[CharacterClass.Parse("Wizard")], 3);
+			ok &= CheckValue("multiclass 1st-level slots", pm.GetMaxSpellSlots(1), 4);
+			ok &= CheckValue("multiclass 2nd-level slots", pm.GetMaxSpellSlots(2), 2);
+			ok &= CheckValue("no slots from fighter levels", pm.GetMaxSpellSlots(4), 0);
+
+			Console.WriteLine(
+				"[combat-selftest]   multiclass: {0} at total level {1}, proficiency +{2}, slots {3}/{4}",
+				DescribeClasses(pm),
+				pm.TotalLevel,
+				pm.PrimaryClass.GetProficiencyBonus(pm.TotalLevel),
+				pm.GetMaxSpellSlots(1),
+				pm.GetMaxSpellSlots(2));
+
+			pm.Delete();
+
+			return ok;
+		}
+
+		private static string DescribeClasses(DnDPlayerMobile pm)
+		{
+			var parts = new List<string>();
+
+			foreach (var entry in pm.Classes)
+			{
+				parts.Add(String.Format("{0} {1}", entry.Key.Name, entry.Value));
+			}
+
+			return String.Join(" / ", parts);
+		}
+
+		/// <summary>
+		/// Skill checks must add the proficiency bonus only where the character is proficient, and
+		/// must read the right ability for the skill. Measured statistically, because a check that
+		/// ignores proficiency entirely still passes a "did it return true sometimes" test.
+		/// </summary>
+		private static bool CheckSkills()
+		{
+			const int Rolls = 6000;
+
+			DnDPlayerMobile rogue = new DnDPlayerMobile { Name = "SkillProbe", Body = 0x190 };
+
+			rogue.ApplyDnDSetup(
+				new AbilityScores(10, 10, 10, 10, 10, 10),
+				CharacterClass.Parse("Rogue"));
+
+			rogue.MoveToWorld(TestLocation, Map.Felucca);
+
+			bool ok = true;
+
+			// Every skill has to name an ability, or a check against it silently uses the wrong one.
+			foreach (DnDSkill skill in Enum.GetValues(typeof(DnDSkill)))
+			{
+				AbilityScoreType ability = DnDSkills.GetPrimaryAbility(skill);
+
+				if (!Enum.IsDefined(typeof(AbilityScoreType), ability))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: skill {0} maps to no ability", skill);
+					ok = false;
+				}
+			}
+
+			// With every ability at 10 the modifier is 0, so any difference between a proficient and
+			// a non-proficient skill is the proficiency bonus and nothing else.
+			DnDSkill proficient = DnDSkill.Stealth, unproficient = DnDSkill.Stealth;
+			bool foundPair = false;
+
+			foreach (DnDSkill skill in Enum.GetValues(typeof(DnDSkill)))
+			{
+				if (rogue.IsProficient(skill))
+				{
+					proficient = skill;
+				}
+				else if (DnDSkills.GetPrimaryAbility(skill) == DnDSkills.GetPrimaryAbility(proficient))
+				{
+					unproficient = skill;
+					foundPair = true;
+				}
+			}
+
+			if (!foundPair)
+			{
+				Console.WriteLine("[combat-selftest]   skills: no comparable pair to measure, proficiency unverified");
+			}
+			else
+			{
+				double withProficiency = MeasureSkillRate(rogue, proficient, 13, Rolls);
+				double without = MeasureSkillRate(rogue, unproficient, 13, Rolls);
+
+				Console.WriteLine(
+					"[combat-selftest]   skills: {0} (proficient) {1:P1} vs {2} {3:P1} against DC 13",
+					proficient,
+					withProficiency,
+					unproficient,
+					without);
+
+				if (withProficiency <= without)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: proficiency did not improve the skill check");
+					ok = false;
+				}
+			}
+
+			rogue.Delete();
+
+			return ok;
+		}
+
+		private static double MeasureSkillRate(Mobile m, DnDSkill skill, int dc, int rolls)
+		{
+			int passes = 0;
+
+			for (int i = 0; i < rolls; i++)
+			{
+				if (CombatRules.CheckSkill(m, skill, dc))
+				{
+					++passes;
+				}
+			}
+
+			return passes / (double)rolls;
+		}
+
+		/// <summary>
+		/// Attunement, and the thing it is for: a magic item's ability score override has to reach
+		/// the rules, not just the character sheet. EffectiveAbilityScores exists precisely so that
+		/// an Amulet of Health raises saving throws as well as hit points - reading the raw scores
+		/// anywhere in the rules would silently half-apply every such item.
+		/// </summary>
+		private static bool CheckAttunement()
+		{
+			DnDPlayerMobile pm = new DnDPlayerMobile { Name = "AttuneProbe", Body = 0x190 };
+
+			pm.ApplyDnDSetup(
+				new AbilityScores(10, 10, 10, 10, 10, 10),
+				CharacterClass.Parse("Fighter"));
+
+			pm.MoveToWorld(TestLocation, Map.Felucca);
+
+			var amulet = new DnDAmuletOfHealth();
+
+			pm.AddToBackpack(amulet);
+
+			bool ok = CheckValue("not attuned yet", pm.EffectiveAbilityScores.Con, 10);
+
+			pm.AttunedItems.Add(amulet);
+
+			ok &= CheckValue("attuned", pm.IsAttunedTo(amulet) ? 1 : 0, 1);
+
+			int effectiveCon = pm.EffectiveAbilityScores.Con;
+
+			if (effectiveCon <= 10)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: attuning the amulet did not raise Constitution");
+				ok = false;
+			}
+
+			// The raw score must NOT move - the override is an effective value, not a stat edit.
+			ok &= CheckValue("raw score untouched", pm.AbilityScores.Con, 10);
+
+			Console.WriteLine(
+				"[combat-selftest]   attunement: Con {0} raw, {1} effective, {2} item(s) attuned",
+				pm.AbilityScores.Con,
+				effectiveCon,
+				pm.AttunedItems.Count);
+
+			pm.AttunedItems.Clear();
+			amulet.Delete();
+			pm.Delete();
+
+			return ok;
 		}
 
 		private static bool CheckText(string label, string actual, string expected)
