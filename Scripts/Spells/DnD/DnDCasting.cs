@@ -97,6 +97,16 @@ namespace Server.Spells.DnD
 
 			if (spell.Shape == SpellShape.Single || spell.AreaSize <= 0)
 			{
+				// Show the cast before it resolves, so a killing blow still has its bolt.
+				if (spell.Beneficial)
+				{
+					DnDSpellVisuals.PlayBeneficial(primary, spell);
+				}
+				else
+				{
+					DnDSpellVisuals.Play(caster, primary, spell);
+				}
+
 				spell.Effect(caster, caster, primary, targetLocation, slotLevel);
 
 				return CastResult.Success;
@@ -104,6 +114,8 @@ namespace Server.Spells.DnD
 
 			List<Mobile> affected =
 				DnDSpellArea.GetTargets(caster, primary, spell.Shape, spell.AreaSize, spell.Beneficial);
+
+			DnDSpellVisuals.PlayArea(caster, primary.Location, primary.Map, spell, spell.AreaSize);
 
 			foreach (Mobile m in affected)
 			{
