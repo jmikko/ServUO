@@ -91,11 +91,17 @@ lists and cost slots, and each says *"Not yet modelled"* in its own description 
 silently doing nothing. What remains needs systems well outside combat — Polymorph, Animate Dead,
 True Resurrection, Wish — or fine-grained targeting the data cannot yet express.
 
-**Skill proficiencies are auto-assigned.** The 18 skills and both check paths work, but a
-character gets a default set from their class; there is no way to choose at creation.
+**No class features at all.** This is the largest gap. A class is currently a hit die, a set of
+proficiencies and a spell list — so a Fighter and a Barbarian play identically, and the twelve
+subclasses rename a character without changing anything. Nothing implements Extra Attack, Sneak
+Attack, Rage, Second Wind, Action Surge or any subclass feature. Extra Attack alone is most of
+what separates a martial class at 5th level from the same class at 1st.
 
-**Feats and subclasses are one example each, not a system's worth.** One feat (Tough) and two
-subclasses (Champion, Evoker) prove the mechanism. SRD has roughly 40 and 24.
+**Death is still Ultima Online's.** At 0 hit points a character becomes a UO ghost. D&D has
+unconsciousness, death saving throws, stabilising, and dying at three failures — none of it
+exists, and it is a pillar of how the game feels in play.
+
+**One feat.** Tough. SRD has roughly forty.
 
 **Magic items are four types.** Ring of Protection, Amulet of Health, and abstract magic
 weapon/armour bases. Attunement and bonus stacking work; the catalogue does not exist.
@@ -118,14 +124,15 @@ been exercised from the real client.
 
 In the order I would take them:
 
-1. **Skill proficiency choice at creation.** Finishes a system that is otherwise complete, and the
-   character-setup packet already carries per-character choices.
-2. **Fill out feats and subclasses.** The mechanism works; it needs content. Subclasses are the
-   larger win — they are what makes two Fighters play differently.
+1. **Class features.** The biggest gap by a distance, and the thing that makes classes feel like
+   classes. Needs a feature system first — something that hangs passive and triggered effects off
+   a class and level, and that combat consults — then Extra Attack, Sneak Attack, Rage, Second
+   Wind. The twelve subclasses are waiting on exactly this to become more than a name.
+2. **Death and dying.** Unconsciousness at 0 hit points, death saving throws, stabilising. Small,
+   self-contained, and removes the most jarring surviving piece of Ultima Online.
 3. **Magic item catalogue.** Attunement and stacking already work, so this is mostly rows.
-4. **Client polish.** The spellbook renders a flat list; at 27 spells for a 1st-level wizard it
-   wants grouping by level and a slot bar.
-5. **Hit dice on a short rest**, and the remaining spell placeholders.
+4. **Feats.** The mechanism works; forty of them do not exist.
+5. **Client polish**, hit dice on a short rest, and the remaining spell placeholders.
 
 ---
 
