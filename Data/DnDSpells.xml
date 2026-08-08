@@ -126,4 +126,343 @@
   <spell id="HuntersMark"   name="Hunter's Mark"  level="1" school="Divination" kind="Utility" range="18"
          classes="Ranger" description="Marks a quarry for extra damage. Not yet modelled." />
 
+  <!-- ============ 2nd Level ============ -->
+  <spell id="ScorchingRay"  name="Scorching Ray"  level="2" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="6" die="6" dicePerSlot="2" range="24" classes="Sorcerer,Wizard" description="Three rays of fire; one more per slot level above 2nd." />
+  <spell id="Shatter"       name="Shatter"        level="2" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="3" die="8" dicePerSlot="1" shape="Sphere" size="2" range="24" classes="Bard,Sorcerer,Warlock,Wizard" description="A ringing burst of sound." />
+  <spell id="Moonbeam"      name="Moonbeam"       level="2" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="2" die="10" dicePerSlot="1" shape="Sphere" size="1" range="24" concentration="true" durationSeconds="60"
+         classes="Druid" description="A pillar of pale light." />
+  <spell id="FlamingSphere" name="Flaming Sphere" level="2" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="2" die="6" dicePerSlot="1" range="12" concentration="true" durationSeconds="60"
+         classes="Druid,Wizard" description="A rolling sphere of fire." />
+  <spell id="HeatMetal"     name="Heat Metal"     level="2" school="Transmutation" kind="Damage" resolution="Automatic"
+         dice="2" die="8" dicePerSlot="1" range="12" classes="Bard,Druid" description="Metal glows red hot." />
+  <spell id="CloudOfDaggers" name="Cloud of Daggers" level="2" school="Conjuration" kind="Damage" resolution="Automatic"
+         dice="4" die="4" dicePerSlot="2" shape="Cube" size="1" range="12" concentration="true" durationSeconds="60"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Spinning blades fill a small space." />
+  <spell id="RayOfEnfeeblement" name="Ray of Enfeeblement" level="2" school="Necromancy" kind="Condition" resolution="SavingThrow" save="Con"
+         condition="Poisoned" durationSeconds="60" range="24" concentration="true"
+         classes="Warlock,Wizard" description="A black beam saps the target's strength." />
+  <spell id="HoldPerson"    name="Hold Person"    level="2" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Paralyzed" durationSeconds="60" range="24" concentration="true"
+         classes="Bard,Cleric,Druid,Sorcerer,Warlock,Wizard" description="Paralyses a humanoid that fails a Wisdom save." />
+  <spell id="BlindnessDeafness" name="Blindness/Deafness" level="2" school="Necromancy" kind="Condition" resolution="SavingThrow" save="Con"
+         condition="Blinded" durationSeconds="60" range="24"
+         classes="Bard,Cleric,Sorcerer,Wizard" description="Strikes a creature blind." />
+  <spell id="Web"           name="Web"            level="2" school="Conjuration" kind="Condition" resolution="SavingThrow" save="Dex"
+         condition="Restrained" durationSeconds="3600" shape="Cube" size="2" range="12" concentration="true"
+         classes="Sorcerer,Wizard" description="Sticky strands fill the area." />
+  <spell id="Invisibility"  name="Invisibility"   level="2" school="Illusion" kind="Condition" resolution="Automatic"
+         condition="Invisible" durationSeconds="3600" range="1" beneficial="true" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="The target fades from sight." />
+  <spell id="Barkskin"      name="Barkskin"       level="2" school="Transmutation" kind="ArmorClass" resolution="Automatic"
+         armorClass="16" durationSeconds="3600" range="1" beneficial="true" concentration="true"
+         classes="Druid,Ranger" description="Bark-like skin sets armour class to 16." />
+  <spell id="Aid"           name="Aid"            level="2" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="5" die="1" dicePerSlot="5" shape="Sphere" size="6" range="24" beneficial="true"
+         classes="Cleric,Paladin" description="Bolsters allies' vitality." />
+  <spell id="PrayerOfHealing" name="Prayer of Healing" level="2" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="2" die="8" dicePerSlot="1" addModifier="true" shape="Sphere" size="6" range="12" beneficial="true"
+         classes="Cleric" description="Healing for everyone nearby." />
+  <spell id="LesserRestoration" name="Lesser Restoration" level="2" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid,Paladin,Ranger" description="Ends one disease or condition. Not yet modelled." />
+  <spell id="MistyStep"     name="Misty Step"     level="2" school="Conjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Warlock,Wizard" description="A short teleport. Not yet modelled." />
+  <spell id="MirrorImage"   name="Mirror Image"   level="2" school="Illusion" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Warlock,Wizard" description="Illusory duplicates. Not yet modelled." />
+  <spell id="SpiritualWeapon" name="Spiritual Weapon" level="2" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="8" dicePerSlot="1" addModifier="true" range="12" classes="Cleric" description="A floating spectral weapon." />
+  <spell id="Silence"       name="Silence"        level="2" school="Illusion" kind="Condition" resolution="Automatic"
+         condition="Deafened" durationSeconds="600" shape="Sphere" size="4" range="24" concentration="true"
+         classes="Bard,Cleric,Ranger" description="Silence falls over the area." />
+  <spell id="Darkness"      name="Darkness"       level="2" school="Evocation" kind="Condition" resolution="Automatic"
+         condition="Blinded" durationSeconds="600" shape="Sphere" size="3" range="12" concentration="true"
+         classes="Sorcerer,Warlock,Wizard" description="Magical darkness swallows the area." />
+  <spell id="Suggestion"    name="Suggestion"     level="2" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Charmed" durationSeconds="3600" range="12" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A suggestion the target finds reasonable." />
+  <spell id="EnhanceAbility" name="Enhance Ability" level="2" school="Transmutation" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid,Sorcerer" description="Advantage on one ability's checks. Not yet modelled." />
+  <spell id="SeeInvisibility" name="See Invisibility" level="2" school="Divination" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Bard,Sorcerer,Wizard" description="Reveals the invisible. Not yet modelled." />
+  <spell id="SpiderClimb"   name="Spider Climb"   level="2" school="Transmutation" kind="Utility" range="1" beneficial="true"
+         classes="Sorcerer,Warlock,Wizard" description="Walk on walls and ceilings. Not yet modelled." />
+  <spell id="PassWithoutTrace" name="Pass without Trace" level="2" school="Abjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Druid,Ranger" description="A veil that hides the party. Not yet modelled." />
+  <spell id="Knock"         name="Knock"          level="2" school="Transmutation" kind="Utility" range="12"
+         classes="Bard,Sorcerer,Wizard" description="Opens a locked object. Not yet modelled." />
+  <spell id="Levitate"      name="Levitate"       level="2" school="Transmutation" kind="Utility" range="12" concentration="true"
+         classes="Sorcerer,Wizard" description="Lifts a creature or object. Not yet modelled." />
+  <spell id="Darkvision"    name="Darkvision"     level="2" school="Transmutation" kind="Utility" range="1" beneficial="true"
+         classes="Druid,Ranger,Sorcerer,Wizard" description="Grants sight in darkness. Not yet modelled." />
+  <spell id="MagicWeapon"   name="Magic Weapon"   level="2" school="Transmutation" kind="Utility" range="1" beneficial="true" concentration="true"
+         classes="Paladin,Wizard" description="A weapon becomes magical. Not yet modelled." />
+
+  <!-- ============ 3rd Level ============ -->
+  <spell id="Fireball"      name="Fireball"       level="3" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="8" die="6" dicePerSlot="1" shape="Sphere" size="4" range="30"
+         classes="Sorcerer,Wizard" description="A roaring sphere of flame." />
+  <spell id="LightningBolt" name="Lightning Bolt" level="3" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="8" die="6" dicePerSlot="1" shape="Line" size="20" range="24"
+         classes="Sorcerer,Wizard" description="A stroke of lightning in a line." />
+  <spell id="CallLightning" name="Call Lightning" level="3" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="3" die="10" dicePerSlot="1" shape="Sphere" size="1" range="24" concentration="true" durationSeconds="600"
+         classes="Druid" description="A bolt called down from a storm cloud." />
+  <spell id="SpiritGuardians" name="Spirit Guardians" level="3" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Wis" halfOnSave="true"
+         dice="3" die="8" dicePerSlot="1" shape="Sphere" size="3" range="0" concentration="true" durationSeconds="600"
+         classes="Cleric" description="Spirits swirl around you, harrying your enemies." />
+  <spell id="VampiricTouch" name="Vampiric Touch" level="3" school="Necromancy" kind="Damage" resolution="SpellAttack"
+         dice="3" die="6" dicePerSlot="1" range="1" concentration="true" durationSeconds="60"
+         classes="Warlock,Wizard" description="A withering touch that feeds you." />
+  <spell id="Fear"          name="Fear"           level="3" school="Illusion" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Frightened" durationSeconds="60" shape="Cone" size="6" range="6" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A phantasm of terror in a cone." />
+  <spell id="HypnoticPattern" name="Hypnotic Pattern" level="3" school="Illusion" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Incapacitated" durationSeconds="60" shape="Cube" size="3" range="24" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A twisting pattern that entrances onlookers." />
+  <spell id="StinkingCloud" name="Stinking Cloud" level="3" school="Conjuration" kind="Condition" resolution="SavingThrow" save="Con"
+         condition="Incapacitated" durationSeconds="60" shape="Sphere" size="4" range="18" concentration="true"
+         classes="Bard,Sorcerer,Wizard" description="A cloud of nauseating gas." />
+  <spell id="SleetStorm"    name="Sleet Storm"    level="3" school="Conjuration" kind="Condition" resolution="SavingThrow" save="Dex"
+         condition="Prone" durationSeconds="60" shape="Sphere" size="8" range="30" concentration="true"
+         classes="Druid,Sorcerer,Wizard" description="Freezing rain and sleet make the ground treacherous." />
+  <spell id="Slow"          name="Slow"           level="3" school="Transmutation" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Restrained" durationSeconds="60" shape="Cube" size="4" range="24" concentration="true"
+         classes="Sorcerer,Wizard" description="Time crawls for those who fail." />
+  <spell id="MassHealingWord" name="Mass Healing Word" level="3" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="1" die="4" dicePerSlot="1" addModifier="true" shape="Sphere" size="6" range="12" beneficial="true"
+         classes="Cleric" description="A word of healing for everyone nearby." />
+  <spell id="BeaconOfHope"  name="Beacon of Hope" level="3" school="Abjuration" kind="Utility" shape="Sphere" size="6" range="12" beneficial="true" concentration="true"
+         classes="Cleric" description="Advantage on death saves and maximum healing. Not yet modelled." />
+  <spell id="Revivify"      name="Revivify"       level="3" school="Necromancy" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Paladin" description="Returns the newly dead to life. Not yet modelled." />
+  <spell id="DispelMagic"   name="Dispel Magic"   level="3" school="Abjuration" kind="Utility" range="24"
+         classes="Bard,Cleric,Druid,Paladin,Sorcerer,Warlock,Wizard" description="Ends a magical effect. Not yet modelled." />
+  <spell id="Counterspell"  name="Counterspell"   level="3" school="Abjuration" kind="Utility" range="12"
+         classes="Sorcerer,Warlock,Wizard" description="Interrupts another caster. Not yet modelled." />
+  <spell id="Haste"         name="Haste"          level="3" school="Transmutation" kind="Utility" range="6" beneficial="true" concentration="true"
+         classes="Sorcerer,Wizard" description="Doubles speed and grants an extra action. Not yet modelled." />
+  <spell id="Fly"           name="Fly"            level="3" school="Transmutation" kind="Utility" range="1" beneficial="true" concentration="true"
+         classes="Sorcerer,Warlock,Wizard" description="Grants a flying speed. Not yet modelled." />
+  <spell id="ProtectionFromEnergy" name="Protection from Energy" level="3" school="Abjuration" kind="Utility" range="1" beneficial="true" concentration="true"
+         classes="Cleric,Druid,Ranger,Sorcerer,Wizard" description="Resistance to one damage type. Not yet modelled." />
+  <spell id="RemoveCurse"   name="Remove Curse"   level="3" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Paladin,Warlock,Wizard" description="Lifts a curse. Not yet modelled." />
+  <spell id="WaterBreathing" name="Water Breathing" level="3" school="Transmutation" kind="Utility" range="12" beneficial="true"
+         classes="Druid,Ranger,Sorcerer,Wizard" description="Breathe underwater. Not yet modelled." />
+  <spell id="Daylight"      name="Daylight"       level="3" school="Evocation" kind="Utility" shape="Sphere" size="12" range="24" beneficial="true"
+         classes="Cleric,Druid,Paladin,Ranger,Sorcerer" description="A sphere of daylight. Not yet modelled." />
+  <spell id="AnimateDead"   name="Animate Dead"   level="3" school="Necromancy" kind="Utility" range="2"
+         classes="Cleric,Wizard" description="Raises a corpse as a servant. Not yet modelled." />
+  <spell id="Tongues"       name="Tongues"        level="3" school="Divination" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Sorcerer,Warlock,Wizard" description="Understand any language. Not yet modelled." />
+
+  <!-- ============ 4th Level ============ -->
+  <spell id="Blight"        name="Blight"         level="4" school="Necromancy" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="8" die="8" dicePerSlot="1" range="24" classes="Druid,Sorcerer,Warlock,Wizard" description="Necrotic energy drains the target's life." />
+  <spell id="IceStorm"      name="Ice Storm"      level="4" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="6" die="6" dicePerSlot="1" shape="Sphere" size="4" range="60" classes="Druid,Sorcerer,Wizard" description="Hail hammers the ground." />
+  <spell id="WallOfFire"    name="Wall of Fire"   level="4" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="5" die="8" dicePerSlot="1" shape="Line" size="12" range="24" concentration="true" durationSeconds="60"
+         classes="Druid,Sorcerer,Wizard" description="A blazing wall of flame." />
+  <spell id="PhantasmalKiller" name="Phantasmal Killer" level="4" school="Illusion" kind="Damage" resolution="SavingThrow" save="Wis" halfOnSave="true"
+         dice="4" die="10" dicePerSlot="1" range="24" concentration="true" durationSeconds="60"
+         classes="Wizard" description="A vision of the target's deepest fear." />
+  <spell id="Confusion"     name="Confusion"      level="4" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Incapacitated" durationSeconds="60" shape="Sphere" size="2" range="18" concentration="true"
+         classes="Bard,Druid,Sorcerer,Wizard" description="Minds unravel into aimless confusion." />
+  <spell id="Banishment"    name="Banishment"     level="4" school="Abjuration" kind="Condition" resolution="SavingThrow" save="Cha"
+         condition="Incapacitated" durationSeconds="60" range="12" concentration="true"
+         classes="Cleric,Paladin,Sorcerer,Warlock,Wizard" description="Sends a creature to another plane." />
+  <spell id="DominateBeast" name="Dominate Beast" level="4" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Charmed" durationSeconds="60" range="12" concentration="true"
+         classes="Druid,Sorcerer" description="Bends a beast to your will." />
+  <spell id="Stoneskin"     name="Stoneskin"      level="4" school="Abjuration" kind="ArmorClass" resolution="Automatic"
+         armorClass="17" durationSeconds="3600" range="1" beneficial="true" concentration="true"
+         classes="Barbarian,Druid,Ranger,Sorcerer,Wizard" description="Skin turns to stone." />
+  <spell id="GreaterInvisibility" name="Greater Invisibility" level="4" school="Illusion" kind="Condition" resolution="Automatic"
+         condition="Invisible" durationSeconds="60" range="1" beneficial="true" concentration="true"
+         classes="Bard,Sorcerer,Wizard" description="Invisibility that survives attacking." />
+  <spell id="DeathWard"     name="Death Ward"     level="4" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Paladin" description="Cheats death once. Not yet modelled." />
+  <spell id="DimensionDoor" name="Dimension Door" level="4" school="Conjuration" kind="Utility" range="100" beneficial="true" selfOnly="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A long teleport. Not yet modelled." />
+  <spell id="Polymorph"     name="Polymorph"      level="4" school="Transmutation" kind="Utility" range="12" concentration="true"
+         classes="Bard,Druid,Sorcerer,Wizard" description="Transforms a creature into a beast. Not yet modelled." />
+  <spell id="FreedomOfMovement" name="Freedom of Movement" level="4" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid,Ranger" description="Immune to being restrained. Not yet modelled." />
+  <spell id="FireShield"    name="Fire Shield"    level="4" school="Evocation" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Wizard" description="Flames wreathe you and burn attackers. Not yet modelled." />
+
+  <!-- ============ 5th Level ============ -->
+  <spell id="ConeOfCold"    name="Cone of Cold"   level="5" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="8" die="8" dicePerSlot="1" shape="Cone" size="12" range="12"
+         classes="Sorcerer,Wizard" description="A blast of freezing air in a great cone." />
+  <spell id="FlameStrike"   name="Flame Strike"   level="5" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="8" die="6" dicePerSlot="1" shape="Sphere" size="2" range="12" classes="Cleric" description="A column of divine fire." />
+  <spell id="Cloudkill"     name="Cloudkill"      level="5" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="5" die="8" dicePerSlot="1" shape="Sphere" size="4" range="24" concentration="true" durationSeconds="600"
+         classes="Sorcerer,Wizard" description="A fog of poison rolls outward." />
+  <spell id="InsectPlague"  name="Insect Plague"  level="5" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="4" die="10" dicePerSlot="1" shape="Sphere" size="4" range="60" concentration="true" durationSeconds="600"
+         classes="Cleric,Druid,Sorcerer" description="A swarm of biting insects." />
+  <spell id="HoldMonster"   name="Hold Monster"   level="5" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Paralyzed" durationSeconds="60" range="18" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Paralyses any creature that fails a Wisdom save." />
+  <spell id="DominatePerson" name="Dominate Person" level="5" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Charmed" durationSeconds="600" range="12" concentration="true"
+         classes="Bard,Sorcerer,Wizard" description="Seizes control of a humanoid." />
+  <spell id="Contagion"     name="Contagion"      level="5" school="Necromancy" kind="Condition" resolution="SavingThrow" save="Con"
+         condition="Poisoned" durationSeconds="3600" range="1"
+         classes="Cleric,Druid" description="Inflicts a virulent disease." />
+  <spell id="MassCureWounds" name="Mass Cure Wounds" level="5" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="3" die="8" dicePerSlot="1" addModifier="true" shape="Sphere" size="6" range="12" beneficial="true"
+         classes="Bard,Cleric,Druid" description="Healing for everyone nearby." />
+  <spell id="GreaterRestoration" name="Greater Restoration" level="5" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid" description="Ends a serious affliction. Not yet modelled." />
+  <spell id="RaiseDead"     name="Raise Dead"     level="5" school="Necromancy" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Paladin" description="Returns the dead to life. Not yet modelled." />
+  <spell id="WallOfForce"   name="Wall of Force"  level="5" school="Evocation" kind="Utility" range="24" concentration="true"
+         classes="Wizard" description="An invisible wall nothing passes. Not yet modelled." />
+  <spell id="Telekinesis"   name="Telekinesis"    level="5" school="Transmutation" kind="Utility" range="12" concentration="true"
+         classes="Sorcerer,Wizard" description="Move creatures and objects with your mind. Not yet modelled." />
+  <spell id="Scrying"       name="Scrying"        level="5" school="Divination" kind="Utility" range="0" beneficial="true" selfOnly="true" concentration="true"
+         classes="Bard,Cleric,Druid,Warlock,Wizard" description="See a distant creature. Not yet modelled." />
+  <spell id="AnimateObjects" name="Animate Objects" level="5" school="Transmutation" kind="Utility" range="24" concentration="true"
+         classes="Bard,Sorcerer,Wizard" description="Objects rise and fight for you. Not yet modelled." />
+
+  <!-- ============ 6th Level ============ -->
+  <spell id="Disintegrate"  name="Disintegrate"   level="6" school="Transmutation" kind="Damage" resolution="SavingThrow" save="Dex"
+         dice="10" die="6" bonus="4" dicePerSlot="3" range="24"
+         classes="Sorcerer,Wizard" description="A thin green ray that reduces its target to dust." />
+  <spell id="ChainLightning" name="Chain Lightning" level="6" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="10" die="8" dicePerSlot="1" shape="Sphere" size="6" range="30"
+         classes="Sorcerer,Wizard" description="Lightning that leaps between targets." />
+  <spell id="CircleOfDeath" name="Circle of Death" level="6" school="Necromancy" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="8" die="6" dicePerSlot="2" shape="Sphere" size="12" range="30"
+         classes="Sorcerer,Warlock,Wizard" description="A sphere of negative energy." />
+  <spell id="Sunbeam"       name="Sunbeam"        level="6" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="6" die="8" dicePerSlot="1" shape="Line" size="12" range="12" concentration="true" durationSeconds="60"
+         classes="Druid,Sorcerer,Wizard" description="A beam of brilliant light." />
+  <spell id="BladeBarrier"  name="Blade Barrier"  level="6" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="6" die="10" dicePerSlot="1" shape="Line" size="20" range="18" concentration="true" durationSeconds="600"
+         classes="Cleric" description="A wall of whirling blades." />
+  <spell id="Harm"          name="Harm"           level="6" school="Necromancy" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="14" die="6" range="12" classes="Cleric" description="A vile disease wracks the target." />
+  <spell id="Heal"          name="Heal"           level="6" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="70" die="1" dicePerSlot="10" range="12" beneficial="true"
+         classes="Cleric,Druid" description="A flood of positive energy." />
+  <spell id="FleshToStone"  name="Flesh to Stone" level="6" school="Transmutation" kind="Condition" resolution="SavingThrow" save="Con"
+         condition="Petrified" durationSeconds="600" range="12" concentration="true"
+         classes="Warlock,Wizard" description="Turns a creature to stone." />
+  <spell id="Eyebite"       name="Eyebite"        level="6" school="Necromancy" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Unconscious" durationSeconds="60" range="12" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Your gaze sickens, panics or sleeps a creature." />
+  <spell id="MassSuggestion" name="Mass Suggestion" level="6" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Charmed" durationSeconds="3600" shape="Sphere" size="12" range="24"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A suggestion many creatures find reasonable." />
+  <spell id="TrueSeeing"    name="True Seeing"    level="6" school="Divination" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Sorcerer,Warlock,Wizard" description="See through every illusion. Not yet modelled." />
+  <spell id="GlobeOfInvulnerability" name="Globe of Invulnerability" level="6" school="Abjuration" kind="Utility" range="0" beneficial="true" selfOnly="true" concentration="true"
+         classes="Sorcerer,Wizard" description="A globe that stops lesser spells. Not yet modelled." />
+
+  <!-- ============ 7th Level ============ -->
+  <spell id="DelayedBlastFireball" name="Delayed Blast Fireball" level="7" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="12" die="6" dicePerSlot="1" shape="Sphere" size="4" range="30" concentration="true"
+         classes="Sorcerer,Wizard" description="A fireball that waits before it blooms." />
+  <spell id="FingerOfDeath" name="Finger of Death" level="7" school="Necromancy" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="7" die="8" bonus="4" dicePerSlot="1" range="12"
+         classes="Sorcerer,Warlock,Wizard" description="Negative energy tears at the target." />
+  <spell id="FireStorm"     name="Fire Storm"     level="7" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="7" die="10" dicePerSlot="1" shape="Sphere" size="4" range="30"
+         classes="Cleric,Druid,Sorcerer" description="Roaring flame fills the area." />
+  <spell id="PrismaticSpray" name="Prismatic Spray" level="7" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="10" die="6" dicePerSlot="1" shape="Cone" size="12" range="12"
+         classes="Sorcerer,Wizard" description="Rays of every colour in a cone." />
+  <spell id="MordenkainensSword" name="Mordenkainen's Sword" level="7" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="3" die="10" dicePerSlot="1" range="12" concentration="true" durationSeconds="60"
+         classes="Bard,Wizard" description="A blade of force fights at your command." />
+  <spell id="Regenerate"    name="Regenerate"     level="7" school="Transmutation" kind="Healing" resolution="Automatic"
+         dice="4" die="8" bonus="4" dicePerSlot="1" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid" description="Wounds close as you watch." />
+  <spell id="Forcecage"     name="Forcecage"      level="7" school="Evocation" kind="Condition" resolution="Automatic"
+         condition="Restrained" durationSeconds="3600" range="20" concentration="true"
+         classes="Bard,Warlock,Wizard" description="An inescapable cage of force." />
+  <spell id="Resurrection"  name="Resurrection"   level="7" school="Necromancy" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric" description="Returns the long dead to life. Not yet modelled." />
+  <spell id="PlaneShift"    name="Plane Shift"    level="7" school="Conjuration" kind="Utility" range="1"
+         classes="Cleric,Druid,Sorcerer,Warlock,Wizard" description="Travel to another plane. Not yet modelled." />
+  <spell id="Teleport"      name="Teleport"       level="7" school="Conjuration" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Sorcerer,Wizard" description="Instant travel across the world. Not yet modelled." />
+  <spell id="Etherealness"  name="Etherealness"   level="7" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Bard,Cleric,Sorcerer,Warlock,Wizard" description="Step onto the Ethereal Plane. Not yet modelled." />
+  <spell id="ReverseGravity" name="Reverse Gravity" level="7" school="Transmutation" kind="Utility" shape="Sphere" size="10" range="20" concentration="true"
+         classes="Druid,Sorcerer,Wizard" description="Gravity fails in the area. Not yet modelled." />
+
+  <!-- ============ 8th Level ============ -->
+  <spell id="Sunburst"      name="Sunburst"       level="8" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="12" die="6" dicePerSlot="1" shape="Sphere" size="12" range="30"
+         classes="Druid,Sorcerer,Wizard" description="A blaze of sunlight erupts." />
+  <spell id="IncendiaryCloud" name="Incendiary Cloud" level="8" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="10" die="8" dicePerSlot="1" shape="Sphere" size="4" range="30" concentration="true" durationSeconds="600"
+         classes="Sorcerer,Wizard" description="A billowing cloud of embers." />
+  <spell id="Earthquake"    name="Earthquake"     level="8" school="Evocation" kind="Condition" resolution="SavingThrow" save="Dex"
+         condition="Prone" durationSeconds="60" shape="Sphere" size="20" range="100" concentration="true"
+         classes="Cleric,Druid,Sorcerer" description="The ground itself convulses." />
+  <spell id="PowerWordStun" name="Power Word Stun" level="8" school="Enchantment" kind="Condition" resolution="Automatic"
+         condition="Stunned" hitPointThreshold="150" durationSeconds="60" range="12"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A word that stuns anything not already strong." />
+  <spell id="Feeblemind"    name="Feeblemind"     level="8" school="Enchantment" kind="Damage" resolution="SavingThrow" save="Int" halfOnSave="true"
+         dice="4" die="6" dicePerSlot="1" range="30" classes="Bard,Druid,Warlock,Wizard" description="Shatters a creature's intellect." />
+  <spell id="DominateMonster" name="Dominate Monster" level="8" school="Enchantment" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Charmed" durationSeconds="3600" range="12" concentration="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Seizes control of any creature." />
+  <spell id="Maze"          name="Maze"           level="8" school="Conjuration" kind="Condition" resolution="Automatic"
+         condition="Incapacitated" durationSeconds="600" range="12" concentration="true"
+         classes="Wizard" description="Banishes a creature into a labyrinth." />
+  <spell id="HolyAura"      name="Holy Aura"      level="8" school="Abjuration" kind="Utility" shape="Sphere" size="6" range="0" beneficial="true" selfOnly="true" concentration="true"
+         classes="Cleric" description="Divine light shields your allies. Not yet modelled." />
+  <spell id="AntimagicField" name="Antimagic Field" level="8" school="Abjuration" kind="Utility" shape="Sphere" size="2" range="0" beneficial="true" selfOnly="true" concentration="true"
+         classes="Cleric,Wizard" description="Magic simply stops working nearby. Not yet modelled." />
+  <spell id="MindBlank"     name="Mind Blank"     level="8" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Wizard" description="Immunity to divination and mind control. Not yet modelled." />
+  <spell id="Clone"         name="Clone"          level="8" school="Necromancy" kind="Utility" range="1" beneficial="true"
+         classes="Wizard" description="Grows a spare body. Not yet modelled." />
+
+  <!-- ============ 9th Level ============ -->
+  <spell id="MeteorSwarm"   name="Meteor Swarm"   level="9" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="40" die="6" shape="Sphere" size="8" range="200"
+         classes="Sorcerer,Wizard" description="Blazing spheres of rock plummet from the sky." />
+  <spell id="PowerWordKill" name="Power Word Kill" level="9" school="Enchantment" kind="Condition" resolution="Automatic"
+         condition="Unconscious" hitPointThreshold="100" durationSeconds="3600" range="12"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A word that simply ends a wounded creature." />
+  <spell id="MassHeal"      name="Mass Heal"      level="9" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="70" die="1" shape="Sphere" size="12" range="12" beneficial="true"
+         classes="Cleric" description="A tide of healing energy." />
+  <spell id="PowerWordHeal" name="Power Word Heal" level="9" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="700" die="1" range="1" beneficial="true" classes="Bard" description="A word that makes a creature whole." />
+  <spell id="Weird"         name="Weird"          level="9" school="Illusion" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Frightened" durationSeconds="60" shape="Sphere" size="6" range="24" concentration="true"
+         classes="Wizard" description="Everyone sees their own nightmare." />
+  <spell id="Imprisonment"  name="Imprisonment"   level="9" school="Abjuration" kind="Condition" resolution="SavingThrow" save="Wis"
+         condition="Paralyzed" durationSeconds="86400" range="6"
+         classes="Warlock,Wizard" description="Binds a creature for a very long time." />
+  <spell id="TimeStop"      name="Time Stop"      level="9" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Wizard" description="Time halts for everyone but you. Not yet modelled." />
+  <spell id="Wish"          name="Wish"           level="9" school="Conjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Wizard" description="The mightiest spell mortals can cast. Not yet modelled." />
+  <spell id="Foresight"     name="Foresight"      level="9" school="Divination" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Druid,Warlock,Wizard" description="You cannot be surprised, and see moments ahead. Not yet modelled." />
+  <spell id="TrueResurrection" name="True Resurrection" level="9" school="Necromancy" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Druid" description="Returns anyone dead up to 200 years. Not yet modelled." />
+  <spell id="Shapechange"   name="Shapechange"    level="9" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true" concentration="true"
+         classes="Druid,Wizard" description="Become any creature you have seen. Not yet modelled." />
+  <spell id="StormOfVengeance" name="Storm of Vengeance" level="9" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="2" die="6" shape="Sphere" size="60" range="200" concentration="true" durationSeconds="600"
+         classes="Druid" description="A storm of crushing scale." />
+  <spell id="Gate"          name="Gate"           level="9" school="Conjuration" kind="Utility" range="24" concentration="true"
+         classes="Cleric,Sorcerer,Warlock,Wizard" description="A portal between planes. Not yet modelled." />
+
 </spells>

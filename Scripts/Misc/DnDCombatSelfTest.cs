@@ -269,6 +269,7 @@ namespace Server.Misc
 			}
 
 			ok &= CheckMageArmor();
+			ok &= CheckHighLevelSpell();
 
 			Console.WriteLine(
 				"[combat-selftest]   spells: {0} total - {1} damaging cantrip(s), {2} levelled, {3} utility placeholder(s)",
@@ -508,6 +509,107 @@ namespace Server.Misc
 
 			Console.WriteLine("[combat-selftest] FAIL: {0} expected '{1}', got '{2}'", label, expected, actual);
 			return false;
+		}
+
+		/// <summary>
+		/// Fireball, end to end: a 5th-level wizard must be offered it, be refused it at 1st, and
+		/// have it actually burn a crowd when cast. This is the check that the levelled half of the
+		/// catalogue is reachable at all, rather than merely well-formed.
+		/// </summary>
+		private static bool CheckHighLevelSpell()
+		{
+			DnDSpell fireball = SpellRegistry.Find("Fireball");
+
+			if (fireball == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Fireball is not registered");
+				return false;
+			}
+
+			DnDPlayerMobile novice = new DnDPlayerMobile { Name = "NoviceProbe", Body = 0x190 };
+
+			novice.ApplyDnDSetup(
+				new AbilityScores(10, 12, 12, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			novice.MoveToWorld(TestLocation, Map.Felucca);
+
+			// A 1st-level wizard has no 3rd-level slot, so the spell is on the list but unreachable.
+			bool ok = !SpellRegistry.GetAvailable(novice).Contains(fireball);
+
+			if (!ok)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a 1st-level wizard was offered Fireball");
+			}
+
+			// Level up to 5th, which is where the third-level slots arrive.
+			novice.AwardExperience(6500);
+
+			ok &= CheckValue("wizard level for Fireball", novice.CharacterLevel, 5);
+
+			if (!SpellRegistry.GetAvailable(novice).Contains(fireball))
+			{
+				Console.WriteLine("[combat-selftest] FAIL: a 5th-level wizard was not offered Fireball");
+				ok = false;
+			}
+
+			// Three victims clustered together, so the sphere has something to catch.
+			var victims = new List<SrdGoblin>();
+
+			for (int i = 0; i < 3; i++)
+			{
+				var goblin = new SrdGoblin();
+
+				goblin.MoveToWorld(
+					new Point3D(TestLocation.X + 6 + i, TestLocation.Y, TestLocation.Z), Map.Felucca);
+
+				victims.Add(goblin);
+			}
+
+			int before = 0;
+
+			foreach (SrdGoblin goblin in victims)
+			{
+				before += goblin.Hits;
+			}
+
+			ok &= CheckCast("fireball", DnDCasting.Cast(novice, fireball, victims[1]), CastResult.Success);
+
+			int after = 0;
+			int killed = 0;
+
+			foreach (SrdGoblin goblin in victims)
+			{
+				after += goblin.Hits;
+
+				if (!goblin.Alive || goblin.Deleted)
+				{
+					++killed;
+				}
+			}
+
+			Console.WriteLine(
+				"[combat-selftest]   fireball: {0} goblin(s) took {1} total damage, {2} killed",
+				victims.Count,
+				before - after,
+				killed);
+
+			if (before - after <= 0 && killed == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Fireball harmed nobody");
+				ok = false;
+			}
+
+			ok &= CheckValue("3rd-level slots spent", novice.GetAvailableSpellSlots(3), 1);
+
+			foreach (SrdGoblin goblin in victims)
+			{
+				goblin.Delete();
+			}
+
+			novice.Delete();
+
+			return ok;
 		}
 
 		/// <summary>
