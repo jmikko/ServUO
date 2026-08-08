@@ -67,9 +67,11 @@ namespace Server.Misc
 			AddStartingKit(pm);
 
 			Console.WriteLine(
-				"DnDCharacterCreation: created '{0}' on account '{1}'",
+				"DnDCharacterCreation: created '{0}' on account '{1}' at {2} {3}",
 				pm.Name,
-				args.Account.Username);
+				args.Account.Username,
+				pm.Location,
+				pm.Map);
 
 			PromptForDnDSetup(args.State);
 		}
@@ -120,17 +122,67 @@ namespace Server.Misc
 
 		private static Map GetStartMap(CharacterCreatedEventArgs args)
 		{
+			Point3D ignored;
+
+			if (TryGetStartOverride(out ignored))
+			{
+				Map map = Map.Parse(Config.Get("Startup.Map", "Trammel"));
+
+				if (map != null && map != Map.Internal)
+				{
+					return map;
+				}
+			}
+
 			return args.City != null && args.City.Map != null ? args.City.Map : Map.Trammel;
 		}
 
 		private static Point3D GetStartLocation(CharacterCreatedEventArgs args)
 		{
+			Point3D location;
+
+			// Startup.Location ("x,y,z") overrides the client's starting-city pick. The vanilla
+			// cities are UO landmarks with no D&D meaning, so a shard will normally want to point
+			// this somewhere of its own.
+			if (TryGetStartOverride(out location))
+			{
+				return location;
+			}
+
 			if (args.City != null && args.City.Location != Point3D.Zero)
 			{
 				return args.City.Location;
 			}
 
 			return new Point3D(1495, 1629, 10); // Britain bank, a safe universal fallback
+		}
+
+		private static bool TryGetStartOverride(out Point3D location)
+		{
+			location = Point3D.Zero;
+
+			string value = Config.Get("Startup.Location", (string)null);
+
+			if (String.IsNullOrEmpty(value))
+			{
+				return false;
+			}
+
+			string[] parts = value.Split(',');
+
+			int x, y, z;
+
+			if (parts.Length != 3 ||
+				!Int32.TryParse(parts[0].Trim(), out x) ||
+				!Int32.TryParse(parts[1].Trim(), out y) ||
+				!Int32.TryParse(parts[2].Trim(), out z))
+			{
+				Console.WriteLine("DnDCharacterCreation: ignoring malformed Startup.Location '{0}'.", value);
+				return false;
+			}
+
+			location = new Point3D(x, y, z);
+			return true;
 		}
 
 		/// <summary>

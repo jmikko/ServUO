@@ -9,13 +9,48 @@ namespace Server.Items
 	/// legacy item layer in behind them. Damage is resolved from the dice expression by the
 	/// rules core in Server/.
 	/// </summary>
-	public abstract class DnDWeapon : Item, IDnDEquipment
+	public abstract class DnDWeapon : Item, IDnDEquipment, IWeapon
 	{
 		public abstract WeaponCategory WeaponCategory { get; }
 		public abstract string DamageDiceExpression { get; }
 
 		public virtual ArmorCategory ArmorCategory { get { return ArmorCategory.None; } }
 		public virtual int ArmorBonus { get { return 0; } }
+
+		public virtual bool IsRanged
+		{
+			get
+			{
+				return WeaponCategory == WeaponCategory.SimpleRanged ||
+					   WeaponCategory == WeaponCategory.MartialRanged;
+			}
+		}
+
+		public virtual int MaxRange { get { return IsRanged ? 10 : 1; } }
+
+		public virtual void OnBeforeSwing(Mobile attacker, IDamageable damageable)
+		{ }
+
+		public virtual TimeSpan OnSwing(Mobile attacker, IDamageable damageable)
+		{
+			return DnDCombat.Resolve(attacker, damageable, this);
+		}
+
+		/// <summary>Feeds the client's paperdoll damage range; a plain dice min/max is enough.</summary>
+		public virtual void GetStatusDamage(Mobile from, out int min, out int max)
+		{
+			CombatRules.GetDiceRange(DamageDiceExpression, out min, out max);
+
+			int bonus = CombatRules.GetDamageBonus(from, IsRanged);
+
+			min += bonus;
+			max += bonus;
+		}
+
+		public virtual TimeSpan GetDelay(Mobile attacker)
+		{
+			return DnDCombat.SwingDelay;
+		}
 
 		protected DnDWeapon(int itemID)
 			: base(itemID)

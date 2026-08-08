@@ -5596,7 +5596,12 @@ namespace Server
 				}
 				else
 				{
-                    FatigueHandler(this, amount, DFA);
+                    // Optional hook - stock ServUO installs one from WeightOverloading.cs, but a
+                    // shard that doesn't model stamina loss on damage leaves it unset.
+                    if (FatigueHandler != null)
+                    {
+                        FatigueHandler(this, amount, DFA);
+                    }
 
 					Hits = newHits;
 				}
