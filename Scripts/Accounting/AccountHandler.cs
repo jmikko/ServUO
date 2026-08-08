@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using Server.Accounting;
 using Server.Commands;
-using Server.Engines.Help;
 using Server.Network;
 using Server.Regions;
 
@@ -27,7 +26,7 @@ namespace Server.Misc
 
         private static readonly int MaxAccountsPerIP = Config.Get("Accounts.AccountsPerIp", 1);
         private static readonly bool AutoAccountCreation = Config.Get("Accounts.AutoCreateAccounts", true);
-        private static readonly bool RestrictDeletion = Config.Get("Accounts.RestrictDeletion", !TestCenter.Enabled);
+        private static readonly bool RestrictDeletion = Config.Get("Accounts.RestrictDeletion", true);
         private static readonly TimeSpan DeleteDelay = Config.Get("Accounts.DeleteDelay", TimeSpan.FromDays(7.0));
 
         private static readonly CityInfo[] StartingCitiesT2A = new CityInfo[]
@@ -214,25 +213,8 @@ namespace Server.Misc
                 }
                 else
                 {
-                    PageEntry entry = PageQueue.GetEntry(from);
-
-                    if (entry != null)
-                    {
-                        if (entry.Message.StartsWith("[Automated: Change Password]"))
-                            from.SendMessage("You already have a password change request in the help system queue.");
-                        else
-                            from.SendMessage("Your IP address does not match that which created this account.");
-                    }
-                    else if (PageQueue.CheckAllowedToPage(from))
-                    {
-                        from.SendMessage("Your IP address does not match that which created this account.  A page has been entered into the help system on your behalf.");
-
-                        from.SendLocalizedMessage(501234, "", 0x35); /* The next available Counselor/Game Master will respond as soon as possible.
-                        * Please check your Journal for messages every few minutes.
-                        */
-
-                        PageQueue.Enqueue(new PageEntry(from, String.Format("[Automated: Change Password]<br>Desired password: {0}<br>Current IP address: {1}<br>Account IP address: {2}", pass, ipAddress, accessList[0]), PageType.Account));
-                    }
+                    // Help-desk page queue not carried over; just refuse the change.
+                    from.SendMessage("Your IP address does not match that which created this account.");
                 }
             }
             catch
@@ -387,9 +369,9 @@ namespace Server.Misc
                 e.State.Account = acct;
                 e.Accepted = true;
 
-                if(Siege.SiegeShard)
+                if (false) // Siege ruleset not used on this shard
                 {
-                    e.CityInfo = SiegeStartingCities;
+                    e.CityInfo = StartingCities;
                 }
                 else if (!Core.UOR)
                 {
@@ -463,7 +445,7 @@ namespace Server.Misc
                     state.Send(new DeleteResult(DeleteResultType.CharTooYoung));
                     state.Send(new CharacterListUpdate(acct));
                 }
-                else if (m.IsPlayer() && Region.Find(m.LogoutLocation, m.LogoutMap).GetRegion(typeof(Jail)) != null)	//Don't need to check current location, if netstate is null, they're logged out
+                else if (m.IsPlayer())	// Jail region not carried over
                 {
                     state.Send(new DeleteResult(DeleteResultType.BadRequest));
                     state.Send(new CharacterListUpdate(acct));

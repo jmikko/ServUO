@@ -11,7 +11,6 @@ using Server.Commands;
 using Server.Items;
 using Server.Misc;
 using Server.Mobiles;
-using Server.Multis;
 using Server.Network;
 #endregion
 
@@ -31,132 +30,7 @@ namespace Server.Accounting
 
 		public static void Configure()
 		{
-			CommandSystem.Register("ConvertCurrency", AccessLevel.Owner, ConvertCurrency);
-		}
-
-		private static void ConvertCurrency(CommandEventArgs e)
-		{
-			e.Mobile.SendMessage(
-				"Converting All Banked Gold from {0} to {1}.  Please wait...",
-				AccountGold.Enabled ? "checks and coins" : "account treasury",
-				AccountGold.Enabled ? "account treasury" : "checks and coins");
-
-			NetState.Pause();
-
-			double found = 0.0, converted = 0.0;
-
-			try
-			{
-				BankBox box;
-				List<Gold> gold;
-				List<BankCheck> checks;
-				long share = 0, shared;
-				int diff;
-
-				foreach (var a in Accounts.GetAccounts().OfType<Account>().Where(a => a.Count > 0))
-				{
-					try
-					{
-						if (!AccountGold.Enabled)
-						{
-							share = (int)Math.Truncate((a.TotalCurrency / a.Count) * CurrencyThreshold);
-							found += a.TotalCurrency * CurrencyThreshold;
-						}
-
-						foreach (var m in a.m_Mobiles.Where(m => m != null))
-						{
-							box = m.FindBankNoCreate();
-
-							if (box == null)
-							{
-								continue;
-							}
-
-							if (AccountGold.Enabled)
-							{
-								foreach (var o in checks = box.FindItemsByType<BankCheck>())
-								{
-									found += o.Worth;
-
-									if (!a.DepositGold(o.Worth))
-									{
-										break;
-									}
-
-									converted += o.Worth;
-									o.Delete();
-								}
-
-								checks.Clear();
-								checks.TrimExcess();
-
-								foreach (var o in gold = box.FindItemsByType<Gold>())
-								{
-									found += o.Amount;
-
-									if (!a.DepositGold(o.Amount))
-									{
-										break;
-									}
-
-									converted += o.Amount;
-									o.Delete();
-								}
-
-								gold.Clear();
-								gold.TrimExcess();
-							}
-							else
-							{
-								shared = share;
-
-								while (shared > 0)
-								{
-									if (shared > 60000)
-									{
-										diff = (int)Math.Min(10000000, shared);
-
-										if (a.WithdrawGold(diff))
-										{
-											box.DropItem(new BankCheck(diff));
-										}
-										else
-										{
-											break;
-										}
-									}
-									else
-									{
-										diff = (int)Math.Min(60000, shared);
-
-										if (a.WithdrawGold(diff))
-										{
-											box.DropItem(new Gold(diff));
-										}
-										else
-										{
-											break;
-										}
-									}
-
-									converted += diff;
-									shared -= diff;
-								}
-							}
-
-							box.UpdateTotals();
-						}
-					}
-					catch
-					{ }
-				}
-			}
-			catch
-			{ }
-
-			NetState.Resume();
-
-			e.Mobile.SendMessage("Operation complete: {0:#,0} of {1:#,0} Gold has been converted in total.", converted, found);
+			// The ConvertCurrency GM command was removed with the bank-check/gold-pile item types.
 		}
 
 		private readonly Mobile[] m_Mobiles;
@@ -323,7 +197,7 @@ namespace Server.Accounting
 
 			if (totalGameTime == TimeSpan.Zero)
 			{
-				totalGameTime = m_Mobiles.OfType<PlayerMobile>().Aggregate(totalGameTime, (current, m) => current + m.GameTime);
+				totalGameTime = m_Mobiles.OfType<DnDPlayerMobile>().Aggregate(totalGameTime, (current, m) => current + m.GameTime);
 			}
 
 			m_TotalGameTime = totalGameTime;
@@ -529,7 +403,7 @@ namespace Server.Accounting
 		{
 			get
 			{
-				foreach (var m in m_Mobiles.OfType<PlayerMobile>().Where(m => m.NetState != null))
+				foreach (var m in m_Mobiles.OfType<DnDPlayerMobile>().Where(m => m.NetState != null))
 				{
 					return m_TotalGameTime + (DateTime.UtcNow - m.SessionStart);
 				}
@@ -583,7 +457,7 @@ namespace Server.Accounting
 		///     not supported by the client.
 		/// </summary>
 		[CommandProperty(AccessLevel.Administrator)]
-		public int Limit { get { return (Siege.SiegeShard ? Siege.CharacterSlots : Core.SA ? 7 : Core.AOS ? 6 : 5); } }
+		public int Limit { get { return Core.SA ? 7 : Core.AOS ? 6 : 5; } }
 
 		/// <summary>
 		///     Gets the maxmimum amount of characters that this account can hold.
@@ -650,14 +524,7 @@ namespace Server.Accounting
 					continue;
 				}
 
-				var list = BaseHouse.GetHouses(m);
-
-				foreach (BaseHouse h in list)
-				{
-					h.Delete();
-				}
-
-				ColUtility.Free(list);
+				// Housing not carried over; nothing to clean up alongside the character.
 
 				m.Delete();
 
@@ -1157,7 +1024,7 @@ namespace Server.Accounting
 		{
 			Young = false;
 
-			foreach (var m in m_Mobiles.OfType<PlayerMobile>().Where(m => m.Young))
+			foreach (var m in m_Mobiles.OfType<DnDPlayerMobile>().Where(m => m.Young))
 			{
 				m.Young = false;
 
@@ -1520,7 +1387,7 @@ namespace Server.Accounting
 				acc.m_YoungTimer = null;
 			}
 
-			var m = e.Mobile as PlayerMobile;
+			var m = e.Mobile as DnDPlayerMobile;
 
 			if (m != null)
 			{
@@ -1530,7 +1397,7 @@ namespace Server.Accounting
 
 		private static void EventSink_Login(LoginEventArgs e)
 		{
-			var m = e.Mobile as PlayerMobile;
+			var m = e.Mobile as DnDPlayerMobile;
 
 			if (m == null)
 			{
