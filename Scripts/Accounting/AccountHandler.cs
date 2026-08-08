@@ -303,6 +303,8 @@ namespace Server.Misc
                 Console.WriteLine("Login: {0}: Valid credentials for '{1}'", e.State, un);
                 Console.WriteLine("Client Type: {0}: {1}", e.State, e.State.IsEnhancedClient ? "Enhanced Client" : "Classic Client");
                 Utility.PopColor();
+                ApplyAdministratorAccount(acct);
+
                 e.State.Account = acct;
                 e.Accepted = true;
 
@@ -366,6 +368,8 @@ namespace Server.Misc
                 Utility.PushColor(ConsoleColor.Yellow);
                 Console.WriteLine("Login: {0}: Account '{1}' at character list", e.State, un);
                 Utility.PopColor();
+                ApplyAdministratorAccount(acct);
+
                 e.State.Account = acct;
                 e.Accepted = true;
 
@@ -503,7 +507,42 @@ namespace Server.Misc
 
             Account a = new Account(un, pw);
 
+            ApplyAdministratorAccount(a);
+
             return a;
+        }
+
+        /// <summary>
+        /// Raises the account named by <c>Accounts.AdministratorAccount</c> to Administrator.
+        /// <para>
+        /// Every auto-created account is a Player, and nothing else in the live tree ever grants a
+        /// higher level - so without this there is no way to reach one at all, and the staff
+        /// commands ([XP, [LevelUp, the spawner controls) are unreachable on your own server.
+        /// </para>
+        /// <para>
+        /// Applied on login as well as on creation, so naming an account that already exists works
+        /// without having to delete and remake it.
+        /// </para>
+        /// </summary>
+        public static void ApplyAdministratorAccount(Account account)
+        {
+            string name = Config.Get("Accounts.AdministratorAccount", String.Empty);
+
+            if (account == null || String.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
+            if (!Insensitive.Equals(account.Username, name) || account.AccessLevel >= AccessLevel.Administrator)
+            {
+                return;
+            }
+
+            account.AccessLevel = AccessLevel.Administrator;
+
+            Utility.PushColor(ConsoleColor.Green);
+            Console.WriteLine("Login: account '{0}' raised to Administrator by Accounts.AdministratorAccount", account.Username);
+            Utility.PopColor();
         }
     }
 }
