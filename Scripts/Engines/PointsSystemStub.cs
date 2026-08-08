@@ -54,7 +54,7 @@ namespace Server.Engines.Points
     {
         public static List<PointsSystem> Systems = new List<PointsSystem>();
 
-        public virtual TextDefinition Name { get { return TextDefinition.Empty; } }
+        public virtual TextDefinition Name { get { return null; } }
         public virtual bool ShowOnLoyaltyGump { get { return false; } }
         public virtual bool AutoAdd { get { return false; } }
         public virtual double MaxPoints { get { return 0; } }

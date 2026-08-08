@@ -15,7 +15,7 @@ namespace Server.Engines.MyrmidexInvasion
 
     public class BattleRegion : Region
     {
-        public BattleRegion(string name, Map map, int priority) : base(name, map, priority)
+        public BattleRegion(string name, Map map, int priority) : base(name, map, priority, new Rectangle2D[0])
         {
         }
     }

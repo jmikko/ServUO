@@ -13,7 +13,6 @@ using Server.Multis.Deeds;
 using Server.Network;
 using Server.Regions;
 using Server.Targeting;
-using Server.Engines.Auction;
 
 namespace Server.Multis
 {
@@ -575,19 +574,7 @@ namespace Server.Multis
         #endregion
 
         #region TOL
-        public bool HasActiveAuction
-        {
-            get
-            {
-                foreach (Item item in Addons.Keys)
-                {
-                    if (item is AuctionSafe && ((AuctionSafe)item).Auction != null && ((AuctionSafe)item).Auction.OnGoing)
-                        return true;
-                }
-
-                return false;
-            }
-        }
+        public bool HasActiveAuction { get { return false; } } // Auction system removed (legacy UO player-economy content).
         #endregion
         
         public List<Mobile> AvailableVendorsFor(Mobile m)
@@ -4830,16 +4817,6 @@ namespace Server.Multis
 
         public override void OnClick()
         {
-            if (m_Item is AuctionSafe)
-            {
-                AuctionSafe safe = (AuctionSafe)m_Item;
-
-                if (safe.Auction != null && !safe.Auction.CanModify)
-                {
-                    Owner.From.SendLocalizedMessage(1156431); // You cannot modify this while an auction is in progress.
-                    return;
-                }
-            }
 
             ISecurable sec = GetSecurable(Owner.From, m_Item);
             BaseHouse house = BaseHouse.FindHouseAt(m_Item);

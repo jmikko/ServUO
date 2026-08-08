@@ -520,7 +520,7 @@ namespace Server.Gumps
                 case 107:
                     return WeakEntityCollection.HasCollection("khaldun");
                 case 108:
-                    return StealableArtifactsSpawner.Instance != null;
+                    return false; // StealableArtifactsSpawner removed (legacy UO artifact-theft content).
                 case 109:
                     return SHTeleporter.SHTeleporterCreator.FindSHTeleporter(Map.Trammel, new Point3D(5747, 1895, 0)) != null;
                 case 110:

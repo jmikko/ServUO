@@ -6,7 +6,6 @@ using System.Linq;
 
 using Server.Accounting;
 using Server.ContextMenus;
-using Server.Engines.BulkOrders;
 using Server.Engines.CannedEvil;
 using Server.Engines.Craft;
 using Server.Engines.Help;
@@ -39,7 +38,6 @@ using Server.Spells.Sixth;
 using Server.Spells.SkillMasteries;
 using Server.Spells.Spellweaving;
 using Server.Engines.SphynxFortune;
-using Server.Engines.VendorSearching;
 using Server.Targeting;
 
 using RankDefinition = Server.Guilds.RankDefinition;
@@ -4062,110 +4060,8 @@ namespace Server.Mobiles
 			set { m_SavagePaintExpiration = DateTime.UtcNow + value; }
 		}
 
-		[CommandProperty(AccessLevel.GameMaster)]
-		public TimeSpan NextSmithBulkOrder
-		{
-			get
-			{
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Smith, this);
-			}
-			set
-			{
-                BulkOrderSystem.SetNextBulkOrder(BODType.Smith, this, value);
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public TimeSpan NextTailorBulkOrder
-		{
-			get
-			{
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Tailor, this);
-			}
-			set
-			{
-                BulkOrderSystem.SetNextBulkOrder(BODType.Tailor, this, value);
-			}
-		}
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextAlchemyBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Alchemy, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Alchemy, this, value);
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextInscriptionBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Inscription, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Inscription, this, value);
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextTinkeringBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Tinkering, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Tinkering, this, value);
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextFletchingBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Fletching, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Fletching, this, value);
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextCarpentryBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Carpentry, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Carpentry, this, value);
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TimeSpan NextCookingBulkOrder
-        {
-            get
-            {
-                return BulkOrderSystem.GetNextBulkOrder(BODType.Cooking, this);
-            }
-            set
-            {
-                BulkOrderSystem.SetNextBulkOrder(BODType.Cooking, this, value);
-            }
-        }
-
+		// Bulk Order Deed (BOD) crafting-quest timers removed - the BOD system was legacy UO
+		// crafting-economy content with no D&D equivalent.
 		[CommandProperty(AccessLevel.GameMaster)]
 		public DateTime LastEscortTime { get; set; }
 
@@ -4472,13 +4368,7 @@ namespace Server.Mobiles
 			SetHairMods(-1, -1);
 		}
 
-		public BOBFilter BOBFilter
-        {
-            get
-            {
-                return BulkOrderSystem.GetBOBFilter(this);
-            }
-        }
+		// BOBFilter (bulk order book filtering) removed with the BOD system.
 
 		public override void Deserialize(GenericReader reader)
 		{
