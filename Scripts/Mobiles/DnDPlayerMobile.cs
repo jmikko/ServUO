@@ -334,9 +334,9 @@ namespace Server.Mobiles
 		/// <para>
 		/// Hair, beard and body are separate layers drawn together by the client, and each race has
 		/// its own art ranges. Nothing validates them on a race change, so a character created as a
-		/// human and then made a Gargoyle keeps a human hairstyle - which the client happily draws
-		/// on top of the gargoyle body, producing what looks like two overlapping figures. Stock
-		/// ServUO handles this in PlayerMobile.ValidateEquipment; this is the part of it that still
+		/// human and then made an Elf keeps a human hairstyle - which the client happily draws on
+		/// top of the elven body, producing what looks like two overlapping figures. Stock ServUO
+		/// handles this in PlayerMobile.ValidateEquipment; this is the part of it that still
 		/// applies here.
 		/// </para>
 		/// </summary>

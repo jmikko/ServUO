@@ -9,7 +9,7 @@ namespace Server.Misc
 	/// Expansion still matters on a D&amp;D shard even though none of UO's expansion content
 	/// survives, because it gates what the *client* has art and protocol support for. Left unset it
 	/// defaults to <see cref="Expansion.None"/>, which silently makes every species that needs
-	/// later art - Elf, Gargoyle - fail its availability check.
+	/// later art - Elf, which needs ML - fail its availability check.
 	/// </para>
 	/// <para>
 	/// Deliberately a small replacement rather than a port of the stock CurrentExpansion.cs, which
