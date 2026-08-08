@@ -107,7 +107,12 @@ namespace Server.Mobiles
 
 				int dexMod = Math.Min(m_AbilityScores.DexMod, maxDex);
 
-				return baseAC + dexMod + shieldBonus;
+				// Mage Armor and its relatives set a floor rather than adding: they replace a low
+				// unarmoured AC and do nothing for someone already better protected. A shield still
+				// stacks on top either way.
+				int floor = Spells.DnD.DnDEffects.GetArmorClassFloor(this);
+
+				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus;
 			}
 		}
 

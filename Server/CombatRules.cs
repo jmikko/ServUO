@@ -167,13 +167,36 @@ namespace Server
 		}
 
 		/// <summary>
+		/// Rolls a d20 with advantage (best of two), disadvantage (worst of two), or neither.
+		/// Advantage and disadvantage never stack and always cancel out, however many sources apply.
+		/// </summary>
+		public static int RollD20(RollMode mode)
+		{
+			int first = Utility.RandomMinMax(1, 20);
+
+			if (mode == RollMode.Normal)
+			{
+				return first;
+			}
+
+			int second = Utility.RandomMinMax(1, 20);
+
+			return mode == RollMode.Advantage ? Math.Max(first, second) : Math.Min(first, second);
+		}
+
+		/// <summary>
 		/// Rolls a saving throw: d20 + ability modifier, plus the proficiency bonus if the target's
 		/// class is proficient in that save. Monsters have no per-ability save data in their stat
 		/// blocks yet, so they roll flat d20 against the DC.
 		/// </summary>
 		public static bool CheckSave(Mobile target, AbilityScoreType ability, int dc)
 		{
-			int roll = Utility.RandomMinMax(1, 20);
+			return CheckSave(target, ability, dc, RollMode.Normal);
+		}
+
+		public static bool CheckSave(Mobile target, AbilityScoreType ability, int dc, RollMode mode)
+		{
+			int roll = RollD20(mode);
 			int bonus = 0;
 
 			IDnDCharacter character = target as IDnDCharacter;

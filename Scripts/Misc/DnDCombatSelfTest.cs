@@ -69,6 +69,7 @@ namespace Server.Misc
 			ok &= CheckMovementWorks(fighter);
 			ok &= CheckSpeciesRendering();
 			ok &= CheckEquipmentTables();
+			ok &= CheckSpellTable();
 			ok &= CheckSpawnAnchors();
 			ok &= CheckWeaponResolves(fighter);
 			ok &= CheckWeaponResolves(goblin);
@@ -192,6 +193,119 @@ namespace Server.Misc
 				"[combat-selftest]   species art: {0} race(s) checked, {1} mismatch(es)",
 				Race.AllRaces.Count,
 				bad);
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Every spell row has to be coherent: on at least one class list, with dice if it deals
+		/// damage or heals, and a save ability only where a save is actually rolled. A malformed
+		/// row otherwise surfaces as a spell that silently does nothing when cast.
+		/// </summary>
+		private static bool CheckSpellTable()
+		{
+			bool ok = true;
+			int cantrips = 0, levelled = 0, utility = 0;
+
+			foreach (DnDSpell spell in SpellRegistry.AllSpells)
+			{
+				var data = spell as DataDrivenSpell;
+
+				if (data == null)
+				{
+					continue; // hand-written spells carry their own logic
+				}
+
+				DnDSpellData row = data.Data;
+
+				if (SpellRegistry.GetId(spell) < 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: spell '{0}' has no id", row.Name);
+					ok = false;
+				}
+
+				bool needsDice = row.Kind == SpellEffectKind.Damage || row.Kind == SpellEffectKind.Healing;
+
+				if (needsDice && (row.DiceCount <= 0 || row.DiceSides <= 0))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} deals damage or healing with no dice", row.Name);
+					ok = false;
+				}
+
+				if (row.Kind == SpellEffectKind.ArmorClass && row.ArmorClassValue <= 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} sets no armour class", row.Name);
+					ok = false;
+				}
+
+				if (row.HalfOnSave && row.Resolution != SpellResolution.SavingThrow)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} halves on a save it never rolls", row.Name);
+					ok = false;
+				}
+
+				if (row.Classes.Length == 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} is on no class list, so nobody can cast it", row.Name);
+					ok = false;
+				}
+
+				if (row.Kind == SpellEffectKind.Utility)
+				{
+					++utility;
+				}
+				else if (row.Level == 0)
+				{
+					++cantrips;
+				}
+				else
+				{
+					++levelled;
+				}
+			}
+
+			ok &= CheckMageArmor();
+
+			Console.WriteLine(
+				"[combat-selftest]   spells: {0} total - {1} damaging cantrip(s), {2} levelled, {3} utility placeholder(s)",
+				SpellRegistry.Count,
+				cantrips,
+				levelled,
+				utility);
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Mage Armor sets a floor rather than adding, so it has to help an unarmoured wizard and
+		/// do nothing at all for someone already better protected.
+		/// </summary>
+		private static bool CheckMageArmor()
+		{
+			DnDPlayerMobile wizard = new DnDPlayerMobile { Name = "MageArmorProbe", Body = 0x190 };
+
+			wizard.ApplyDnDSetup(
+				new AbilityScores(10, 14, 12, 16, 10, 10),
+				CharacterClass.Parse("Wizard"));
+
+			wizard.MoveToWorld(TestLocation, Map.Felucca);
+
+			bool ok = CheckValue("AC before Mage Armor", wizard.ArmorClass, 12); // 10 + 2
+
+			DnDSpell mageArmor = SpellRegistry.Find("Mage Armor");
+
+			if (mageArmor == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: Mage Armor is not registered");
+				wizard.Delete();
+				return false;
+			}
+
+			ok &= CheckCast("mage armor", DnDCasting.Cast(wizard, mageArmor, wizard), CastResult.Success);
+			ok &= CheckValue("AC after Mage Armor", wizard.ArmorClass, 15); // 13 + 2
+
+			Spells.DnD.DnDEffects.Clear(wizard);
+			wizard.Delete();
 
 			return ok;
 		}

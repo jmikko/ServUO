@@ -4,6 +4,17 @@ using System;
 
 namespace Server
 {
+	/// <summary>
+	/// How a d20 is rolled. Advantage and disadvantage never stack and always cancel each other,
+	/// however many sources apply - so this is a single state rather than a running total.
+	/// </summary>
+	public enum RollMode
+	{
+		Normal,
+		Advantage,
+		Disadvantage
+	}
+
 	public enum SpellSchool
 	{
 		Abjuration,

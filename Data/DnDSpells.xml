@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SRD spells whose whole behaviour is "roll dice, resolve this way, scale like this". Spells
+    needing real behaviour beyond that stay hand-written classes in SrdSpells.cs.
+
+    kind        Damage | Healing | ArmorClass | Utility
+    resolution  Automatic | SpellAttack | SavingThrow
+    dice/die    N and X in NdX, per step
+    bonus       flat addition per die (Magic Missile's 1d4+1 per dart)
+    dicePerSlot extra dice per slot level above the spell's own level
+    cantripScaling  multiplies the dice at character level 5/11/17 instead
+    addModifier adds the caster's spellcasting ability modifier to the result
+
+    Utility spells are registered so they appear on spell lists and consume slots correctly, but
+    have no mechanical effect yet - they are marked as such in their description rather than
+    silently doing nothing.
+-->
+<spells>
+
+  <!-- ============ Cantrips ============ -->
+  <spell id="AcidSplash"    name="Acid Splash"    level="0" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Dex"
+         dice="1" die="6" cantripScaling="true" range="24" classes="Sorcerer,Wizard" description="Acid splashes a creature it cannot dodge." />
+  <spell id="ChillTouch"    name="Chill Touch"    level="0" school="Necromancy" kind="Damage" resolution="SpellAttack"
+         dice="1" die="8" cantripScaling="true" range="24" classes="Sorcerer,Warlock,Wizard" description="A spectral hand grips the target." />
+  <spell id="FireBolt"      name="Fire Bolt"      level="0" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="10" cantripScaling="true" range="24" classes="Sorcerer,Warlock,Wizard" description="A mote of fire hurled at a target." />
+  <spell id="PoisonSpray"   name="Poison Spray"   level="0" school="Conjuration" kind="Damage" resolution="SavingThrow" save="Con"
+         dice="1" die="12" cantripScaling="true" range="4" classes="Druid,Sorcerer,Warlock,Wizard" description="A puff of noxious gas." />
+  <spell id="RayOfFrost"    name="Ray of Frost"   level="0" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="8" cantripScaling="true" range="24" classes="Sorcerer,Wizard" description="A freezing beam that slows its target." />
+  <spell id="SacredFlame"   name="Sacred Flame"   level="0" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex"
+         dice="1" die="8" cantripScaling="true" range="24" classes="Cleric" description="Radiance descends on a creature, ignoring cover." />
+  <spell id="ShockingGrasp" name="Shocking Grasp" level="0" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="8" cantripScaling="true" range="1" classes="Sorcerer,Wizard" description="Lightning leaps from your hand on touch." />
+  <spell id="ThornWhip"     name="Thorn Whip"     level="0" school="Transmutation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="6" cantripScaling="true" range="10" classes="Druid" description="A vine lashes out and pulls the target closer." />
+  <spell id="TollTheDead"   name="Toll the Dead"  level="0" school="Necromancy" kind="Damage" resolution="SavingThrow" save="Wis"
+         dice="1" die="8" cantripScaling="true" range="24" classes="Cleric,Warlock,Wizard" description="A mournful bell tolls for the target." />
+  <spell id="ViciousMockery" name="Vicious Mockery" level="0" school="Enchantment" kind="Damage" resolution="SavingThrow" save="Wis"
+         dice="1" die="4" cantripScaling="true" range="24" classes="Bard" description="An insult laced with enchantment." />
+  <spell id="EldritchBlast" name="Eldritch Blast" level="0" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="10" cantripScaling="true" range="40" classes="Warlock" description="A beam of crackling energy." />
+  <spell id="ProduceFlame"  name="Produce Flame"  level="0" school="Conjuration" kind="Damage" resolution="SpellAttack"
+         dice="1" die="8" cantripScaling="true" range="12" classes="Druid" description="A flame in your palm, to light the way or to throw." />
+
+  <spell id="SpareTheDying" name="Spare the Dying" level="0" school="Necromancy" kind="Healing" resolution="Automatic"
+         dice="1" die="1" range="1" beneficial="true" classes="Cleric" description="Stabilises a dying creature." />
+  <spell id="Light"         name="Light"          level="0" school="Evocation" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Sorcerer,Wizard" description="An object sheds light. Not yet modelled." />
+  <spell id="Guidance"      name="Guidance"       level="0" school="Divination" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Druid" description="Adds a d4 to one ability check. Not yet modelled." />
+  <spell id="Resistance"    name="Resistance"     level="0" school="Abjuration" kind="Utility" range="1" beneficial="true"
+         classes="Cleric,Druid" description="Adds a d4 to one saving throw. Not yet modelled." />
+  <spell id="MageHand"      name="Mage Hand"      level="0" school="Conjuration" kind="Utility" range="24" beneficial="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A spectral hand manipulates objects. Not yet modelled." />
+  <spell id="MinorIllusion" name="Minor Illusion" level="0" school="Illusion" kind="Utility" range="24" beneficial="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="A sound or image. Not yet modelled." />
+  <spell id="Prestidigitation" name="Prestidigitation" level="0" school="Transmutation" kind="Utility" range="10" beneficial="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Minor magical tricks. Not yet modelled." />
+  <spell id="Druidcraft"    name="Druidcraft"     level="0" school="Transmutation" kind="Utility" range="10" beneficial="true"
+         classes="Druid" description="Small natural effects. Not yet modelled." />
+  <spell id="DancingLights" name="Dancing Lights" level="0" school="Evocation" kind="Utility" range="24" beneficial="true"
+         classes="Bard,Sorcerer,Wizard" description="Four floating lights. Not yet modelled." />
+  <spell id="Message"       name="Message"        level="0" school="Transmutation" kind="Utility" range="24" beneficial="true"
+         classes="Bard,Sorcerer,Wizard" description="A whispered message at range. Not yet modelled." />
+  <spell id="Mending"       name="Mending"        level="0" school="Transmutation" kind="Utility" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid,Sorcerer,Wizard" description="Repairs a broken object. Not yet modelled." />
+  <spell id="TrueStrike"    name="True Strike"    level="0" school="Divination" kind="Utility" range="12"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Advantage on your next attack. Not yet modelled." />
+  <spell id="BladeWard"     name="Blade Ward"     level="0" school="Abjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Bard,Sorcerer,Warlock,Wizard" description="Resistance to weapon damage. Not yet modelled." />
+
+  <!-- ============ 1st Level ============ -->
+  <spell id="MagicMissile"  name="Magic Missile"  level="1" school="Evocation" kind="Damage" resolution="Automatic"
+         dice="3" die="4" bonus="1" dicePerSlot="1" range="24" classes="Sorcerer,Wizard"
+         description="Three darts of force that never miss; one more per slot level above 1st." />
+  <spell id="BurningHands"  name="Burning Hands"  level="1" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
+         dice="3" die="6" dicePerSlot="1" range="6" classes="Sorcerer,Wizard" description="A cone of searing flame." />
+  <spell id="ChromaticOrb"  name="Chromatic Orb"  level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="3" die="8" dicePerSlot="1" range="18" classes="Sorcerer,Wizard" description="An orb of elemental energy." />
+  <spell id="GuidingBolt"   name="Guiding Bolt"   level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="4" die="6" dicePerSlot="1" range="24" classes="Cleric" description="A flash of light that leaves the target easier to hit." />
+  <spell id="InflictWounds" name="Inflict Wounds" level="1" school="Necromancy" kind="Damage" resolution="SpellAttack"
+         dice="3" die="10" dicePerSlot="1" range="1" classes="Cleric" description="Necrotic energy on touch." />
+  <spell id="WitchBolt"     name="Witch Bolt"     level="1" school="Evocation" kind="Damage" resolution="SpellAttack"
+         dice="1" die="12" dicePerSlot="1" range="12" classes="Sorcerer,Warlock,Wizard" description="An arc of lightning that persists." />
+  <spell id="Thunderwave"   name="Thunderwave"    level="1" school="Evocation" kind="Damage" resolution="SavingThrow" save="Con" halfOnSave="true"
+         dice="2" die="8" dicePerSlot="1" range="6" classes="Bard,Druid,Sorcerer,Wizard" description="A wave of thunderous force." />
+  <spell id="DissonantWhispers" name="Dissonant Whispers" level="1" school="Enchantment" kind="Damage" resolution="SavingThrow" save="Wis" halfOnSave="true"
+         dice="3" die="6" dicePerSlot="1" range="24" classes="Bard" description="A discordant melody only the target hears." />
+  <spell id="Sleep"         name="Sleep"          level="1" school="Enchantment" kind="Utility" range="18"
+         classes="Bard,Sorcerer,Wizard" description="Puts creatures to sleep by hit point total. Not yet modelled." />
+
+  <spell id="CureWounds"    name="Cure Wounds"    level="1" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="1" die="8" dicePerSlot="1" addModifier="true" range="1" beneficial="true"
+         classes="Bard,Cleric,Druid,Paladin,Ranger" description="Healing by touch." />
+  <spell id="HealingWord"   name="Healing Word"   level="1" school="Abjuration" kind="Healing" resolution="Automatic"
+         dice="1" die="4" dicePerSlot="1" addModifier="true" range="24" beneficial="true"
+         classes="Bard,Cleric,Druid" description="Healing at range, for a smaller die." />
+  <spell id="FalseLife"     name="False Life"     level="1" school="Necromancy" kind="Healing" resolution="Automatic"
+         dice="1" die="4" bonus="4" dicePerSlot="1" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Wizard" description="A necromantic sheen of vitality." />
+
+  <spell id="MageArmor"     name="Mage Armor"     level="1" school="Abjuration" kind="ArmorClass" resolution="Automatic"
+         armorClass="13" durationSeconds="28800" range="1" beneficial="true"
+         classes="Sorcerer,Wizard" description="Protective force sets your armour class to 13 plus Dexterity." />
+  <spell id="ShieldOfFaith" name="Shield of Faith" level="1" school="Abjuration" kind="ArmorClass" resolution="Automatic"
+         armorClass="12" durationSeconds="600" range="24" beneficial="true"
+         classes="Cleric,Paladin" description="A shimmering field wards the target." />
+
+  <spell id="Bless"         name="Bless"          level="1" school="Enchantment" kind="Utility" range="6" beneficial="true"
+         classes="Cleric,Paladin" description="Adds a d4 to attacks and saves. Not yet modelled." />
+  <spell id="Bane"          name="Bane"           level="1" school="Enchantment" kind="Utility" range="6"
+         classes="Bard,Cleric" description="Subtracts a d4 from attacks and saves. Not yet modelled." />
+  <spell id="CharmPerson"   name="Charm Person"   level="1" school="Enchantment" kind="Utility" range="12"
+         classes="Bard,Druid,Sorcerer,Warlock,Wizard" description="Charms a humanoid. Not yet modelled." />
+  <spell id="DetectMagic"   name="Detect Magic"   level="1" school="Divination" kind="Utility" range="0" beneficial="true" selfOnly="true"
+         classes="Bard,Cleric,Druid,Paladin,Ranger,Sorcerer,Wizard" description="Senses magic nearby. Not yet modelled." />
+  <spell id="Shield"        name="Shield"         level="1" school="Abjuration" kind="ArmorClass" resolution="Automatic"
+         armorClass="15" durationSeconds="6" range="0" beneficial="true" selfOnly="true"
+         classes="Sorcerer,Wizard" description="An invisible barrier briefly raises your armour class." />
+  <spell id="FaerieFire"    name="Faerie Fire"    level="1" school="Evocation" kind="Utility" range="12"
+         classes="Bard,Druid" description="Outlines creatures in light, granting advantage against them. Not yet modelled." />
+  <spell id="HuntersMark"   name="Hunter's Mark"  level="1" school="Divination" kind="Utility" range="18"
+         classes="Ranger" description="Marks a quarry for extra damage. Not yet modelled." />
+
+</spells>
