@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Server.Items
 {
@@ -165,20 +166,49 @@ namespace Server.Items
 				applied = ClassFeatures.ReduceIncomingDamage(
 					defender as Mobile, defender as IDnDCharacter, applied, IsRanged(weapon));
 
-				// A hit on someone already down costs them a death save rather than hit points.
-				Mobile downed = defender as Mobile;
+				Mobile defenderMobile = defender as Mobile;
 
-				if (Mobiles.DnDDeath.IsDying(downed))
+				// A hit on someone already down costs them a death save rather than hit points.
+				if (Mobiles.DnDDeath.IsDying(defenderMobile))
 				{
-					Mobiles.DnDDeath.OnDamagedWhileDying(downed, result.Critical);
+					Mobiles.DnDDeath.OnDamagedWhileDying(defenderMobile, result.Critical);
 					Announce(attacker, defender, "strikes the fallen");
 					continue;
 				}
 
-				// Damage while shaped comes off the beast.s hit points, not the character.s.
-				if (!Mobiles.DnDWildShape.OnDamage(downed, applied))
+				// Worn magic armour gets to alter the damage before any of it lands - resistance,
+				// absorption, a shield that turns a critical into an ordinary hit. It runs here
+				// rather than after Damage() because by then the hit points are already gone.
+				if (defenderMobile != null)
 				{
-				defender.Damage(applied, attacker);
+					// Over a copy: a hook is allowed to destroy the item it belongs to, and
+					// charges running out is the ordinary way for one of these to end.
+					var worn = new List<Item>(defenderMobile.Items);
+
+					for (int w = 0; w < worn.Count; ++w)
+					{
+						var armour = worn[w] as DnDMagicArmor;
+
+						if (armour != null)
+						{
+							armour.OnTakeDamage(attacker, defenderMobile, ref applied, result.Critical);
+						}
+					}
+				}
+
+				// Damage while shaped comes off the beast.s hit points, not the character.s.
+				if (!Mobiles.DnDWildShape.OnDamage(defenderMobile, applied))
+				{
+					defender.Damage(applied, attacker);
+				}
+
+				// The weapon's own rider - poison, life stealing, an extra die on a critical -
+				// after the hit has landed, since most of them care whether the target survived.
+				var magicWeapon = weapon as DnDMagicWeapon;
+
+				if (magicWeapon != null)
+				{
+					magicWeapon.OnHit(attacker, defender, applied, result.Critical);
 				}
 
 				// Taking a hit risks dropping whatever the defender was concentrating on.

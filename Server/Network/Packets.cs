@@ -822,6 +822,46 @@ namespace Server.Network
 		}
 	}
 
+	/// <summary>How a dying character's roll went, for the client's death-save display.</summary>
+	public enum DnDDyingState : byte
+	{
+		/// <summary>Not dying - the client hides the display.</summary>
+		Alive = 0,
+
+		/// <summary>At 0 hit points and still rolling.</summary>
+		Dying = 1,
+
+		/// <summary>Three successes: no longer rolling, still unconscious.</summary>
+		Stable = 2,
+
+		/// <summary>Three failures.</summary>
+		Dead = 3,
+	}
+
+	/// <summary>
+	/// The running death-save count. Extended (0xBF) subcommand 0x45.
+	/// <para>
+	/// Sent on every change while a character is down, because the whole tension of the rule is
+	/// watching the count: three successes and you stabilise, three failures and you do not. As
+	/// system messages the numbers scroll away with everything else, which is the one thing a
+	/// player in that moment is actually looking for.
+	/// </para>
+	/// </summary>
+	public sealed class DnDDeathSaves : Packet
+	{
+		public DnDDeathSaves(DnDDyingState state, int successes, int failures)
+			: base(0xBF)
+		{
+			EnsureCapacity(8);
+
+			m_Stream.Write((short)0x45);
+
+			m_Stream.Write((byte)state);
+			m_Stream.Write((byte)Math.Min(3, Math.Max(0, successes)));
+			m_Stream.Write((byte)Math.Min(3, Math.Max(0, failures)));
+		}
+	}
+
 	/// <summary>
 	/// Syncs D&amp;D 5.5e character-sheet data (ability scores, class, level, proficiency bonus, AC,
 	/// current/max HP) to the client. Extended (0xBF) subcommand 0x41. Sent once after character

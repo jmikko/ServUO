@@ -17,6 +17,19 @@ namespace Server.Items
 			return 0;
 		}
 
+		/// <summary>
+		/// Called by the combat resolver once a hit has landed and its damage been applied.
+		/// <para>
+		/// This is where a weapon whose effect is not a flat bonus does its work - a Dagger of
+		/// Venom poisoning, a Sword of Life Stealing healing its wielder. The bonuses above are
+		/// read before the roll; this is read after it, and gets told whether the hit was a
+		/// critical, because a good many SRD weapons only trigger on one.
+		/// </para>
+		/// </summary>
+		public virtual void OnHit(Mobile attacker, IDamageable defender, int damage, bool critical)
+		{
+		}
+
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
 			if (RequiresAttunement)

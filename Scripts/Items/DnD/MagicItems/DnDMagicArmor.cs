@@ -17,6 +17,20 @@ namespace Server.Items
 			return 0;
 		}
 
+		/// <summary>
+		/// Called for every worn piece before the damage of a hit is applied, and able to change it.
+		/// <para>
+		/// Armour that grants resistance, absorbs a fixed amount, or turns a critical back into an
+		/// ordinary hit works here rather than through the flat bonuses above, which are read
+		/// before the attack roll and cannot see what the hit turned out to be. The damage is
+		/// passed by reference because reducing it is the whole point; a piece that only wants to
+		/// react - a shield that shouts, armour that sheds a charge - can ignore it.
+		/// </para>
+		/// </summary>
+		public virtual void OnTakeDamage(Mobile attacker, Mobile defender, ref int damage, bool critical)
+		{
+		}
+
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
 			if (RequiresAttunement)

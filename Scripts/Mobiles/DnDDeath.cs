@@ -141,6 +141,58 @@ namespace Server.Mobiles
 			return false;
 		}
 
+		/// <summary>
+		/// Pushes the running count to the client, which draws it as pips.
+		/// <para>
+		/// Called after every change rather than only at the end, because the whole tension of the
+		/// rule is watching the count climb. As system messages the numbers scroll away with
+		/// combat spam, which is exactly when a player is looking for them.
+		/// </para>
+		/// </summary>
+		/// <summary>
+		/// Raised on every publish, before the client is considered. The self-test listens here.
+		/// <para>
+		/// The failure this exists to catch is a transition that changes the count and forgets to
+		/// send it - the display then sits on a stale number, which is worse than no display,
+		/// because a player reading two failures when they have three will not run. That bug is
+		/// invisible from the server's own state, which is correct either way, so the only thing
+		/// worth asserting on is that the send happened. Deliberately raised before the NetState
+		/// check: a test character has no client, and gating the hook on one would mean the test
+		/// could only ever observe nothing.
+		/// </para>
+		/// </summary>
+		public static event Action<Mobile, Network.DnDDyingState, int, int> Published;
+
+		private static void Publish(Mobile m, Network.DnDDyingState phase)
+		{
+			if (m == null)
+			{
+				return;
+			}
+
+			DyingState state;
+
+			int successes = 0, failures = 0;
+
+			if (m_Dying.TryGetValue(m, out state))
+			{
+				successes = state.Successes;
+				failures = state.Failures;
+			}
+
+			var handler = Published;
+
+			if (handler != null)
+			{
+				handler(m, phase, successes, failures);
+			}
+
+			if (m.NetState != null)
+			{
+				m.NetState.Send(new Network.DnDDeathSaves(phase, successes, failures));
+			}
+		}
+
 		private static void BeginDying(Mobile m)
 		{
 			if (m_Dying.ContainsKey(m))
@@ -159,6 +211,8 @@ namespace Server.Mobiles
 
 			m.SendMessage(0x22, "You are dying. Three successes and you stabilise; three failures and you do not.");
 			m.PublicOverheadMessage(Network.MessageType.Regular, 0x22, false, m.Name + " collapses.");
+
+			Publish(m, Network.DnDDyingState.Dying);
 
 			state.Timer = Timer.DelayCall(RoundLength, RoundLength, () => RollDeathSave(m));
 		}
@@ -208,6 +262,7 @@ namespace Server.Mobiles
 				case SaveOutcome.Stabilised:
 					{
 						m.SendMessage(0x40, "You are stable, but still unconscious.");
+						Publish(m, Network.DnDDyingState.Stable);
 						break;
 					}
 				case SaveOutcome.Died:
@@ -225,6 +280,10 @@ namespace Server.Mobiles
 						{
 							m.SendMessage(0x22, "You weaken. ({0} failures)", state.Failures);
 						}
+
+						// The ordinary round, and the one that matters most to watch: this is the
+						// count creeping toward three either way.
+						Publish(m, Network.DnDDyingState.Dying);
 
 						break;
 					}
@@ -249,6 +308,8 @@ namespace Server.Mobiles
 			state.Failures += critical ? 2 : 1;
 
 			m.SendMessage(0x22, "Being struck while down costs you. ({0} failures)", Math.Min(Needed, state.Failures));
+
+			Publish(m, Network.DnDDyingState.Dying);
 
 			if (state.Failures >= Needed)
 			{
@@ -284,10 +345,17 @@ namespace Server.Mobiles
 			}
 
 			m.PublicOverheadMessage(Network.MessageType.Regular, 0x40, false, m.Name + " rises.");
+
+			// Sent after Stop, so the count is gone and the client hides the display.
+			Publish(m, Network.DnDDyingState.Alive);
 		}
 
 		private static void Die(Mobile m)
 		{
+			// Published before Stop clears the count, so the display shows the three failures that
+			// finished it rather than blanking to zero.
+			Publish(m, Network.DnDDyingState.Dead);
+
 			Stop(m);
 
 			m.Frozen = false;
@@ -329,6 +397,7 @@ namespace Server.Mobiles
 			{
 				m.Frozen = false;
 				DnDConditions.Remove(m, DnDCondition.Unconscious);
+				Publish(m, Network.DnDDyingState.Alive);
 			}
 		}
 	}

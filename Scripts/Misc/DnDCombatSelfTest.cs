@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Server.Items;
 using Server.Mobiles;
 using Server.Spells.DnD;
@@ -44,6 +45,32 @@ namespace Server.Misc
 			}
 		}
 
+		/// <summary>
+		/// Runs one check with its exceptions contained, so a check that throws costs only itself.
+		/// <para>
+		/// The suite used to be a straight chain, which meant the first thing to throw hid every
+		/// check after it: a single unspawnable data row could take out two dozen unrelated checks
+		/// and make the boot log look like one small problem. The checks are independent of each
+		/// other, so each one is allowed to fail on its own terms.
+		/// </para>
+		/// </summary>
+		private static bool Guard(string name, Func<bool> check)
+		{
+			try
+			{
+				return check();
+			}
+			catch (Exception e)
+			{
+				// Reflection wraps whatever was actually thrown, and the wrapper says nothing.
+				Exception cause = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
+
+				Console.WriteLine("[combat-selftest] FAIL: {0} threw {1}: {2}", name, cause.GetType().Name, cause.Message);
+
+				return false;
+			}
+		}
+
 		private static void Run()
 		{
 			Console.WriteLine("[combat-selftest] starting");
@@ -67,62 +94,62 @@ namespace Server.Misc
 
 			bool ok = true;
 
-			ok &= CheckMovementWorks(fighter);
-			ok &= CheckSpeciesRendering();
-			ok &= CheckEquipmentTables();
-			ok &= CheckSpellTable();
-			ok &= CheckConditions();
-			ok &= CheckConcentration();
-			ok &= CheckAreaShapes();
-			ok &= CheckSpawnAnchors();
-			ok &= CheckWeaponResolves(fighter);
-			ok &= CheckWeaponResolves(goblin);
-			ok &= CheckFinesseAndProficiency();
+			ok &= Guard("CheckMovementWorks", () => CheckMovementWorks(fighter));
+			ok &= Guard("CheckSpeciesRendering", () => CheckSpeciesRendering());
+			ok &= Guard("CheckEquipmentTables", () => CheckEquipmentTables());
+			ok &= Guard("CheckSpellTable", () => CheckSpellTable());
+			ok &= Guard("CheckConditions", () => CheckConditions());
+			ok &= Guard("CheckConcentration", () => CheckConcentration());
+			ok &= Guard("CheckAreaShapes", () => CheckAreaShapes());
+			ok &= Guard("CheckSpawnAnchors", () => CheckSpawnAnchors());
+			ok &= Guard("CheckWeaponResolves", () => CheckWeaponResolves(fighter));
+			ok &= Guard("CheckWeaponResolves", () => CheckWeaponResolves(goblin));
+			ok &= Guard("CheckFinesseAndProficiency", () => CheckFinesseAndProficiency());
 
 			// Unarmed: 1d1 + Str mod.
-			ok &= RunSwings("fighter unarmed", fighter, goblin, null, 1, 1, 0, 3);
+			ok &= Guard("RunSwings", () => RunSwings("fighter unarmed", fighter, goblin, null, 1, 1, 0, 3));
 
 			DnDLongsword sword = new DnDLongsword();
 			fighter.EquipItem(sword);
 
-			ok &= CheckWeaponResolves(fighter);
+			ok &= Guard("CheckWeaponResolves", () => CheckWeaponResolves(fighter));
 
 			// Armed: the wielded weapon must be what Mobile.Weapon returns, and its dice - not the
 			// unarmed 1d1 - must be what damage comes from. A longsword is Versatile, so with the
 			// off-hand free it rolls its two-handed die.
-			ok &= RunSwings("longsword, off-hand free", fighter, goblin, sword, 1, 10, 0, 3);
+			ok &= Guard("RunSwings", () => RunSwings("longsword, off-hand free", fighter, goblin, sword, 1, 10, 0, 3));
 
 			// Fill the off-hand and the same weapon drops to its one-handed die.
 			DnDShield shield = new DnDShield();
 			fighter.EquipItem(shield);
 
-			ok &= RunSwings("longsword + shield", fighter, goblin, sword, 1, 8, 0, 3);
+			ok &= Guard("RunSwings", () => RunSwings("longsword + shield", fighter, goblin, sword, 1, 8, 0, 3));
 
 			shield.Delete();
 
 			// The creature's own attack: damage comes from its stat block, with no ability modifier
 			// added on top (the stat block already bakes one in).
-			ok &= RunSwings("goblin", goblin, fighter, null, 1, 6, 2, 0);
+			ok &= Guard("RunSwings", () => RunSwings("goblin", goblin, fighter, null, 1, 6, 2, 0));
 
-			ok &= CheckDamageIsApplied(fighter, goblin, sword);
-			ok &= CheckSpellSlotTables();
-			ok &= CheckSpellcasting(fighter);
-			ok &= CheckAdvancement();
-			ok &= CheckMulticlassing();
-			ok &= CheckSkills();
-			ok &= CheckAttunement();
-			ok &= CheckSkillChoice();
-			ok &= CheckLevelUpWireFormat();
-			ok &= CheckDeathSaves();
-			ok &= CheckHitDice();
-			ok &= CheckFeats();
-			ok &= CheckSpellEffects();
-			ok &= CheckTurnEconomy();
-			ok &= CheckResourcePools();
-			ok &= CheckLevelUpChoices();
-			ok &= CheckWildShape();
-			ok &= CheckSubclasses();
-			ok &= CheckClassFeatures();
+			ok &= Guard("CheckDamageIsApplied", () => CheckDamageIsApplied(fighter, goblin, sword));
+			ok &= Guard("CheckSpellSlotTables", () => CheckSpellSlotTables());
+			ok &= Guard("CheckSpellcasting", () => CheckSpellcasting(fighter));
+			ok &= Guard("CheckAdvancement", () => CheckAdvancement());
+			ok &= Guard("CheckMulticlassing", () => CheckMulticlassing());
+			ok &= Guard("CheckSkills", () => CheckSkills());
+			ok &= Guard("CheckAttunement", () => CheckAttunement());
+			ok &= Guard("CheckSkillChoice", () => CheckSkillChoice());
+			ok &= Guard("CheckLevelUpWireFormat", () => CheckLevelUpWireFormat());
+			ok &= Guard("CheckDeathSaves", () => CheckDeathSaves());
+			ok &= Guard("CheckHitDice", () => CheckHitDice());
+			ok &= Guard("CheckFeats", () => CheckFeats());
+			ok &= Guard("CheckSpellEffects", () => CheckSpellEffects());
+			ok &= Guard("CheckTurnEconomy", () => CheckTurnEconomy());
+			ok &= Guard("CheckResourcePools", () => CheckResourcePools());
+			ok &= Guard("CheckLevelUpChoices", () => CheckLevelUpChoices());
+			ok &= Guard("CheckWildShape", () => CheckWildShape());
+			ok &= Guard("CheckSubclasses", () => CheckSubclasses());
+			ok &= Guard("CheckClassFeatures", () => CheckClassFeatures());
 
 			fighter.Delete();
 			goblin.Delete();
@@ -1103,11 +1130,92 @@ namespace Server.Misc
 				ok = false;
 			}
 
+			if (!CheckDeathSavePublishing())
+			{
+				ok = false;
+			}
+
 			if (ok)
 			{
 				Console.WriteLine(
 					"[combat-selftest] death saves: {0:P1} die, {1:P1} stabilise, {2:P1} come round",
 					deathRate, stabilised / (double)trials, revived / (double)trials);
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// The count the player watches has to match the count the server is keeping.
+		/// <para>
+		/// The client draws pips from what it is sent, not from what is true, so a transition that
+		/// changes the count without publishing it leaves the display frozen on an old number. This
+		/// walks a character through falling, being struck while down, and being healed, and checks
+		/// that each step announced itself with the right phase and the right figures. The rolled
+		/// saves are on a six-second timer and cannot be driven here, but they share the one publish
+		/// path with everything below.
+		/// </para>
+		/// </summary>
+		private static bool CheckDeathSavePublishing()
+		{
+			bool ok = true;
+
+			var seen = new List<string>();
+
+			Action<Mobile, Server.Network.DnDDyingState, int, int> listener =
+				(m, phase, successes, failures) => seen.Add(string.Format("{0}:{1}/{2}", phase, successes, failures));
+
+			DnDPlayerMobile victim = MakeCharacter("Pip Watcher", "Fighter", 3, 12, 12, 12);
+
+			DnDDeath.Published += listener;
+
+			try
+			{
+				victim.Hits = 1;
+				victim.Damage(500, victim);
+
+				if (seen.Count != 1 || seen[0] != "Dying:0/0")
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: falling published [{0}], wanted [Dying:0/0]", string.Join(", ", seen));
+
+					ok = false;
+				}
+
+				// Struck while down: one failure, and the player must see it climb.
+				seen.Clear();
+				DnDDeath.OnDamagedWhileDying(victim, false);
+
+				if (seen.Count != 1 || seen[0] != "Dying:0/1")
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: a hit while down published [{0}], wanted [Dying:0/1]",
+						string.Join(", ", seen));
+
+					ok = false;
+				}
+
+				// Healed back up: the display has to be told to go away, and to go away empty -
+				// a lingering "1 failure" after standing up would read as still dying.
+				seen.Clear();
+				victim.Hits = 5;
+				DnDDeath.OnHealed(victim);
+
+				if (seen.Count != 1 || seen[0] != "Alive:0/0")
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: recovering published [{0}], wanted [Alive:0/0]",
+						string.Join(", ", seen));
+
+					ok = false;
+				}
+			}
+			finally
+			{
+				DnDDeath.Published -= listener;
+				DnDDeath.Clear(victim);
+
+				victim.Delete();
 			}
 
 			return ok;
