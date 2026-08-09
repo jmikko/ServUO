@@ -284,6 +284,24 @@ static async Task<byte[]?> Paint(HttpClient http, Spell spell)
                 return image;
             }
 
+            // Dumping the reply beats another round of guessing at the response shape. Written
+            // once per run rather than per spell, because 229 copies of the same JSON is not more
+            // information than one.
+            string dump = Path.Combine(Path.GetTempPath(), "iconforge-response.json");
+
+            if (!File.Exists(dump))
+            {
+                try
+                {
+                    File.WriteAllText(dump, text);
+                    Console.Error.WriteLine($"  (wrote the unrecognised reply to {dump})");
+                }
+                catch
+                {
+                    // Diagnostics are not worth failing the run over.
+                }
+            }
+
             Console.Error.WriteLine($"  {spell.Name}: no image in the reply (attempt {attempt})");
         }
         catch (Exception e) when (attempt < 3)
@@ -297,12 +315,17 @@ static async Task<byte[]?> Paint(HttpClient http, Spell spell)
 }
 
 /// <summary>
-/// Digs the base64 image out of the response.
+/// Digs the image out of the response.
 /// <para>
-/// Written as a search for any sufficiently long base64 string rather than as a walk down a fixed
-/// path, because this API's response shape has changed before and a tool that breaks on a renamed
-/// wrapper field is a tool that breaks again. The size floor is what makes it safe: no id, token,
-/// or short field reaches a few thousand characters.
+/// Written as a search rather than a walk down a fixed path, because this API's response shape has
+/// changed before and a tool that breaks on a renamed wrapper field is a tool that breaks again.
+/// </para>
+/// <para>
+/// The test is what makes the search safe, and the first version got it wrong: it took the longest
+/// base64-looking string and hoped. Now every long string is decoded and checked for an image
+/// magic number, so the winner is the one that actually IS an image rather than the one that
+/// merely looks like base64 - a long id, a signature, or an encoded thinking trace all pass a
+/// character check and none of them are pictures.
 /// </para>
 /// </summary>
 static byte[]? ExtractImage(string json)
@@ -311,18 +334,18 @@ static byte[]? ExtractImage(string json)
     {
         using var document = JsonDocument.Parse(json);
 
-        string? best = null;
+        byte[]? best = null;
 
         Walk(document.RootElement, ref best);
 
-        return best == null ? null : Convert.FromBase64String(best);
+        return best;
     }
     catch
     {
         return null;
     }
 
-    static void Walk(JsonElement element, ref string? best)
+    static void Walk(JsonElement element, ref byte[]? best)
     {
         switch (element.ValueKind)
         {
@@ -345,32 +368,97 @@ static byte[]? ExtractImage(string json)
             case JsonValueKind.String:
                 string? value = element.GetString();
 
-                // Longest wins: if a response ever carries a thumbnail alongside the real image,
-                // the real one is the bigger string.
-                if (value is { Length: > 2000 } && (best == null || value.Length > best.Length)
-                    && IsBase64(value))
+                if (value is not { Length: > 2000 })
                 {
-                    best = value;
+                    break;
+                }
+
+                byte[]? decoded = TryDecodeImage(value);
+
+                // Longest wins: if a response ever carries a thumbnail beside the real image, the
+                // real one has more bytes.
+                if (decoded != null && (best == null || decoded.Length > best.Length))
+                {
+                    best = decoded;
                 }
 
                 break;
         }
     }
+}
 
-    static bool IsBase64(string value)
+/// <summary>
+/// Decodes a string to image bytes, or returns null if it is not an encoded image.
+/// <para>
+/// Handles the three ways an image arrives as text: a bare base64 payload, one wrapped in a
+/// `data:` URI, and the URL-safe alphabet, which uses - and _ where standard base64 uses + and /.
+/// Feeding the URL-safe form straight to Convert.FromBase64String yields bytes that are not an
+/// image, which is exactly the failure this replaced.
+/// </para>
+/// </summary>
+static byte[]? TryDecodeImage(string value)
+{
+    // A data: URI carries the payload after the comma; the prefix is not base64.
+    int comma = value.IndexOf(',');
+
+    if (comma > 0 && comma < 100 && value.AsSpan(0, comma).Contains("base64", StringComparison.Ordinal))
     {
-        // Cheap enough to run on every long string, and it rejects prose and URLs immediately.
-        foreach (char c in value)
-        {
-            if (!char.IsAsciiLetterOrDigit(c) && c != '+' && c != '/' && c != '=' && c != '-'
-                && c != '_' && !char.IsWhiteSpace(c))
-            {
-                return false;
-            }
-        }
+        value = value[(comma + 1)..];
+    }
 
+    value = Regex.Replace(value, @"\s", string.Empty).Replace('-', '+').Replace('_', '/');
+
+    // Base64 arrives without padding often enough to be worth restoring rather than rejecting.
+    switch (value.Length % 4)
+    {
+        case 2: value += "=="; break;
+        case 3: value += "="; break;
+        case 1: return null; // never a valid length
+    }
+
+    byte[] bytes;
+
+    try
+    {
+        bytes = Convert.FromBase64String(value);
+    }
+    catch
+    {
+        return null;
+    }
+
+    return LooksLikeImage(bytes) ? bytes : null;
+}
+
+/// <summary>The magic numbers of the formats an image API might plausibly return.</summary>
+static bool LooksLikeImage(byte[] bytes)
+{
+    if (bytes.Length < 12)
+    {
+        return false;
+    }
+
+    // JPEG
+    if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+    {
         return true;
     }
+
+    // PNG
+    if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+    {
+        return true;
+    }
+
+    // WEBP - "RIFF" .... "WEBP"
+    if (bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46
+        && bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50)
+    {
+        return true;
+    }
+
+    // GIF
+    return bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46;
 }
 
 /// <summary>
@@ -486,6 +574,42 @@ static int SelfTest()
     }
 
     Console.WriteLine($"Converter OK: 512 -> 44x44, content survived the downscale. {probe}");
+
+    // The extractor gets its own checks, because it is the half that has actually broken. Its
+    // first version took the longest base64-looking string on faith and handed Skia something
+    // that was not an image; these cases are the ways that goes wrong.
+    string plain = Convert.ToBase64String(sourceData.ToArray());
+    string urlSafe = plain.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+    string dataUri = "data:image/jpeg;base64," + plain;
+    string notAnImage = new string('A', 4000); // decodes fine, is not a picture
+
+    // Built by concatenation rather than interpolation: the payloads are JSON, and raw-string
+    // interpolation cannot tell a closing brace of the JSON from one of its own.
+    (string Label, string Json, bool ShouldFind)[] cases =
+    [
+        ("bare base64", "{\"output_image\":{\"data\":\"" + plain + "\"}}", true),
+        ("url-safe base64", "{\"output_image\":{\"data\":\"" + urlSafe + "\"}}", true),
+        ("data: URI", "{\"output_image\":{\"data\":\"" + dataUri + "\"}}", true),
+        ("nested somewhere new", "{\"steps\":[{\"a\":{\"b\":[{\"c\":\"" + plain + "\"}]}}]}", true),
+        ("long string that is not an image", "{\"signature\":\"" + notAnImage + "\"}", false),
+        ("no image at all", "{\"error\":{\"message\":\"nope\"}}", false),
+    ];
+
+    foreach (var (label, json, shouldFind) in cases)
+    {
+        bool found = ExtractImage(json) != null;
+
+        if (found != shouldFind)
+        {
+            Console.Error.WriteLine(
+                $"FAIL: extractor on '{label}' {(found ? "found" : "found no")} image, expected " +
+                $"{(shouldFind ? "one" : "none")}.");
+
+            return 1;
+        }
+    }
+
+    Console.WriteLine($"Extractor OK: {cases.Length} response shapes handled.");
     return 0;
 }
 
