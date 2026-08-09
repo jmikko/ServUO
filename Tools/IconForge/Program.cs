@@ -25,7 +25,10 @@ const string Model = "gemini-3.1-flash-image";
 
 // 512 is deliberate. The icon is displayed at 44px, so anything larger is detail thrown away by
 // the downscale - it costs more, takes longer, and does not improve the result.
-const string ImageSize = "0.5K";
+//
+// The literal is "512", not "0.5K". The documentation writes this size as "512px (0.5K)" and the
+// parenthetical is not an accepted value; the API takes 512, 1K, 2K, 4K.
+const string ImageSize = "512";
 
 // The house style lives in the Style class at the foot of this file - a top-level const is not
 // visible to the Spell record, and C# requires type declarations to follow the entry point.
@@ -97,16 +100,10 @@ if (string.IsNullOrWhiteSpace(apiKey))
     return 1;
 }
 
-// A warning rather than a refusal: the prefix is a long-standing Google convention, not a promise,
-// and refusing a key that turns out to be valid would be worse than a line of noise. But an OAuth
-// token pasted in place of an API key fails with a bare 403, and guessing why costs a round trip.
-if (!apiKey.StartsWith("AIza"))
-{
-    Console.Error.WriteLine(
-        $"Warning: GEMINI_API_KEY starts '{apiKey[..Math.Min(4, apiKey.Length)]}...' - AI Studio keys "
-        + "normally start 'AIza'. If authentication fails, check you took the key from "
-        + "https://aistudio.google.com/apikey rather than an OAuth token from elsewhere.");
-}
+// There was a check here warning that a key not starting "AIza" was probably an OAuth token in
+// the wrong place. It was wrong: AI Studio also issues keys beginning "AQ.", and the warning fired
+// on a perfectly good one. Guessing a credential's validity from its prefix is not something this
+// tool can do reliably, so it no longer tries - a real 401 or 403 says it accurately.
 
 Directory.CreateDirectory(iconDirectory);
 
@@ -247,19 +244,28 @@ static async Task<byte[]?> Paint(HttpClient http, Spell spell)
 
             if (!response.IsSuccessStatusCode)
             {
-                // A bad key fails identically on every spell, so retrying it 229 times is a wall
-                // of the same error and no icons. Stop instead.
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized
-                    || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                int status = (int)response.StatusCode;
+
+                // A malformed request fails identically every time, and identically for every
+                // spell: a wrong image_size produced 687 rejections and a screenful of the same
+                // message. Anything the client got wrong stops the run at once and says so, with
+                // the server's own explanation - it names the bad field better than a guess can.
+                // 429 is the exception: the request is fine, the pace is not.
+                bool clientError = status is >= 400 and < 500 && status != 429;
+
+                if (clientError)
                 {
-                    Console.Error.WriteLine($"\nAuthentication failed: {Summarise(text)}");
-                    Console.Error.WriteLine("Check GEMINI_API_KEY.");
+                    Console.Error.WriteLine($"\nThe request was rejected ({status}): {Summarise(text)}");
+                    Console.Error.WriteLine(
+                        status is 401 or 403
+                            ? "Check GEMINI_API_KEY."
+                            : "This is a bug in IconForge, not something a retry will fix.");
 
                     Environment.Exit(1);
                 }
 
                 Console.Error.WriteLine(
-                    $"  {spell.Name}: {(int)response.StatusCode} {Summarise(text)} (attempt {attempt})");
+                    $"  {spell.Name}: {status} {Summarise(text)} (attempt {attempt})");
 
                 if (attempt < 3)
                 {
