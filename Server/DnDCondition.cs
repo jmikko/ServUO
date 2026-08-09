@@ -96,6 +96,21 @@ namespace Server
 				return;
 			}
 
+			// A creature immune to a condition simply never gets it. Filtered here rather than at
+			// each of the several dozen places conditions are applied, because one of those places
+			// would eventually be missed and a skeleton would end up poisoned.
+			IDnDTraited traited = m as IDnDTraited;
+
+			if (traited != null && traited.Traits != null)
+			{
+				condition &= ~traited.Traits.ConditionImmunities;
+
+				if (condition == DnDCondition.None)
+				{
+					return;
+				}
+			}
+
 			List<Entry> entries;
 
 			if (!m_Table.TryGetValue(m, out entries))
@@ -204,12 +219,66 @@ namespace Server
 				advantage = true;
 			}
 
+			// Pack tactics: advantage while an ally is also on the target. This is what makes six
+			// wolves frightening and one wolf a nuisance, and it is the only trait that turns a
+			// monster's numbers into a reason to fight it differently - break the pack up, or be
+			// surrounded and hit far more often than the stat block suggests.
+			if (HasPackTactics(attacker) && HasAllyAdjacentTo(attacker, target))
+			{
+				advantage = true;
+			}
+
 			if (advantage == disadvantage)
 			{
 				return RollMode.Normal;
 			}
 
 			return advantage ? RollMode.Advantage : RollMode.Disadvantage;
+		}
+
+		private static bool HasPackTactics(Mobile m)
+		{
+			IDnDTraited traited = m as IDnDTraited;
+
+			return traited != null && traited.Traits != null && traited.Traits.PackTactics;
+		}
+
+		/// <summary>
+		/// Is one of the attacker's own kind next to the target, other than the attacker itself?
+		/// <para>
+		/// "Ally" is read as another creature of the same type rather than a real faction check,
+		/// which the game has no notion of. That is right for the creatures this trait belongs to -
+		/// wolves hunt with wolves - and it deliberately fails safe: a lone wolf beside a player's
+		/// pet gets nothing.
+		/// </para>
+		/// </summary>
+		private static bool HasAllyAdjacentTo(Mobile attacker, Mobile target)
+		{
+			if (attacker == null || target == null || target.Map == null)
+			{
+				return false;
+			}
+
+			Type kind = attacker.GetType();
+
+			var eable = target.Map.GetMobilesInRange(target.Location, 1);
+
+			try
+			{
+				foreach (Mobile m in eable)
+				{
+					if (m != attacker && m != target && !m.Deleted && m.Alive && m.GetType() == kind)
+					{
+						return true;
+					}
+				}
+			}
+			finally
+			{
+				eable.Free();
+			}
+
+			return false;
 		}
 
 		/// <summary>A paralysed or unconscious creature simply fails Strength and Dexterity saves.</summary>

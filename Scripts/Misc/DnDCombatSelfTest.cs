@@ -145,6 +145,7 @@ namespace Server.Misc
 			ok &= Guard("CheckFeats", () => CheckFeats());
 			ok &= Guard("CheckSpellEffects", () => CheckSpellEffects());
 			ok &= Guard("CheckNoDuplicateSpells", () => CheckNoDuplicateSpells());
+			ok &= Guard("CheckMonsterTraits", () => CheckMonsterTraits());
 			ok &= Guard("CheckDefenceSpells", () => CheckDefenceSpells());
 			ok &= Guard("CheckTurnEconomy", () => CheckTurnEconomy());
 			ok &= Guard("CheckResourcePools", () => CheckResourcePools());
@@ -1822,6 +1823,116 @@ namespace Server.Misc
 			{
 				cleric.Delete();
 				patient.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Every monster class can be constructed, and its traits reach the rules.
+		/// <para>
+		/// Constructing them all matters because SrdMonster throws when a row is missing, so a
+		/// class whose id has no data is a landmine rather than a gap: it compiles, ships, and
+		/// crashes the first time anyone spawns it. Hundreds of these classes are generated in
+		/// bulk, and nothing else in the build ever instantiates one.
+		/// </para>
+		/// <para>
+		/// The trait half is measured rather than asserted, for the usual reason: a resistance
+		/// listed in a table and never consulted looks exactly like a resistance that works.
+		/// </para>
+		/// </summary>
+		private static bool CheckMonsterTraits()
+		{
+			bool ok = true;
+
+			int constructed = 0, failed = 0, withTraits = 0, withFlavour = 0;
+
+			foreach (Type type in typeof(SrdMonster).Assembly.GetTypes())
+			{
+				if (type == null || type.IsAbstract || !typeof(SrdMonster).IsAssignableFrom(type))
+				{
+					continue;
+				}
+
+				try
+				{
+					var monster = Activator.CreateInstance(type) as SrdMonster;
+
+					if (monster == null)
+					{
+						continue;
+					}
+
+					++constructed;
+
+					DnDMonsterTraits traits = monster.Traits;
+
+					if (traits != null)
+					{
+						if (!string.IsNullOrEmpty(traits.Flavour))
+						{
+							++withFlavour;
+						}
+
+						if (traits.Resistances != DnDDamageType.None
+							|| traits.Immunities != DnDDamageType.None
+							|| traits.ConditionImmunities != DnDCondition.None
+							|| traits.PackTactics
+							|| traits.Multiattack > 1)
+						{
+							++withTraits;
+						}
+					}
+
+					monster.Delete();
+				}
+				catch (Exception e)
+				{
+					if (failed < 5)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: {0} cannot be constructed: {1}",
+							type.Name,
+							e.InnerException != null ? e.InnerException.Message : e.Message);
+					}
+
+					++failed;
+					ok = false;
+				}
+			}
+
+			if (failed > 5)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: ...and {0} more that cannot be constructed", failed - 5);
+			}
+
+			// Condition immunity has to be refused at the source, not filtered at each caller.
+			var undead = new DnDMonsterTraits { ConditionImmunities = DnDCondition.Poisoned };
+
+			if ((undead.ConditionImmunities & DnDCondition.Poisoned) == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: condition immunity did not parse into the flag set");
+				ok = false;
+			}
+
+			// Damage typing: immune is nothing, resistant is half, vulnerable is double.
+			var probe = new DnDMonsterTraits
+			{
+				Immunities = DnDDamageType.Poison,
+				Resistances = DnDDamageType.Fire,
+				Vulnerabilities = DnDDamageType.Radiant
+			};
+
+			ok &= CheckValue("immune takes nothing", probe.ApplyDamageType(20, DnDDamageType.Poison), 0);
+			ok &= CheckValue("resistant takes half", probe.ApplyDamageType(20, DnDDamageType.Fire), 10);
+			ok &= CheckValue("vulnerable takes double", probe.ApplyDamageType(20, DnDDamageType.Radiant), 40);
+			ok &= CheckValue("untyped is untouched", probe.ApplyDamageType(20, DnDDamageType.Cold), 20);
+
+			if (ok)
+			{
+				Console.WriteLine(
+					"[combat-selftest]   monsters: {0} constructed, {1} with traits, {2} with flavour",
+					constructed, withTraits, withFlavour);
 			}
 
 			return ok;

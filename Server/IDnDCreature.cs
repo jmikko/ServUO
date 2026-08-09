@@ -13,4 +13,18 @@ namespace Server
 		string DamageDiceExpression { get; }
 		int HitPointsMaxDnD { get; }
 	}
+
+	/// <summary>
+	/// Implemented by anything carrying a monster trait block.
+	/// <para>
+	/// Separate from <see cref="IDnDCreature"/> and living in Server/ because the rules that read
+	/// it - the attack roll, the condition table - are engine code and cannot see Scripts/, where
+	/// the monsters themselves are defined. Without this the traits would be data the rules could
+	/// not reach, which is the same as no traits at all.
+	/// </para>
+	/// </summary>
+	public interface IDnDTraited
+	{
+		DnDMonsterTraits Traits { get; }
+	}
 }

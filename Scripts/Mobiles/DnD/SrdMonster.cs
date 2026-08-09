@@ -29,6 +29,12 @@ namespace Server.Mobiles
 		/// title, murder and reputation systems that no longer exist here.
 		/// </summary>
 		public double ChallengeRating;
+
+		/// <summary>
+		/// What this creature does that others do not. Never null - a row with no trait attributes
+		/// gets a default block, so nothing has to null-check before asking about resistances.
+		/// </summary>
+		public DnDMonsterTraits Traits = new DnDMonsterTraits();
 	}
 
 	/// <summary>
@@ -45,7 +51,7 @@ namespace Server.Mobiles
 	/// from the same HP value IDnDCreature.HitPointsMaxDnD reports, rather than maintaining two
 	/// parallel HP tracks.
 	/// </summary>
-	public abstract class SrdMonster : DnDCreature
+	public abstract class SrdMonster : DnDCreature, IDnDTraited
 	{
 		private static readonly Dictionary<string, SrdMonsterData> m_Data = new Dictionary<string, SrdMonsterData>();
 
@@ -86,13 +92,83 @@ namespace Server.Mobiles
 					AttackBonus = ParseInt(el.GetAttribute("attackBonus")),
 					DamageDice = el.GetAttribute("damageDice"),
 					HitPoints = ParseInt(el.GetAttribute("hp")),
-					ChallengeRating = Advancement.ParseChallengeRating(el.GetAttribute("cr"))
+					ChallengeRating = Advancement.ParseChallengeRating(el.GetAttribute("cr")),
+					Traits = ParseTraits(el)
 				};
 
 				m_Data[data.Id] = data;
 			}
 
 			Console.WriteLine("SrdMonster: loaded {0} monster stat blocks from Data/DnDMonsters.xml", m_Data.Count);
+		}
+
+		/// <summary>
+		/// Reads the trait attributes off a row. Every one is optional: a row with none of them
+		/// gets a default trait block, which is a plain Medium creature with no resistances - what
+		/// every monster in the game was before these existed.
+		/// </summary>
+		private static DnDMonsterTraits ParseTraits(XmlElement el)
+		{
+			string id = el.GetAttribute("id");
+
+			var traits = new DnDMonsterTraits();
+
+			string size = el.GetAttribute("size");
+			string type = el.GetAttribute("type");
+
+			if (!string.IsNullOrEmpty(size))
+			{
+				traits.Size = size;
+			}
+
+			if (!string.IsNullOrEmpty(type))
+			{
+				traits.Type = type;
+			}
+
+			int speed = ParseInt(el.GetAttribute("speed"));
+
+			if (speed > 0)
+			{
+				traits.Speed = speed;
+			}
+
+			traits.FlySpeed = ParseInt(el.GetAttribute("flySpeed"));
+			traits.SwimSpeed = ParseInt(el.GetAttribute("swimSpeed"));
+			traits.BurrowSpeed = ParseInt(el.GetAttribute("burrowSpeed"));
+			traits.ClimbSpeed = ParseInt(el.GetAttribute("climbSpeed"));
+
+			traits.Resistances = DnDMonsterTraits.ParseDamageTypes(el.GetAttribute("resist"), id, "resist");
+			traits.Immunities = DnDMonsterTraits.ParseDamageTypes(el.GetAttribute("immune"), id, "immune");
+			traits.Vulnerabilities = DnDMonsterTraits.ParseDamageTypes(el.GetAttribute("vulnerable"), id, "vulnerable");
+
+			traits.ConditionImmunities = DnDMonsterTraits.ParseConditions(el.GetAttribute("conditionImmune"), id);
+
+			traits.Darkvision = ParseInt(el.GetAttribute("darkvision"));
+			traits.Blindsight = ParseInt(el.GetAttribute("blindsight"));
+			traits.Truesight = ParseInt(el.GetAttribute("truesight"));
+			traits.Tremorsense = ParseInt(el.GetAttribute("tremorsense"));
+
+			traits.PackTactics = el.GetAttribute("packTactics") == "true";
+			traits.MagicResistance = el.GetAttribute("magicResistance") == "true";
+			traits.Regeneration = ParseInt(el.GetAttribute("regeneration"));
+
+			int multiattack = ParseInt(el.GetAttribute("multiattack"));
+
+			if (multiattack > 1)
+			{
+				traits.Multiattack = multiattack;
+			}
+
+			traits.KeenSenses = el.GetAttribute("keenSenses") == "true";
+			traits.SunlightSensitivity = el.GetAttribute("sunlightSensitivity") == "true";
+			traits.UndeadFortitude = el.GetAttribute("undeadFortitude") == "true";
+			traits.Amphibious = el.GetAttribute("amphibious") == "true";
+			traits.Incorporeal = el.GetAttribute("incorporeal") == "true";
+
+			traits.Flavour = el.GetAttribute("flavour");
+
+			return traits;
 		}
 
 		private static int ParseInt(string value)
@@ -163,6 +239,28 @@ namespace Server.Mobiles
 		protected SrdMonster(Serial serial)
 			: base(serial)
 		{
+		}
+
+		public DnDMonsterTraits Traits { get { return GetData(m_MonsterId).Traits; } }
+
+		/// <summary>
+		/// Adds the creature's one sentence of character under its name.
+		/// <para>
+		/// A player meeting a creature for the first time has no stat block to read, so this is
+		/// the only place the game gets to say what it is - and a line about how a thing fights is
+		/// worth more at that moment than its armour class.
+		/// </para>
+		/// </summary>
+		public override void GetProperties(ObjectPropertyList list)
+		{
+			base.GetProperties(list);
+
+			DnDMonsterTraits traits = Traits;
+
+			if (traits != null && !string.IsNullOrEmpty(traits.Flavour))
+			{
+				list.Add(1042971, traits.Flavour);
+			}
 		}
 
 		public override int ArmorClass { get { return GetData(m_MonsterId).ArmorClass; } }
