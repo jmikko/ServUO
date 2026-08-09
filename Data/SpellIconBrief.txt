@@ -1,0 +1,925 @@
+﻿Spell icon art brief
+====================
+
+Save each image under the exact filename shown. The client matches art to a
+spell by filename, so spacing and punctuation have to match.
+
+Target: 44 x 44 PNG with transparency, into C:\ClassicUO\src\ClassicUO.Client\Data\SpellIcons
+
+=== Acid Splash.png ===
+Level 0 Conjuration
+Acid splashes a creature it cannot dodge. Rendered in sickly green corrosion. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Chill Touch.png ===
+Level 0 Necromancy
+A spectral hand grips the target. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fire Bolt.png ===
+Level 0 Evocation
+A mote of fire hurled at a target. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Poison Spray.png ===
+Level 0 Conjuration
+A puff of noxious gas. Rendered in sickly green corrosion. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Ray of Frost.png ===
+Level 0 Evocation
+A freezing beam that slows its target. Rendered in pale blue ice and frost. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sacred Flame.png ===
+Level 0 Evocation
+Radiance descends on a creature, ignoring cover. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shocking Grasp.png ===
+Level 0 Evocation
+Lightning leaps from your hand on touch. Rendered in white-blue lightning. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Thorn Whip.png ===
+Level 0 Transmutation
+A vine lashes out and pulls the target closer. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Toll the Dead.png ===
+Level 0 Necromancy
+A mournful bell tolls for the target. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Vicious Mockery.png ===
+Level 0 Enchantment
+An insult laced with enchantment. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Eldritch Blast.png ===
+Level 0 Evocation
+A beam of crackling energy. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Produce Flame.png ===
+Level 0 Conjuration
+A flame in your palm, to light the way or to throw. Rendered in orange and gold flame. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Spare the Dying.png ===
+Level 0 Necromancy
+Stabilises a dying creature. Rendered in soft green-white healing light. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Light.png ===
+Level 0 Evocation
+An object sheds light. Rendered in clear white light. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Guidance.png ===
+Level 0 Divination
+Adds a d4 to one ability check. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Resistance.png ===
+Level 0 Abjuration
+Adds a d4 to one saving throw. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mage Hand.png ===
+Level 0 Conjuration
+A spectral hand manipulates objects. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Minor Illusion.png ===
+Level 0 Illusion
+A sound or image. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Prestidigitation.png ===
+Level 0 Transmutation
+Minor magical tricks. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Druidcraft.png ===
+Level 0 Transmutation
+Small natural effects. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dancing Lights.png ===
+Level 0 Evocation
+Four floating lights. Rendered in clear white light. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Message.png ===
+Level 0 Transmutation
+A whispered message at range. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mending.png ===
+Level 0 Transmutation
+Repairs a broken object. Not yet modelled. Rendered in soft green-white healing light. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== True Strike.png ===
+Level 0 Divination
+Advantage on your next attack. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Blade Ward.png ===
+Level 0 Abjuration
+Resistance to weapon damage. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Magic Missile.png ===
+Level 1 Evocation
+Three darts of force that never miss; one more per slot level above 1st. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Burning Hands.png ===
+Level 1 Evocation
+A 15-foot cone of searing flame. Rendered in orange and gold flame. Suggest a cone of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Chromatic Orb.png ===
+Level 1 Evocation
+An orb of elemental energy. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Guiding Bolt.png ===
+Level 1 Evocation
+A flash of light that leaves the target easier to hit. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Inflict Wounds.png ===
+Level 1 Necromancy
+Necrotic energy on touch. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Witch Bolt.png ===
+Level 1 Evocation
+An arc of lightning that persists. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Thunderwave.png ===
+Level 1 Evocation
+A 15-foot cube of thunderous force. Rendered in white-blue lightning. Suggest a cube of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dissonant Whispers.png ===
+Level 1 Enchantment
+A discordant melody only the target hears. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sleep.png ===
+Level 1 Enchantment
+Overwhelms creatures with few hit points; the strong are unaffected. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Cure Wounds.png ===
+Level 1 Abjuration
+Healing by touch. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Healing Word.png ===
+Level 1 Abjuration
+Healing at range, for a smaller die. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== False Life.png ===
+Level 1 Necromancy
+A necromantic sheen of vitality. Rendered in soft green-white healing light. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mage Armor.png ===
+Level 1 Abjuration
+Protective force sets your armour class to 13 plus Dexterity. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shield of Faith.png ===
+Level 1 Abjuration
+A shimmering field wards the target. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Bless.png ===
+Level 1 Enchantment
+Allies nearby add a d4 to attack rolls and saving throws. Rendered in warm golden radiance. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Bane.png ===
+Level 1 Enchantment
+Enemies nearby subtract a d4 from attack rolls and saving throws. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Charm Person.png ===
+Level 1 Enchantment
+Charms a humanoid that fails a Wisdom save. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Detect Magic.png ===
+Level 1 Divination
+Senses magic nearby. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shield.png ===
+Level 1 Abjuration
+An invisible barrier briefly raises your armour class. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Faerie Fire.png ===
+Level 1 Evocation
+Outlines creatures in light, granting advantage against them. Not yet modelled. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Hunter's Mark.png ===
+Level 1 Divination
+Marks a quarry for extra damage. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Scorching Ray.png ===
+Level 2 Evocation
+Three rays of fire; one more per slot level above 2nd. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shatter.png ===
+Level 2 Evocation
+A ringing burst of sound. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Moonbeam.png ===
+Level 2 Evocation
+A pillar of pale light. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Flaming Sphere.png ===
+Level 2 Conjuration
+A rolling sphere of fire. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Heat Metal.png ===
+Level 2 Transmutation
+Metal glows red hot. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Cloud of Daggers.png ===
+Level 2 Conjuration
+Spinning blades fill a small space. Suggest a cube of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Ray of Enfeeblement.png ===
+Level 2 Necromancy
+A black beam saps the target's strength. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Hold Person.png ===
+Level 2 Enchantment
+Paralyses a humanoid that fails a Wisdom save. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Blindness-Deafness.png ===
+Level 2 Necromancy
+Strikes a creature blind. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Web.png ===
+Level 2 Conjuration
+Sticky strands fill the area. Suggest a cube of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Invisibility.png ===
+Level 2 Illusion
+The target fades from sight. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Barkskin.png ===
+Level 2 Transmutation
+Bark-like skin sets armour class to 16. Rendered in translucent blue protective light. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Aid.png ===
+Level 2 Abjuration
+Bolsters allies' vitality. Rendered in soft green-white healing light. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Prayer of Healing.png ===
+Level 2 Abjuration
+Healing for everyone nearby. Rendered in soft green-white healing light. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Lesser Restoration.png ===
+Level 2 Abjuration
+Cures disease, blindness, deafness, paralysis, or poison. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Misty Step.png ===
+Level 2 Conjuration
+A short teleport. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mirror Image.png ===
+Level 2 Illusion
+Illusory duplicates that make you harder to hit. Rendered in translucent blue protective light. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Spiritual Weapon.png ===
+Level 2 Evocation
+A floating spectral weapon. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Silence.png ===
+Level 2 Illusion
+Silence falls over the area. Suggest a sphere of effect. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Darkness.png ===
+Level 2 Evocation
+Magical darkness swallows the area. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Suggestion.png ===
+Level 2 Enchantment
+A suggestion the target finds reasonable. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Enhance Ability.png ===
+Level 2 Transmutation
+Advantage on ability checks. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== See Invisibility.png ===
+Level 2 Divination
+Reveals the invisible. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Spider Climb.png ===
+Level 2 Transmutation
+Walk on walls and ceilings. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Pass without Trace.png ===
+Level 2 Abjuration
+A veil that hides the party. Not yet modelled. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Knock.png ===
+Level 2 Transmutation
+Opens a locked object. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Levitate.png ===
+Level 2 Transmutation
+Lifts a creature off the ground for ten minutes. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Darkvision.png ===
+Level 2 Transmutation
+Grants sight in darkness for eight hours. Rendered in clear white light. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Magic Weapon.png ===
+Level 2 Transmutation
+A weapon becomes magical. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Lightning Bolt.png ===
+Level 3 Evocation
+A stroke of lightning in a line. Rendered in white-blue lightning. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Call Lightning.png ===
+Level 3 Conjuration
+A bolt called down from a storm cloud. Rendered in white-blue lightning. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Spirit Guardians.png ===
+Level 3 Conjuration
+Spirits swirl around you, harrying your enemies. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Vampiric Touch.png ===
+Level 3 Necromancy
+A withering touch that feeds you. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fear.png ===
+Level 3 Illusion
+A phantasm of terror in a cone. Rendered in violet psychic energy. Suggest a cone of effect. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Hypnotic Pattern.png ===
+Level 3 Illusion
+A twisting pattern that entrances onlookers. Suggest a cube of effect. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Stinking Cloud.png ===
+Level 3 Conjuration
+A cloud of nauseating gas. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sleet Storm.png ===
+Level 3 Conjuration
+Freezing rain and sleet make the ground treacherous. Rendered in white-blue lightning. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Slow.png ===
+Level 3 Transmutation
+Time crawls for those who fail. Suggest a cube of effect. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mass Healing Word.png ===
+Level 3 Abjuration
+A word of healing for everyone nearby. Rendered in soft green-white healing light. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Beacon of Hope.png ===
+Level 3 Abjuration
+Advantage on Wisdom saves and death saves. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Revivify.png ===
+Level 3 Necromancy
+Restores a creature that died recently. Rendered in soft green-white healing light. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dispel Magic.png ===
+Level 3 Abjuration
+Ends spells on the target. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Counterspell.png ===
+Level 3 Abjuration
+Interrupts a creature in the process of casting a spell. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Haste.png ===
+Level 3 Transmutation
+Doubles speed and grants an extra action. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fly.png ===
+Level 3 Transmutation
+Grants a flying speed. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Protection from Energy.png ===
+Level 3 Abjuration
+Resistance to one damage type. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Remove Curse.png ===
+Level 3 Abjuration
+Ends curses. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Water Breathing.png ===
+Level 3 Transmutation
+Breathe underwater. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Daylight.png ===
+Level 3 Evocation
+Bright light in a 60-foot radius. Rendered in warm golden radiance. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Animate Dead.png ===
+Level 3 Necromancy
+Raises a corpse as a servant. Not yet modelled. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Tongues.png ===
+Level 3 Divination
+Understand any language. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Blight.png ===
+Level 4 Necromancy
+Necrotic energy drains the target's life. Rendered in sickly green corrosion. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Ice Storm.png ===
+Level 4 Evocation
+Hail hammers the ground. Rendered in pale blue ice and frost. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Wall of Fire.png ===
+Level 4 Evocation
+A blazing wall of flame. Rendered in orange and gold flame. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Phantasmal Killer.png ===
+Level 4 Illusion
+A vision of the target's deepest fear. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Confusion.png ===
+Level 4 Enchantment
+Minds unravel into aimless confusion. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Banishment.png ===
+Level 4 Abjuration
+Sends a creature to another plane. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dominate Beast.png ===
+Level 4 Enchantment
+Bends a beast to your will. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Stoneskin.png ===
+Level 4 Abjuration
+Skin turns to stone. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Greater Invisibility.png ===
+Level 4 Illusion
+Invisibility that survives attacking. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Death Ward.png ===
+Level 4 Abjuration
+Cheats death once. Not yet modelled. Rendered in cold green-black necrotic energy. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dimension Door.png ===
+Level 4 Conjuration
+A long teleport. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Polymorph.png ===
+Level 4 Transmutation
+Transforms a creature into a beast. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Freedom of Movement.png ===
+Level 4 Abjuration
+Removes paralysis and restraints. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fire Shield.png ===
+Level 4 Evocation
+Resistance to cold or fire. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Cone of Cold.png ===
+Level 5 Evocation
+A blast of freezing air in a great cone. Rendered in pale blue ice and frost. Suggest a cone of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Flame Strike.png ===
+Level 5 Evocation
+A column of divine fire. Rendered in orange and gold flame. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Cloudkill.png ===
+Level 5 Conjuration
+A fog of poison rolls outward. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Insect Plague.png ===
+Level 5 Conjuration
+A swarm of biting insects. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Hold Monster.png ===
+Level 5 Enchantment
+Paralyses any creature that fails a Wisdom save. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dominate Person.png ===
+Level 5 Enchantment
+Seizes control of a humanoid. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Contagion.png ===
+Level 5 Necromancy
+Inflicts a virulent disease. Rendered in sickly green corrosion. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mass Cure Wounds.png ===
+Level 5 Abjuration
+Healing for everyone nearby. Rendered in soft green-white healing light. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Greater Restoration.png ===
+Level 5 Abjuration
+Ends a debilitating effect. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Raise Dead.png ===
+Level 5 Necromancy
+Returns a dead creature to life. Rendered in warm golden radiance. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Wall of Force.png ===
+Level 5 Evocation
+An invisible wall nothing passes. Not yet modelled. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Telekinesis.png ===
+Level 5 Transmutation
+Move creatures and objects with your mind. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Scrying.png ===
+Level 5 Divination
+See a distant creature. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Animate Objects.png ===
+Level 5 Transmutation
+Objects rise and fight for you. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Disintegrate.png ===
+Level 6 Transmutation
+A thin green ray that reduces its target to dust. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Chain Lightning.png ===
+Level 6 Evocation
+Lightning that leaps between targets. Rendered in white-blue lightning. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Circle of Death.png ===
+Level 6 Necromancy
+A sphere of negative energy. Rendered in cold green-black necrotic energy. Suggest a sphere of effect. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sunbeam.png ===
+Level 6 Evocation
+A beam of brilliant light. Rendered in warm golden radiance. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Blade Barrier.png ===
+Level 6 Evocation
+A wall of whirling blades. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Harm.png ===
+Level 6 Necromancy
+A vile disease wracks the target. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Heal.png ===
+Level 6 Abjuration
+A flood of positive energy. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Flesh to Stone.png ===
+Level 6 Transmutation
+Turns a creature to stone. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Eyebite.png ===
+Level 6 Necromancy
+Your gaze sickens, panics or sleeps a creature. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mass Suggestion.png ===
+Level 6 Enchantment
+A suggestion many creatures find reasonable. Rendered in violet psychic energy. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== True Seeing.png ===
+Level 6 Divination
+See through every illusion. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Globe of Invulnerability.png ===
+Level 6 Abjuration
+A globe that stops lesser spells. Not yet modelled. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Delayed Blast Fireball.png ===
+Level 7 Evocation
+A fireball that waits before it blooms. Rendered in orange and gold flame. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Finger of Death.png ===
+Level 7 Necromancy
+Negative energy tears at the target. Rendered in cold green-black necrotic energy. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fire Storm.png ===
+Level 7 Evocation
+Roaring flame fills the area. Rendered in orange and gold flame. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Prismatic Spray.png ===
+Level 7 Evocation
+Rays of every colour in a cone. Suggest a cone of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mordenkainen's Sword.png ===
+Level 7 Evocation
+A blade of force fights at your command. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Regenerate.png ===
+Level 7 Transmutation
+Wounds close as you watch. Rendered in soft green-white healing light. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Forcecage.png ===
+Level 7 Evocation
+An inescapable cage of force. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Resurrection.png ===
+Level 7 Necromancy
+Restores a long-dead creature to life. Rendered in soft green-white healing light. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Plane Shift.png ===
+Level 7 Conjuration
+Travel to another plane. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Teleport.png ===
+Level 7 Conjuration
+Instant travel across the world. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Etherealness.png ===
+Level 7 Transmutation
+Step onto the Ethereal Plane. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Reverse Gravity.png ===
+Level 7 Transmutation
+Gravity fails in the area. Not yet modelled. Suggest a sphere of effect. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sunburst.png ===
+Level 8 Evocation
+A blaze of sunlight erupts. Rendered in warm golden radiance. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Incendiary Cloud.png ===
+Level 8 Conjuration
+A billowing cloud of embers. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Earthquake.png ===
+Level 8 Evocation
+The ground itself convulses. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Power Word Stun.png ===
+Level 8 Enchantment
+A word that stuns anything not already strong. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Feeblemind.png ===
+Level 8 Enchantment
+Shatters a creature's intellect. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Dominate Monster.png ===
+Level 8 Enchantment
+Seizes control of any creature. Rendered in violet psychic energy. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Maze.png ===
+Level 8 Conjuration
+Banishes a creature into a labyrinth. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Holy Aura.png ===
+Level 8 Abjuration
+Divine light shields your allies. Not yet modelled. Rendered in warm golden radiance. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Antimagic Field.png ===
+Level 8 Abjuration
+Magic simply stops working nearby. Not yet modelled. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mind Blank.png ===
+Level 8 Abjuration
+Immunity to divination and mind control. Not yet modelled. Rendered in violet psychic energy. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Clone.png ===
+Level 8 Necromancy
+Grows a spare body. Not yet modelled. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Meteor Swarm.png ===
+Level 9 Evocation
+Blazing spheres of rock plummet from the sky. Rendered in orange and gold flame. Suggest a sphere of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Power Word Kill.png ===
+Level 9 Enchantment
+A word that simply ends a wounded creature. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Mass Heal.png ===
+Level 9 Abjuration
+A tide of healing energy. Rendered in soft green-white healing light. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Power Word Heal.png ===
+Level 9 Abjuration
+A word that makes a creature whole. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Weird.png ===
+Level 9 Illusion
+Everyone sees their own nightmare. Suggest a sphere of effect. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Imprisonment.png ===
+Level 9 Abjuration
+Binds a creature for a very long time. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Time Stop.png ===
+Level 9 Transmutation
+Time halts for everyone but you. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Wish.png ===
+Level 9 Conjuration
+The mightiest spell mortals can cast. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Foresight.png ===
+Level 9 Divination
+You cannot be surprised, and see moments ahead. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== True Resurrection.png ===
+Level 9 Necromancy
+Restores any dead creature to life. Rendered in soft green-white healing light. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shapechange.png ===
+Level 9 Transmutation
+Become any creature you have seen. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Storm of Vengeance.png ===
+Level 9 Conjuration
+A storm of crushing scale. Rendered in white-blue lightning. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Gate.png ===
+Level 9 Conjuration
+A portal between planes. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Thaumaturgy.png ===
+Level 0 Transmutation
+Manifest a minor wonder. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Shillelagh.png ===
+Level 0 Transmutation
+Imbue a wooden weapon with nature's power. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Alarm.png ===
+Level 1 Abjuration
+Set an alarm against unwanted intrusion. Not yet modelled. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Animal Friendship.png ===
+Level 1 Enchantment
+Convinces a beast that you mean it no harm. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Armor of Agathys.png ===
+Level 1 Abjuration
+A protective magical force of frost. Rendered in soft green-white healing light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Arms of Hadar.png ===
+Level 1 Conjuration
+Tendrils of dark energy erupt from you. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Color Spray.png ===
+Level 1 Illusion
+A dazzling array of flashing, colored light. Suggest a cone of effect. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Command.png ===
+Level 1 Enchantment
+Speak a one-word command to a creature. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Comprehend Languages.png ===
+Level 1 Divination
+Understand spoken and written languages. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Create or Destroy Water.png ===
+Level 1 Transmutation
+Create or destroy water. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Detect Evil and Good.png ===
+Level 1 Divination
+Detect celestial, fiend, or undead. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Disguise Self.png ===
+Level 1 Illusion
+Make yourself look different. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Divine Favor.png ===
+Level 1 Evocation
+Weapon attacks deal extra radiant damage. Not yet modelled. Rendered in warm golden radiance. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Entangle.png ===
+Level 1 Conjuration
+Grasping weeds and vines sprout from the ground. Suggest a cube of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Feather Fall.png ===
+Level 1 Transmutation
+Slows descent. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Find Familiar.png ===
+Level 1 Conjuration
+Gain the service of a familiar. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Fog Cloud.png ===
+Level 1 Conjuration
+A sphere of thick fog obscures vision. Suggest a sphere of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Goodberry.png ===
+Level 1 Transmutation
+Berries that heal when eaten. Not yet modelled. Rendered in soft green-white healing light. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Grease.png ===
+Level 1 Conjuration
+Slick grease covers the ground. Suggest a cube of effect. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Hex.png ===
+Level 1 Enchantment
+Extra necrotic damage when you hit the target. Not yet modelled. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Jump.png ===
+Level 1 Transmutation
+Jump distance is tripled. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Longstrider.png ===
+Level 1 Transmutation
+Increases movement speed. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Ray of Sickness.png ===
+Level 1 Necromancy
+A ray of sickening energy. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sanctuary.png ===
+Level 1 Abjuration
+Wards a creature against attack. Not yet modelled. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Silent Image.png ===
+Level 1 Illusion
+Create an image of an object, a creature, or some other visible phenomenon. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Alter Self.png ===
+Level 2 Transmutation
+Assume a different form. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Augury.png ===
+Level 2 Divination
+Receive an omen. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Blur.png ===
+Level 2 Illusion
+Attackers have disadvantage against you. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Calm Emotions.png ===
+Level 2 Enchantment
+Suppress strong emotions. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Continual Flame.png ===
+Level 2 Evocation
+A flame, equivalent in brightness to a torch, that produces no heat. Rendered in orange and gold flame. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Enlarge-Reduce.png ===
+Level 2 Transmutation
+Change a creature's size. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Find Steed.png ===
+Level 2 Conjuration
+Summon a spirit that assumes the form of an unusually intelligent steed. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Gentle Repose.png ===
+Level 2 Necromancy
+Protect a corpse from decay and becoming undead. Not yet modelled. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Gust of Wind.png ===
+Level 2 Evocation
+A line of strong wind pushes creatures. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Locate Object.png ===
+Level 2 Divination
+Sense the direction of an object. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Magic Mouth.png ===
+Level 2 Illusion
+Implant a message in an object. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Phantasmal Force.png ===
+Level 2 Illusion
+Craft an illusion that takes root in a creature's mind. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Protection from Poison.png ===
+Level 2 Abjuration
+Neutralize poison and grant resistance. Rendered in sickly green corrosion. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Rope Trick.png ===
+Level 2 Transmutation
+An extradimensional space at the end of a rope. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Warding Bond.png ===
+Level 2 Abjuration
+Ward a creature, granting AC and resistance. Not yet modelled. Rendered in translucent blue protective light. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Zone of Truth.png ===
+Level 2 Enchantment
+Creatures cannot speak a deliberate lie. Not yet modelled. Suggest a sphere of effect. An influence over another's will. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Aura of Vitality.png ===
+Level 3 Evocation
+Healing energy radiates from you. Not yet modelled. Rendered in soft green-white healing light. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Clairvoyance.png ===
+Level 3 Divination
+Create an invisible sensor to see or hear. Not yet modelled. An eye, a sigil, or revealed knowledge. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Conjure Animals.png ===
+Level 3 Conjuration
+Summon fey spirits in the form of beasts. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Create Food and Water.png ===
+Level 3 Conjuration
+Create food and water. Not yet modelled. Something summoned into being. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Gaseous Form.png ===
+Level 3 Transmutation
+Transform into a misty cloud. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Glyph of Warding.png ===
+Level 3 Abjuration
+Inscribe a rune that harms intruders. Suggest a sphere of effect. A protective ward or barrier. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Leomund's Tiny Hut.png ===
+Level 3 Evocation
+Create an immobile dome of force. Not yet modelled. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Major Image.png ===
+Level 3 Illusion
+Create a complex illusion. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Meld into Stone.png ===
+Level 3 Transmutation
+Step into a stone object. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Phantom Steed.png ===
+Level 3 Illusion
+Summon a quasi-real, horselike creature. Not yet modelled. Something half-real and shifting. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Sending.png ===
+Level 3 Evocation
+Send a short message to a creature. Not yet modelled. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Speak with Dead.png ===
+Level 3 Necromancy
+Ask questions of a corpse. Not yet modelled. Grim, touching on death. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Speak with Plants.png ===
+Level 3 Transmutation
+Communicate with plants. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Water Walk.png ===
+Level 3 Transmutation
+Walk on liquid as if it were solid ground. Not yet modelled. Matter or form being changed. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+=== Wind Wall.png ===
+Level 3 Evocation
+A wall of strong wind. Suggest a line of effect. Raw destructive energy. Fantasy game spell icon, single centred subject glowing against a near-black background, painted digital art with strong rim light, no text, no border, no frame, square composition.
+
+
