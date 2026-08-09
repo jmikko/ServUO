@@ -35,6 +35,24 @@ namespace Server
 		/// </summary>
 		Dodging = 0x4000,
 
+		/// <summary>
+		/// Hard to make out - Blur, and anything else that smears the outline without hiding it.
+		/// <para>
+		/// Not an SRD condition either, for the same reason Dodging is not: what Blur actually does
+		/// is give attackers disadvantage, and that decision is already made in one place from this
+		/// flag set. A spell that reaches into the attack roll directly would be a second place to
+		/// keep in step, and the two would eventually disagree.
+		/// </para>
+		/// </summary>
+		Blurred = 0x8000,
+
+		/// <summary>
+		/// Outlined in light - Faerie Fire. The mirror of <see cref="Blurred"/>: attackers have
+		/// advantage, and since it is a separate flag from Invisible it also cancels the
+		/// disadvantage an invisible target would otherwise enjoy.
+		/// </summary>
+		Outlined = 0x10000,
+
 		/// <summary>Conditions that stop a creature acting at all.</summary>
 		CannotAct = Incapacitated | Paralyzed | Petrified | Stunned | Unconscious,
 
@@ -42,10 +60,10 @@ namespace Server
 		AttackDisadvantage = Blinded | Frightened | Poisoned | Prone | Restrained,
 
 		/// <summary>Conditions that give attackers advantage against the sufferer.</summary>
-		DefenceAdvantage = Blinded | Paralyzed | Petrified | Restrained | Stunned | Unconscious,
+		DefenceAdvantage = Blinded | Outlined | Paralyzed | Petrified | Restrained | Stunned | Unconscious,
 
 		/// <summary>Conditions that give attackers disadvantage against the sufferer.</summary>
-		DefenceDisadvantage = Dodging | Invisible,
+		DefenceDisadvantage = Blurred | Dodging | Invisible,
 
 		/// <summary>Conditions that auto-fail Strength and Dexterity saving throws.</summary>
 		AutoFailStrDexSaves = Paralyzed | Petrified | Stunned | Unconscious

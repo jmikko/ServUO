@@ -144,6 +144,8 @@ namespace Server.Misc
 			ok &= Guard("CheckHitDice", () => CheckHitDice());
 			ok &= Guard("CheckFeats", () => CheckFeats());
 			ok &= Guard("CheckSpellEffects", () => CheckSpellEffects());
+			ok &= Guard("CheckNoDuplicateSpells", () => CheckNoDuplicateSpells());
+			ok &= Guard("CheckDefenceSpells", () => CheckDefenceSpells());
 			ok &= Guard("CheckTurnEconomy", () => CheckTurnEconomy());
 			ok &= Guard("CheckResourcePools", () => CheckResourcePools());
 			ok &= Guard("CheckLevelUpChoices", () => CheckLevelUpChoices());
@@ -1825,6 +1827,121 @@ namespace Server.Misc
 			return ok;
 		}
 
+		/// <summary>
+		/// No spell name may be registered twice.
+		/// <para>
+		/// The registry is keyed by name and the second registration wins, silently. Four spells
+		/// with real hand-written implementations - Haste, Hunter's Mark, Pass without Trace and
+		/// Magic Weapon - each also had a data row describing them as not yet modelled, so whether
+		/// a player got the working spell or the inert one depended on which registration ran last.
+		/// Nothing anywhere reported it. The spell existed, appeared on the list and cast happily;
+		/// it just did nothing.
+		/// </para>
+		/// </summary>
+		private static bool CheckNoDuplicateSpells()
+		{
+			if (SpellRegistry.DuplicateNames.Count == 0)
+			{
+				return true;
+			}
+
+			foreach (string name in SpellRegistry.DuplicateNames)
+			{
+				Console.WriteLine(
+					"[combat-selftest] FAIL: '{0}' is registered twice - one registration silently replaced the other",
+					name);
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// The spells that stopped being flavour text: Blur and Faerie Fire.
+		/// <para>
+		/// Both were rows saying "not yet modelled", and both turned out to need no new machinery
+		/// at all - the attack roll already decides advantage from a set of condition flags, so
+		/// each is one more flag in that set. What has to be checked is therefore not that the
+		/// spell exists but that the flag reached the dice, and the only honest way to see that is
+		/// to swing a few thousand times and count. A description promising disadvantage while the
+		/// hit rate sits unchanged is exactly the failure these rows used to be.
+		/// </para>
+		/// </summary>
+		private static bool CheckDefenceSpells()
+		{
+			const int Swings = 6000;
+
+			bool ok = true;
+
+			DnDPlayerMobile target = MakeCharacter("Defence Probe", "Fighter", 1, 10, 10, 10);
+			SrdGoblin attacker = new SrdGoblin();
+
+			attacker.MoveToWorld(TestLocation, Map.Felucca);
+
+			try
+			{
+				double plain = MeasureHitRate(attacker, target, Swings);
+
+				DnDConditions.Add(target, DnDCondition.Blurred, TimeSpan.FromMinutes(10));
+				double blurred = MeasureHitRate(attacker, target, Swings);
+				DnDConditions.Remove(target, DnDCondition.Blurred);
+
+				DnDConditions.Add(target, DnDCondition.Outlined, TimeSpan.FromMinutes(10));
+				double outlined = MeasureHitRate(attacker, target, Swings);
+				DnDConditions.Remove(target, DnDCondition.Outlined);
+
+				// Disadvantage squares the miss chance and advantage squares the hit chance, so at
+				// these rates the gaps are enormous - several times any plausible sampling noise.
+				if (blurred >= plain - 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Blur left the hit rate at {0:P1}, from {1:P1}", blurred, plain);
+
+					ok = false;
+				}
+
+				if (outlined <= plain + 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Faerie Fire left the hit rate at {0:P1}, from {1:P1}", outlined, plain);
+
+					ok = false;
+				}
+
+				// Faerie Fire's point is that it beats invisibility. Outlined and Invisible together
+				// must cancel rather than one silently winning.
+				DnDConditions.Add(target, DnDCondition.Invisible, TimeSpan.FromMinutes(10));
+				DnDConditions.Add(target, DnDCondition.Outlined, TimeSpan.FromMinutes(10));
+
+				double both = MeasureHitRate(attacker, target, Swings);
+
+				DnDConditions.Remove(target, DnDCondition.Invisible);
+				DnDConditions.Remove(target, DnDCondition.Outlined);
+
+				if (Math.Abs(both - plain) > 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: outlined and invisible together rolled {0:P1}, expected the plain {1:P1}",
+						both, plain);
+
+					ok = false;
+				}
+
+				if (ok)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   defence spells: plain {0:P1}, blurred {1:P1}, outlined {2:P1}, both {3:P1}",
+						plain, blurred, outlined, both);
+				}
+			}
+			finally
+			{
+				attacker.Delete();
+				target.Delete();
+			}
+
+			return ok;
+		}
+
 		/// <summary>Casts a named spell at a target, reporting rather than throwing if it is missing.</summary>
 		private static bool CastAt(DnDPlayerMobile caster, Mobile target, string spellName)
 		{
@@ -2254,8 +2371,21 @@ namespace Server.Misc
 				int before = pm.Hits;
 				int spent = 0;
 
-				while (pm.HitDiceRemaining > 0 && pm.SpendHitDie())
+				while (pm.HitDiceRemaining > 0)
 				{
+					// Re-wounded before each die. Spending is refused at full health - correctly,
+					// a character with nothing left to heal should not burn a die - and five
+					// d10+2 average well past a level-5 maximum, so without this the loop stopped
+					// early whenever the rolls ran high. The check failed perhaps one run in
+					// three, which is worse than not having it: an intermittent failure is one
+					// people learn to re-run rather than read.
+					pm.Hits = 1;
+
+					if (!pm.SpendHitDie())
+					{
+						break;
+					}
+
 					++spent;
 				}
 
