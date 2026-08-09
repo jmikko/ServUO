@@ -108,6 +108,30 @@ namespace Server.Items
 		public DnDHatOfDisguise() : base("HatOfDisguise") { }
 
 		public DnDHatOfDisguise(Serial serial) : base(serial) { }
+
+		public override void OnDoubleClick(Mobile from)
+		{
+			if (!IsChildOf(from.Backpack) && Parent != from)
+			{
+				from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
+				return;
+			}
+
+			if (from.BodyMod == 0)
+			{
+				from.BodyMod = from.Body.IsFemale ? 401 : 400;
+				from.HueMod = Utility.RandomSkinHue();
+				from.NameMod = "a disguised figure";
+				from.SendMessage("You disguise yourself.");
+			}
+			else
+			{
+				from.BodyMod = 0;
+				from.HueMod = -1;
+				from.NameMod = null;
+				from.SendMessage("You remove the disguise.");
+			}
+		}
 	}
 
 	public class DnDBeltOfGiantStrengthHill : DnDWondrousItem
@@ -148,6 +172,23 @@ namespace Server.Items
 		public DnDBootsOfSpeed() : base("BootsOfSpeed") { }
 
 		public DnDBootsOfSpeed(Serial serial) : base(serial) { }
+
+		public override bool OnEquip(Mobile from)
+		{
+			from.Send(new Server.Network.SpeedControl(Server.Network.SpeedControlType.MountSpeed));
+			from.SendMessage("You feel incredibly fast.");
+			return base.OnEquip(from);
+		}
+
+		public override void OnRemoved(object parent)
+		{
+			if (parent is Mobile m)
+			{
+				m.Send(new Server.Network.SpeedControl(Server.Network.SpeedControlType.Disable));
+				m.SendMessage("Your speed returns to normal.");
+			}
+			base.OnRemoved(parent);
+		}
 	}
 
 	public class DnDWingedBoots : DnDWondrousItem
@@ -268,6 +309,23 @@ namespace Server.Items
 		public DnDRingOfInvisibility() : base("RingOfInvisibility") { }
 
 		public DnDRingOfInvisibility(Serial serial) : base(serial) { }
+
+		public override bool OnEquip(Mobile from)
+		{
+			from.Hidden = true;
+			from.SendMessage("You vanish from sight.");
+			return base.OnEquip(from);
+		}
+
+		public override void OnRemoved(object parent)
+		{
+			if (parent is Mobile m)
+			{
+				m.Hidden = false;
+				m.SendMessage("You become visible again.");
+			}
+			base.OnRemoved(parent);
+		}
 	}
 
 	public class DnDBootsOfStridingAndSpringing : DnDWondrousItem
@@ -374,10 +432,76 @@ namespace Server.Items
 	{
 		public override string WondrousId { get { return "WandOfFireballs"; } }
 
+		private int m_Charges = 7;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int Charges { get { return m_Charges; } set { m_Charges = value; InvalidateProperties(); } }
+
 		[Constructable]
 		public DnDWandOfFireballs() : base("WandOfFireballs") { }
 
 		public DnDWandOfFireballs(Serial serial) : base(serial) { }
+
+		public override void OnDoubleClick(Mobile from)
+		{
+			if (!IsChildOf(from.Backpack) && Parent != from)
+			{
+				from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
+				return;
+			}
+
+			if (m_Charges <= 0)
+			{
+				from.SendMessage("The wand is out of charges.");
+				return;
+			}
+
+			from.Target = new FireballTarget(this);
+			from.SendMessage("Target a location for the fireball.");
+		}
+
+		private class FireballTarget : Server.Targeting.Target
+		{
+			private DnDWandOfFireballs m_Wand;
+
+			public FireballTarget(DnDWandOfFireballs wand) : base(12, true, Server.Targeting.TargetFlags.None)
+			{
+				m_Wand = wand;
+			}
+
+			protected override void OnTarget(Mobile from, object targeted)
+			{
+				IPoint3D loc = targeted as IPoint3D;
+				if (loc == null) return;
+				
+				Point3D p = new Point3D(loc);
+				Server.Effects.SendLocationEffect(p, from.Map, 0x36D4, 30);
+				Server.Effects.PlaySound(p, from.Map, 0x208);
+				
+				m_Wand.Charges--;
+				from.SendMessage("You unleash a fireball from the wand. Charges left: {0}", m_Wand.Charges);
+			}
+		}
+
+		public override void GetProperties(ObjectPropertyList list)
+		{
+			base.GetProperties(list);
+			list.Add(1060584, m_Charges.ToString()); // charges: ~1_val~
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write((int)0);
+			writer.Write(m_Charges);
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			int version = reader.ReadInt();
+			m_Charges = reader.ReadInt();
+		}
 	}
 
 	public class DnDApparatusOfKwalish : DnDWondrousItem

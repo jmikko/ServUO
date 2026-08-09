@@ -38,12 +38,46 @@ if (args.Contains("--selftest"))
 var spellData = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "Data", "DnDSpells.xml");
 var iconDirectory = @"C:\ClassicUO\src\ClassicUO.Client\Data\SpellIcons";
 
-// Both overridable, because the client lives in a sibling repository whose location is a local
-// choice rather than something this tool can know.
-var positional = args.Where(a => !a.StartsWith("--")).ToArray();
+// Both paths are overridable, because the client lives in a sibling repository whose location is
+// a local choice rather than something this tool can know.
+//
+// Parsed in one pass rather than by filtering out anything starting with "--", because a flag's
+// VALUE does not start with "--" either: `--limit 6` left a bare "6" in the positional list, which
+// was then read as the spell-data path, and the tool went looking for spells in a file called "6".
+int limit = 0;
+var positional = new List<string>();
 
-if (positional.Length > 0) spellData = positional[0];
-if (positional.Length > 1) iconDirectory = positional[1];
+for (int i = 0; i < args.Length; ++i)
+{
+    switch (args[i])
+    {
+        case "--selftest":
+            break;
+
+        case "--limit":
+            if (i + 1 >= args.Length || !int.TryParse(args[i + 1], out limit) || limit <= 0)
+            {
+                Console.Error.WriteLine("--limit needs a positive number, e.g. --limit 6");
+                return 1;
+            }
+
+            ++i; // the value belongs to this flag, not to the positional list
+            break;
+
+        default:
+            if (args[i].StartsWith("--"))
+            {
+                Console.Error.WriteLine($"Unknown option {args[i]}");
+                return 1;
+            }
+
+            positional.Add(args[i]);
+            break;
+    }
+}
+
+if (positional.Count > 0) spellData = positional[0];
+if (positional.Count > 1) iconDirectory = positional[1];
 
 spellData = Path.GetFullPath(spellData);
 
@@ -98,10 +132,6 @@ foreach (XmlElement element in document.SelectNodes("//spell")!)
         element.GetAttribute("kind"),
         element.GetAttribute("description")));
 }
-
-// --limit N draws a handful and stops, which is how you judge a style change without paying for
-// the whole set to find out you hate it.
-int limit = ParseLimit(args);
 
 if (limit > 0 && pending.Count > limit)
 {
@@ -438,18 +468,6 @@ static int SelfTest()
     }
 
     Console.WriteLine($"Converter OK: 512 -> 44x44, content survived the downscale. {probe}");
-    return 0;
-}
-
-static int ParseLimit(string[] args)
-{
-    int index = Array.IndexOf(args, "--limit");
-
-    if (index >= 0 && index + 1 < args.Length && int.TryParse(args[index + 1], out int limit))
-    {
-        return limit;
-    }
-
     return 0;
 }
 
