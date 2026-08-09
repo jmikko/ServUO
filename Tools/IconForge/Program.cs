@@ -1,93 +1,38 @@
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Anthropic;
-using Anthropic.Models.Messages;
 using SkiaSharp;
-using Svg.Skia;
 
-// IconForge - draws a spell icon for every spell that does not have one.
+// IconForge - paints a spell icon for every spell that does not have one.
 //
-// Claude cannot produce a raster image; there is no API that returns a PNG. What it can do is
-// write SVG, which is text, and which rasterises to a PNG cleanly at any size. So this asks for
-// vector art and converts it here. The result is stylised rather than painted - closer to a crisp
-// game icon than to an illustration - but it is real art rather than a coloured glyph, and it is
-// consistent across all 229 spells because one prompt describes the whole set.
+// This calls Google's Gemini image models, not Claude: the Anthropic API has no image generation
+// at all, so painted art has to come from somewhere else. An earlier version had Claude write SVG
+// and rasterised that here, which produced clean vector tiles but never looked painted - hand
+// written vector paths have a hard ceiling against real brushwork.
+//
+// Images come back at 512px and are downscaled to 44px here. That downscale is the whole design
+// constraint: a busy 512px painting becomes mush at 44px, so the prompt asks for a bold simple
+// subject rendered in a painterly style, rather than for detail that cannot survive the shrink.
 //
 // Resumable by design: it skips any spell that already has a PNG, so an interrupted run continues
 // where it stopped, a single spell can be redrawn by deleting its file, and hand-drawn art is
 // never overwritten.
 
-const string Model = "claude-opus-5";
+const string Endpoint = "https://generativelanguage.googleapis.com/v1beta/interactions";
+const string Model = "gemini-3.1-flash-image";
 
-// The one description of the house style, shared by every icon. Kept in a single place because
-// consistency across the set matters more than any individual icon: 229 icons that agree with
-// each other read as a game, and 229 that do not read as a clip-art folder.
-const string StyleGuide = """
-    You are drawing icons for a Dungeons & Dragons spellbook in a fantasy game client.
+// 512 is deliberate. The icon is displayed at 44px, so anything larger is detail thrown away by
+// the downscale - it costs more, takes longer, and does not improve the result.
+const string ImageSize = "0.5K";
 
-    Output a single SVG and nothing else. No markdown fence, no commentary, no explanation.
+// The house style lives in the Style class at the foot of this file - a top-level const is not
+// visible to the Spell record, and C# requires type declarations to follow the entry point.
 
-    Requirements:
-    - Exactly `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">`
-    - The icon is viewed at 44x44 pixels. Shapes must read at that size: bold silhouettes, few
-      elements, strong contrast. Fine detail disappears and becomes mud.
-    - Transparent background. Do not paint a background rectangle - the book page shows through.
-    - A single centred subject that fills most of the frame, with a small margin.
-    - Rich colour: use gradients (`<radialGradient>`, `<linearGradient>`) for depth and glow, and
-      a brighter core against darker outer tones so the subject looks lit from within.
-    - A dark outline or dark outer shadow so the icon separates from a light page.
-    - No text, no letters, no numbers, no borders, no frames.
-    - Use only plain SVG shapes, paths, and gradients. No filters, no external references,
-      no embedded images, no scripts.
-    """;
-
-// --selftest exercises the half of this tool that needs no API key: SVG in, 44x44 PNG out. Worth
-// having separately, because a broken rasteriser and a broken prompt look identical from the
-// outside - both produce no icon - and only one of them costs money to diagnose.
 if (args.Contains("--selftest"))
 {
-    const string sample = """
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
-          <defs><radialGradient id="g"><stop offset="0%" stop-color="#fff2b0"/>
-          <stop offset="60%" stop-color="#ff9a1f"/><stop offset="100%" stop-color="#7a2a00"/>
-          </radialGradient></defs>
-          <circle cx="22" cy="22" r="16" fill="url(#g)" stroke="#2b0f00" stroke-width="2"/>
-        </svg>
-        """;
-
-    string probe = Path.Combine(Path.GetTempPath(), "iconforge-selftest.png");
-
-    if (!Rasterise(sample, probe, explain: true))
-    {
-        Console.Error.WriteLine("FAIL: the rasteriser produced nothing.");
-        return 1;
-    }
-
-    using var check = SKBitmap.Decode(probe);
-
-    if (check is null || check.Width != 44 || check.Height != 44)
-    {
-        Console.Error.WriteLine($"FAIL: expected a 44x44 image, got {check?.Width}x{check?.Height}.");
-        return 1;
-    }
-
-    // A transparent corner and an opaque centre together prove the alpha channel survived and
-    // something was actually drawn - either alone would pass on a blank or a solid image.
-    bool cornerClear = check.GetPixel(1, 1).Alpha == 0;
-    bool centreDrawn = check.GetPixel(22, 22).Alpha > 200;
-
-    if (!cornerClear || !centreDrawn)
-    {
-        Console.Error.WriteLine(
-            $"FAIL: corner alpha {check.GetPixel(1, 1).Alpha} (want 0), " +
-            $"centre alpha {check.GetPixel(22, 22).Alpha} (want >200).");
-
-        return 1;
-    }
-
-    Console.WriteLine($"Rasteriser OK: 44x44, transparent background, subject drawn. {probe}");
-    return 0;
+    return SelfTest();
 }
 
 var spellData = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "Data", "DnDSpells.xml");
@@ -95,14 +40,25 @@ var iconDirectory = @"C:\ClassicUO\src\ClassicUO.Client\Data\SpellIcons";
 
 // Both overridable, because the client lives in a sibling repository whose location is a local
 // choice rather than something this tool can know.
-if (args.Length > 0) spellData = args[0];
-if (args.Length > 1) iconDirectory = args[1];
+var positional = args.Where(a => !a.StartsWith("--")).ToArray();
+
+if (positional.Length > 0) spellData = positional[0];
+if (positional.Length > 1) iconDirectory = positional[1];
 
 spellData = Path.GetFullPath(spellData);
 
 if (!File.Exists(spellData))
 {
     Console.Error.WriteLine($"No spell data at {spellData}");
+    return 1;
+}
+
+string? apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+              ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY");
+
+if (string.IsNullOrWhiteSpace(apiKey))
+{
+    Console.Error.WriteLine("Set GEMINI_API_KEY (get one free at https://aistudio.google.com/apikey).");
     return 1;
 }
 
@@ -139,36 +95,35 @@ foreach (XmlElement element in document.SelectNodes("//spell")!)
         name,
         path,
         element.GetAttribute("school"),
-        element.GetAttribute("level"),
         element.GetAttribute("kind"),
         element.GetAttribute("description")));
 }
 
-Console.WriteLine($"{pending.Count} of {total} spell(s) need art.");
+// --limit N draws a handful and stops, which is how you judge a style change without paying for
+// the whole set to find out you hate it.
+int limit = ParseLimit(args);
+
+if (limit > 0 && pending.Count > limit)
+{
+    pending = pending.Take(limit).ToList();
+    Console.WriteLine($"{pending.Count} icon(s) this run (--limit), out of {total} spell(s).");
+}
+else
+{
+    Console.WriteLine($"{pending.Count} of {total} spell(s) need art.");
+}
 
 if (pending.Count == 0)
 {
     return 0;
 }
 
-// A bare client picks up ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, or an `ant auth login` profile,
-// in that order - so there is nothing to configure here beyond having one of them.
-AnthropicClient client;
+using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
+http.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
 
-try
-{
-    client = new AnthropicClient();
-}
-catch (Exception e)
-{
-    Console.Error.WriteLine($"Could not create a client: {e.Message}");
-    Console.Error.WriteLine("Set ANTHROPIC_API_KEY, or run `ant auth login`.");
-    return 1;
-}
-
-// Four at a time. Enough to keep the run to a sensible length without tripping rate limits on a
-// low tier; raise it if your limits allow.
-using var throttle = new SemaphoreSlim(4);
+// Three at a time. Image generation is slower and more rate-limited than text, and the free tier
+// is tighter still - raise it once you know your quota holds.
+using var throttle = new SemaphoreSlim(3);
 
 int drawn = 0, failed = 0;
 object consoleLock = new();
@@ -179,19 +134,19 @@ var work = pending.Select(async spell =>
 
     try
     {
-        string? svg = await AskForSvg(client, spell);
+        byte[]? image = await Paint(http, spell);
 
-        if (svg == null)
+        if (image == null)
         {
             Interlocked.Increment(ref failed);
             return;
         }
 
-        if (!Rasterise(svg, spell.Path))
+        if (!Downscale(image, spell.Path, explain: true))
         {
             lock (consoleLock)
             {
-                Console.Error.WriteLine($"  {spell.Name}: the SVG did not rasterise");
+                Console.Error.WriteLine($"  {spell.Name}: the image did not convert");
             }
 
             Interlocked.Increment(ref failed);
@@ -213,149 +168,205 @@ var work = pending.Select(async spell =>
 
 await Task.WhenAll(work);
 
-Console.WriteLine($"\nDrew {drawn} icon(s), {failed} failed.");
+Console.WriteLine($"\nPainted {drawn} icon(s), {failed} failed.");
 Console.WriteLine(failed > 0 ? "Re-run to retry the failures - finished icons are skipped." : "Done.");
 
 return failed > 0 ? 1 : 0;
 
-/// <summary>
-/// Asks for one icon. Returns the SVG source, or null if the request was declined or produced
-/// nothing usable.
-/// </summary>
-static async Task<string?> AskForSvg(AnthropicClient client, Spell spell)
+/// <summary>Asks Gemini for one icon. Returns the raw image bytes, or null if it could not.</summary>
+static async Task<byte[]?> Paint(HttpClient http, Spell spell)
 {
-    string prompt = spell.Describe();
+    var request = new
+    {
+        model = Model,
+        input = new object[]
+        {
+            new { type = "text", text = spell.Describe() },
+        },
+        response_format = new
+        {
+            type = "image",
+            mime_type = "image/jpeg",
+            aspect_ratio = "1:1",
+            image_size = ImageSize,
+        },
+    };
+
+    string body = JsonSerializer.Serialize(request);
 
     for (int attempt = 1; attempt <= 3; ++attempt)
     {
         try
         {
-            var response = await client.Messages.Create(new MessageCreateParams
+            using var content = new StringContent(body, Encoding.UTF8, "application/json");
+            using var response = await http.PostAsync(Endpoint, content);
+
+            string text = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
             {
-                Model = Model,
-                MaxTokens = 8000,
+                // A bad key fails identically on every spell, so retrying it 229 times is a wall
+                // of the same error and no icons. Stop instead.
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                    || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    Console.Error.WriteLine($"\nAuthentication failed: {Summarise(text)}");
+                    Console.Error.WriteLine("Check GEMINI_API_KEY.");
 
-                // Icon drawing is routine generative work rather than a reasoning problem, so the
-                // effort dial sits below the default. Raise it if the art comes out flat - it is
-                // the knob worth turning first.
-                OutputConfig = new OutputConfig { Effort = Effort.Medium },
+                    Environment.Exit(1);
+                }
 
-                System = StyleGuide,
-                Messages = [new() { Role = Role.User, Content = prompt }],
-            });
+                Console.Error.WriteLine(
+                    $"  {spell.Name}: {(int)response.StatusCode} {Summarise(text)} (attempt {attempt})");
 
-            // Checked before the content is read: a declined request returns a normal response
-            // whose content is empty, and indexing into it would throw rather than report.
-            if (response.StopReason == "refusal")
-            {
-                Console.Error.WriteLine($"  {spell.Name}: declined ({response.StopDetails?.Category})");
+                if (attempt < 3)
+                {
+                    // Rate limits want a real pause, not an immediate retry.
+                    await Task.Delay(TimeSpan.FromSeconds(5 * attempt));
+                    continue;
+                }
+
                 return null;
             }
 
-            var text = new StringBuilder();
+            byte[]? image = ExtractImage(text);
 
-            foreach (var block in response.Content.Select(b => b.Value).OfType<TextBlock>())
+            if (image != null)
             {
-                text.Append(block.Text);
+                return image;
             }
 
-            string? svg = ExtractSvg(text.ToString());
-
-            if (svg != null)
-            {
-                return svg;
-            }
-
-            Console.Error.WriteLine($"  {spell.Name}: no SVG in the reply (attempt {attempt})");
-        }
-        catch (Exception e) when (IsFatal(e))
-        {
-            // A bad key fails the same way on every spell, so retrying it 3 times each is 687
-            // doomed requests and a wall of identical errors. Stop the run instead.
-            Console.Error.WriteLine($"\nAuthentication failed: {e.Message}");
-            Console.Error.WriteLine("Set ANTHROPIC_API_KEY, or run `ant auth login`.");
-
-            Environment.Exit(1);
-            return null;
+            Console.Error.WriteLine($"  {spell.Name}: no image in the reply (attempt {attempt})");
         }
         catch (Exception e) when (attempt < 3)
         {
-            // Rate limits and transient server errors are already retried inside the SDK; this
-            // catches what survives that, and backs off before trying again.
             Console.Error.WriteLine($"  {spell.Name}: {e.Message} (attempt {attempt})");
-            await Task.Delay(TimeSpan.FromSeconds(3 * attempt));
+            await Task.Delay(TimeSpan.FromSeconds(5 * attempt));
         }
     }
 
     return null;
 }
 
-/// <summary>Credential problems, which no amount of retrying will fix.</summary>
-static bool IsFatal(Exception e)
-{
-    return e is Anthropic.Exceptions.AnthropicUnauthorizedException
-        or Anthropic.Exceptions.AnthropicForbiddenException;
-}
-
 /// <summary>
-/// Pulls the SVG out of a reply. Tolerant of a stray fence or sentence, because one malformed
-/// wrapper should not cost the icon.
+/// Digs the base64 image out of the response.
+/// <para>
+/// Written as a search for any sufficiently long base64 string rather than as a walk down a fixed
+/// path, because this API's response shape has changed before and a tool that breaks on a renamed
+/// wrapper field is a tool that breaks again. The size floor is what makes it safe: no id, token,
+/// or short field reaches a few thousand characters.
+/// </para>
 /// </summary>
-static string? ExtractSvg(string text)
+static byte[]? ExtractImage(string json)
 {
-    int start = text.IndexOf("<svg", StringComparison.OrdinalIgnoreCase);
-    int end = text.LastIndexOf("</svg>", StringComparison.OrdinalIgnoreCase);
+    try
+    {
+        using var document = JsonDocument.Parse(json);
 
-    if (start < 0 || end < start)
+        string? best = null;
+
+        Walk(document.RootElement, ref best);
+
+        return best == null ? null : Convert.FromBase64String(best);
+    }
+    catch
     {
         return null;
     }
 
-    return text[start..(end + "</svg>".Length)];
+    static void Walk(JsonElement element, ref string? best)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    Walk(property.Value, ref best);
+                }
+
+                break;
+
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                {
+                    Walk(item, ref best);
+                }
+
+                break;
+
+            case JsonValueKind.String:
+                string? value = element.GetString();
+
+                // Longest wins: if a response ever carries a thumbnail alongside the real image,
+                // the real one is the bigger string.
+                if (value is { Length: > 2000 } && (best == null || value.Length > best.Length)
+                    && IsBase64(value))
+                {
+                    best = value;
+                }
+
+                break;
+        }
+    }
+
+    static bool IsBase64(string value)
+    {
+        // Cheap enough to run on every long string, and it rejects prose and URLs immediately.
+        foreach (char c in value)
+        {
+            if (!char.IsAsciiLetterOrDigit(c) && c != '+' && c != '/' && c != '=' && c != '-'
+                && c != '_' && !char.IsWhiteSpace(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 /// <summary>
-/// Renders SVG to a 44x44 PNG with transparency - the size and format the client's loader wants.
+/// Converts a generated image to the 44x44 PNG the client's loader wants.
+/// <para>
+/// The resampler matters more than it looks. Going from 512 to 44 throws away 99% of the pixels,
+/// and a naive nearest-neighbour pick produces aliased noise from a painting that looked fine at
+/// full size. Mitchell cubic averages the neighbourhood, which is what keeps the downscale
+/// readable.
+/// </para>
 /// </summary>
-static bool Rasterise(string svg, string path, bool explain = false)
+static bool Downscale(byte[] image, string path, bool explain = false)
 {
     try
     {
-        using var source = new SKSvg();
+        using var source = SKBitmap.Decode(image);
 
-        if (source.FromSvg(svg) == null || source.Picture == null)
+        if (source == null)
         {
-            // Swallowing this silently is how a broken rasteriser looks exactly like a broken
-            // prompt: no icon, no reason. The self-test asks for the reason.
             if (explain)
             {
-                Console.Error.WriteLine("  the SVG parsed to no picture");
+                Console.Error.WriteLine("  the bytes did not decode as an image");
             }
 
             return false;
         }
 
-        using var bitmap = new SKBitmap(44, 44, SKColorType.Rgba8888, SKAlphaType.Premul);
-        using var canvas = new SKCanvas(bitmap);
+        var info = new SKImageInfo(44, 44, SKColorType.Rgba8888, SKAlphaType.Premul);
 
-        canvas.Clear(SKColors.Transparent);
+        using var scaled = source.Resize(info, new SKSamplingOptions(SKCubicResampler.Mitchell));
 
-        // The SVG declares a 44x44 viewBox, but a model can return a different one - scaling from
-        // the picture's own bounds means an icon drawn at 100x100 still lands correctly.
-        var bounds = source.Picture.CullRect;
-
-        if (bounds.Width > 0 && bounds.Height > 0)
+        if (scaled == null)
         {
-            canvas.Scale(44f / bounds.Width, 44f / bounds.Height);
-            canvas.Translate(-bounds.Left, -bounds.Top);
+            if (explain)
+            {
+                Console.Error.WriteLine("  the resize failed");
+            }
+
+            return false;
         }
 
-        canvas.DrawPicture(source.Picture);
-        canvas.Flush();
-
-        using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var file = File.OpenWrite(path);
+        using var encoded = SKImage.FromBitmap(scaled);
+        using var data = encoded.Encode(SKEncodedImageFormat.Png, 100);
+        using var file = File.Create(path);
 
         data.SaveTo(file);
 
@@ -372,35 +383,145 @@ static bool Rasterise(string svg, string path, bool explain = false)
     }
 }
 
+/// <summary>
+/// Exercises the half that needs no API key: image bytes in, 44x44 PNG out. Worth having
+/// separately, because a broken converter and a broken prompt look identical from the outside -
+/// both produce no icon - and only one of them costs money to diagnose.
+/// </summary>
+static int SelfTest()
+{
+    // A stand-in for a generated painting: a large image with a distinct centre and corner, so
+    // the downscale has something whose survival can be checked.
+    using var large = new SKBitmap(512, 512, SKColorType.Rgba8888, SKAlphaType.Premul);
+    using (var canvas = new SKCanvas(large))
+    {
+        canvas.Clear(new SKColor(0x1A, 0x0C, 0x04));
+
+        using var glow = new SKPaint { Color = new SKColor(0xFF, 0xC8, 0x40), IsAntialias = true };
+
+        canvas.DrawCircle(256, 256, 150, glow);
+    }
+
+    using var sourceData = SKImage.FromBitmap(large).Encode(SKEncodedImageFormat.Jpeg, 92);
+
+    string probe = Path.Combine(Path.GetTempPath(), "iconforge-selftest.png");
+
+    if (!Downscale(sourceData.ToArray(), probe, explain: true))
+    {
+        Console.Error.WriteLine("FAIL: the converter produced nothing.");
+        return 1;
+    }
+
+    using var check = SKBitmap.Decode(probe);
+
+    if (check is null || check.Width != 44 || check.Height != 44)
+    {
+        Console.Error.WriteLine($"FAIL: expected a 44x44 image, got {check?.Width}x{check?.Height}.");
+        return 1;
+    }
+
+    var corner = check.GetPixel(1, 1);
+    var centre = check.GetPixel(22, 22);
+
+    // Both opaque proves the tile fills the canvas; the colour gap proves the downscale carried
+    // the content through rather than flooding one average colour over everything.
+    bool opaque = corner.Alpha > 200 && centre.Alpha > 200;
+    bool contentSurvived = centre.Red - corner.Red > 80;
+
+    if (!opaque || !contentSurvived)
+    {
+        Console.Error.WriteLine(
+            $"FAIL: corner alpha {corner.Alpha}, centre alpha {centre.Alpha} (want both >200); " +
+            $"red delta {centre.Red - corner.Red} (want >80).");
+
+        return 1;
+    }
+
+    Console.WriteLine($"Converter OK: 512 -> 44x44, content survived the downscale. {probe}");
+    return 0;
+}
+
+static int ParseLimit(string[] args)
+{
+    int index = Array.IndexOf(args, "--limit");
+
+    if (index >= 0 && index + 1 < args.Length && int.TryParse(args[index + 1], out int limit))
+    {
+        return limit;
+    }
+
+    return 0;
+}
+
+/// <summary>Trims an error body to something readable on one line.</summary>
+static string Summarise(string body)
+{
+    body = Regex.Replace(body, @"\s+", " ").Trim();
+
+    return body.Length > 200 ? body[..200] + "..." : body;
+}
+
 /// <summary>One spell, and the art direction that can be derived from its own row.</summary>
-record Spell(string Name, string Path, string School, string Level, string Kind, string Description)
+record Spell(string Name, string Path, string School, string Kind, string Description)
 {
     public string Describe()
     {
         var brief = new StringBuilder();
 
-        brief.Append($"Draw the icon for the D&D spell \"{Name}\".");
+        brief.Append($"A spell icon for the Dungeons & Dragons spell \"{Name}\".");
 
         // The description is written for a player, which makes it better art direction than
         // anything derivable from the numbers.
         if (!string.IsNullOrEmpty(Description))
         {
-            brief.Append($" {Description.TrimEnd('.')}.");
+            brief.Append($" The spell: {Description.TrimEnd('.')}.");
         }
 
-        brief.Append($" It is a level {Level} {School} spell.");
+        brief.Append($" Subject: {Subject()}");
+        brief.Append($" The field and border are {Palette()}.");
 
         string? element = Element();
 
         if (element != null)
         {
-            brief.Append($" Render it in {element}.");
+            brief.Append($" The subject glows with {element}.");
         }
 
-        brief.Append(' ').Append(Mood());
+        brief.Append("\n\n").Append(Style.Guide);
 
         return brief.ToString();
     }
+
+    /// <summary>
+    /// What to actually draw. The school implies a family of imagery, which is what keeps a set
+    /// of 229 looking related rather than like 229 unrelated commissions.
+    /// </summary>
+    private string Subject() => School switch
+    {
+        "Abjuration" => "a warding shield, sigil, or barrier of protective force.",
+        "Conjuration" => "something being summoned into being through a portal or circle.",
+        "Divination" => "an all-seeing eye, a scrying orb, or a revealed sigil.",
+        "Enchantment" => "a symbol of influence over the mind - a charmed heart, a spiral, a crown.",
+        "Evocation" => "raw elemental force erupting - a blast, a bolt, or a burst of energy.",
+        "Illusion" => "something half-real and shifting - a mask, a mirrored figure, a fading form.",
+        "Necromancy" => "a grim emblem of death - a skull, a skeletal hand, a guttering soul.",
+        "Transmutation" => "matter caught mid-change - a form warping, flowing, or transmuting.",
+        _ => "an arcane emblem of the spell's power.",
+    };
+
+    /// <summary>The school's colour, which sets the tile and its border.</summary>
+    private string Palette() => School switch
+    {
+        "Abjuration" => "deep sapphire blue with a steel-blue metal border",
+        "Conjuration" => "deep forest green with a brass border",
+        "Divination" => "deep indigo violet with a silver border",
+        "Enchantment" => "deep magenta rose with a rose-gold border",
+        "Evocation" => "dark ember red-orange with a bronze border",
+        "Illusion" => "dusky purple with a pewter border",
+        "Necromancy" => "near-black lit with sickly green, with a verdigris border",
+        "Transmutation" => "warm dark bronze-brown with a copper border",
+        _ => "deep slate grey with an iron border",
+    };
 
     /// <summary>
     /// The colour a spell reads as, taken from what it does rather than its school - a player
@@ -428,17 +549,34 @@ record Spell(string Name, string Path, string School, string Level, string Kind,
             _ => null,
         };
     }
+}
 
-    private string Mood() => School switch
-    {
-        "Evocation" => "Show raw destructive energy.",
-        "Abjuration" => "Show a protective ward or barrier.",
-        "Conjuration" => "Show something summoned into being.",
-        "Divination" => "Show an eye, a sigil, or revealed knowledge.",
-        "Enchantment" => "Show an influence over another's will.",
-        "Illusion" => "Show something half-real and shifting.",
-        "Necromancy" => "Make it grim, touching on death.",
-        "Transmutation" => "Show matter or form being changed.",
-        _ => string.Empty,
-    };
+/// <summary>
+/// The one description of the house style, shared by every icon.
+/// <para>
+/// In its own type because the <see cref="Spell"/> record needs it and a top-level const is not
+/// visible outside the entry point. Kept in a single place because consistency across the set
+/// matters more than any individual icon: 229 icons that agree with each other read as a game,
+/// and 229 that do not read as a clip-art folder.
+/// </para>
+/// </summary>
+static class Style
+{
+    public const string Guide = """
+        Painted fantasy RPG spell icon, in the style of Baldur's Gate, Pathfinder, and Diablo
+        spellbook art. Digital oil painting with visible brushwork, rich impasto texture, and
+        dramatic single-source lighting. Deep shadows, luminous highlights, weathered and physical.
+
+        Composition: one bold central subject on a dark, richly coloured square field, framed by a
+        narrow ornate metallic border like an enamelled medallion. The subject fills the middle of
+        the frame and reads instantly as a silhouette.
+
+        CRITICAL - this icon is displayed at 44x44 pixels. Keep the composition simple and the
+        silhouette strong. Do not add small ornamental detail, fine filigree, background scenery,
+        or multiple competing elements - they turn to noise at that size. Bold shapes, high
+        contrast, few elements, painted richly.
+
+        No text, no letters, no numbers, no watermark, no signature, no UI elements, no borders
+        outside the medallion frame.
+        """;
 }

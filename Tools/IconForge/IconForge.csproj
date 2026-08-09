@@ -8,9 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Anthropic" Version="12.40.0" />
+    <PackageReference Include="SkiaSharp" Version="4.148.0" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.148.0" />
-    <PackageReference Include="Svg.Skia" Version="5.2.0" />
   </ItemGroup>
 
 </Project>
