@@ -167,6 +167,8 @@ namespace Server
 
 			pool.Spent += amount;
 
+			EventSink.InvokeDnDResourcesChanged(m);
+
 			return true;
 		}
 
@@ -197,6 +199,11 @@ namespace Server
 			{
 				pools[type].Spent = 0;
 			}
+
+			if (restored.Count > 0)
+			{
+				EventSink.InvokeDnDResourcesChanged(m);
+			}
 		}
 
 		public static bool RecoversOnShortRest(ResourcePoolType type)
@@ -208,7 +215,10 @@ namespace Server
 		{
 			if (m != null)
 			{
-				m_Pools.Remove(m);
+				if (m_Pools.Remove(m))
+				{
+					EventSink.InvokeDnDResourcesChanged(m);
+				}
 			}
 		}
 	}

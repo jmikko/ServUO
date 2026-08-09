@@ -425,7 +425,21 @@ namespace Server.Network
 				spellIds[i] = reader.ReadInt32();
 			}
 
-			EventSink.InvokeDnDLevelUpSubmit(new DnDLevelUpSubmitEventArgs(state.Mobile, abilityIncreases, spellIds, chosenClass, chosenFeat));
+			string[] chosenOptions = new string[0];
+			try
+			{
+				int optionsCount = reader.ReadInt32();
+				chosenOptions = new string[optionsCount];
+				for (int i = 0; i < optionsCount; i++)
+				{
+					chosenOptions[i] = reader.ReadUnicodeStringSafe();
+				}
+			}
+			catch
+			{
+			}
+
+			EventSink.InvokeDnDLevelUpSubmit(new DnDLevelUpSubmitEventArgs(state.Mobile, abilityIncreases, spellIds, chosenClass, chosenFeat, chosenOptions));
 		}
 
 		/// <summary>

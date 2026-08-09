@@ -331,6 +331,23 @@ namespace Server.Engines.Classes
 				pm.PendingSpellsKnown -= learned;
 			}
 
+			// Validate and apply Choices
+			if (e.ChosenOptions != null && e.ChosenOptions.Length > 0)
+			{
+				foreach (string optionName in e.ChosenOptions)
+				{
+					Server.DnDChoiceOption option = Server.DnDChoices.Find(optionName);
+					if (option != null)
+					{
+						int pending = Server.DnDChoices.GetPending(pm, option.Kind);
+						if (pending > 0 && !Server.DnDChoices.HasChosen(pm, optionName))
+						{
+							pm.AddChoice(optionName);
+						}
+					}
+				}
+			}
+
 			if (pm.NetState != null)
 			{
 				Server.Misc.DnDClientSync.SendSheet(pm);

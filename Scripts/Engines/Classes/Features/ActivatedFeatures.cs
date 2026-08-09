@@ -50,6 +50,8 @@ namespace Server.Engines.Classes.Features
 			spent.TryGetValue(feature.Name, out used);
 			spent[feature.Name] = used + 1;
 
+			Server.EventSink.InvokeDnDResourcesChanged(m);
+
 			return true;
 		}
 
@@ -69,21 +71,27 @@ namespace Server.Engines.Classes.Features
 			if (longRest)
 			{
 				m_Spent.Remove(m);
-				return;
 			}
-
-			foreach (var entry in ClassFeatures.GetActive(character))
+			else
 			{
-				if (entry.Key.RecoversOnShortRest)
+				foreach (var entry in ClassFeatures.GetActive(character))
 				{
-					spent.Remove(entry.Key.Name);
+					if (entry.Key.RecoversOnShortRest)
+					{
+						spent.Remove(entry.Key.Name);
+					}
 				}
 			}
+
+			Server.EventSink.InvokeDnDResourcesChanged(m);
 		}
 
 		public static void Clear(Mobile m)
 		{
-			m_Spent.Remove(m);
+			if (m_Spent.Remove(m))
+			{
+				Server.EventSink.InvokeDnDResourcesChanged(m);
+			}
 		}
 	}
 

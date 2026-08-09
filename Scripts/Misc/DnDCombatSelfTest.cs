@@ -2189,7 +2189,7 @@ namespace Server.Misc
 
 					Server.EventSink.InvokeDnDLevelUpSubmit(
 						new DnDLevelUpSubmitEventArgs(
-							viaLevelUp, increases, new int[0], String.Empty, "Resilient (Str)"));
+							viaLevelUp, increases, new int[0], String.Empty, "Resilient (Str)", new string[0]));
 
 					if (!Feat.Has(viaLevelUp, "Resilient (Str)"))
 					{

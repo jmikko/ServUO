@@ -964,6 +964,43 @@ namespace Server.Network
 		}
 	}
 
+	public struct DnDResourceInfo
+	{
+		public string Name;
+		public int Current;
+		public int Max;
+		public string Description;
+
+		public DnDResourceInfo(string name, int current, int max, string desc = "")
+		{
+			Name = name;
+			Current = current;
+			Max = max;
+			Description = desc;
+		}
+	}
+
+	public sealed class DnDResourcesUpdate : Packet
+	{
+		public DnDResourcesUpdate(System.Collections.Generic.IEnumerable<DnDResourceInfo> resources)
+			: base(0xBF)
+		{
+			EnsureCapacity(256);
+			m_Stream.Write((short)0x47); // Subcommand 0x47 for Resources
+
+			var list = new System.Collections.Generic.List<DnDResourceInfo>(resources);
+			m_Stream.Write((byte)list.Count);
+			foreach (var res in list)
+			{
+				m_Stream.WriteAsciiNull(res.Name);
+				m_Stream.Write((short)res.Current);
+				m_Stream.Write((short)res.Max);
+				m_Stream.WriteAsciiNull(res.Description ?? "");
+			}
+		}
+	}
+
+
 	/// <summary>
 	/// One spell as the client needs to see it. The spell classes themselves live in Scripts/, so
 	/// the packet is handed this flattened form rather than the spell objects.
@@ -1100,6 +1137,30 @@ namespace Server.Network
 				m_Stream.Write((byte)spell.Level);
 				m_Stream.Write((byte)spell.School);
 				m_Stream.WriteAsciiNull(spell.Name);
+			}
+
+			// Determine which choices the character still needs to make.
+			var pendingChoices = new List<Tuple<ChoiceKind, int, List<DnDChoiceOption>>>();
+			foreach (ChoiceKind kind in Enum.GetValues(typeof(ChoiceKind)))
+			{
+				int pending = DnDChoices.GetPending(character, kind);
+				if (pending > 0)
+				{
+					pendingChoices.Add(Tuple.Create(kind, pending, DnDChoices.GetAvailable(character, kind)));
+				}
+			}
+
+			m_Stream.Write((byte)pendingChoices.Count);
+			foreach (var pc in pendingChoices)
+			{
+				m_Stream.Write((byte)pc.Item1);
+				m_Stream.Write((byte)pc.Item2);
+				m_Stream.Write((short)pc.Item3.Count);
+				foreach (var opt in pc.Item3)
+				{
+					m_Stream.WriteAsciiNull(opt.Name);
+					m_Stream.WriteAsciiNull(opt.Description ?? "");
+				}
 			}
 		}
 	}

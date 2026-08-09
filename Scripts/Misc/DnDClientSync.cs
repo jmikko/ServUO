@@ -42,6 +42,43 @@ namespace Server.Misc
 
 			m.NetState.Send(new DnDStatSync(m));
 			m.NetState.Send(new DnDSkillSync(m));
+			SendResources(m);
+		}
+
+		public static void SendResources(Mobile m)
+		{
+			DnDPlayerMobile pm = m as DnDPlayerMobile;
+			if (pm == null || pm.NetState == null)
+			{
+				return;
+			}
+
+			var resources = new System.Collections.Generic.List<DnDResourceInfo>();
+
+			// 1. Resource Pools
+			foreach (Server.ResourcePoolType type in Enum.GetValues(typeof(Server.ResourcePoolType)))
+			{
+				short max = (short)Server.DnDResourcePools.GetMaximum(pm, type);
+				if (max > 0)
+				{
+					short current = (short)Server.DnDResourcePools.GetRemaining(pm, pm, type);
+					resources.Add(new DnDResourceInfo(type.ToString(), current, max, Server.DnDResourcePools.RecoversOnShortRest(type) ? "Recovers on short rest" : "Recovers on long rest"));
+				}
+			}
+
+			// 2. Features
+			foreach (var entry in Server.ClassFeatures.GetActive(pm))
+			{
+				Server.ClassFeature feature = entry.Key;
+				short uses = (short)feature.GetUses(entry.Value);
+				if (uses > 0)
+				{
+					short current = (short)Server.Engines.Classes.Features.FeatureUses.GetRemaining(pm, pm, feature, entry.Value);
+					resources.Add(new DnDResourceInfo(feature.Name, current, uses, feature.Description));
+				}
+			}
+
+			pm.NetState.Send(new DnDResourcesUpdate(resources));
 		}
 
 		private static void OnLogin(LoginEventArgs e)

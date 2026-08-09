@@ -100,6 +100,7 @@ namespace Server
     public delegate void SetAbilityEventHandler(SetAbilityEventArgs e);
 
     public delegate void DnDCharacterSetupEventHandler(DnDCharacterSetupEventArgs e);
+	public delegate void DnDResourcesChangedEventHandler(Mobile m);
     public delegate void DnDLevelUpSubmitEventHandler(DnDLevelUpSubmitEventArgs e);
 
     public delegate void DnDCastRequestEventHandler(DnDCastRequestEventArgs e);
@@ -346,20 +347,23 @@ namespace Server
 		private readonly int[] m_SpellIds;
 		private readonly string m_ChosenClass;
 		private readonly string m_ChosenFeat;
+		private readonly string[] m_ChosenOptions;
 
 		public Mobile Mobile { get { return m_Mobile; } }
 		public int[] AbilityIncreases { get { return m_AbilityIncreases; } }
 		public int[] SpellIds { get { return m_SpellIds; } }
 		public string ChosenClass { get { return m_ChosenClass; } }
 		public string ChosenFeat { get { return m_ChosenFeat; } }
+		public string[] ChosenOptions { get { return m_ChosenOptions; } }
 
-		public DnDLevelUpSubmitEventArgs(Mobile mobile, int[] abilityIncreases, int[] spellIds, string chosenClass, string chosenFeat)
+		public DnDLevelUpSubmitEventArgs(Mobile mobile, int[] abilityIncreases, int[] spellIds, string chosenClass, string chosenFeat, string[] chosenOptions)
 		{
 			m_Mobile = mobile;
 			m_AbilityIncreases = abilityIncreases;
 			m_SpellIds = spellIds;
 			m_ChosenClass = chosenClass;
 			m_ChosenFeat = chosenFeat;
+			m_ChosenOptions = chosenOptions;
 		}
 	}
 
@@ -1831,6 +1835,7 @@ namespace Server
         public static event AfterWorldSaveEventHandler AfterWorldSave;
         public static event SetAbilityEventHandler SetAbility;
         public static event DnDCharacterSetupEventHandler DnDCharacterSetup;
+		public static event DnDResourcesChangedEventHandler DnDResourcesChanged;
         public static event DnDLevelUpSubmitEventHandler DnDLevelUpSubmit;
 		public static event DnDCastRequestEventHandler DnDCastRequest;
 		public static event FastWalkEventHandler FastWalk;
@@ -1954,6 +1959,14 @@ namespace Server
 			if (DnDCharacterSetup != null)
 			{
 				DnDCharacterSetup(e);
+			}
+		}
+
+		public static void InvokeDnDResourcesChanged(Mobile m)
+		{
+			if (DnDResourcesChanged != null)
+			{
+				DnDResourcesChanged(m);
 			}
 		}
 
