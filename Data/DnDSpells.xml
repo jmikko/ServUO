@@ -130,8 +130,6 @@
   <spell id="FaerieFire"    name="Faerie Fire"    level="1" school="Evocation" kind="Condition" resolution="SavingThrow" save="Dex"
          condition="Outlined" durationSeconds="60" concentration="true" range="12"
          classes="Bard,Druid" description="Outlines creatures in light; attacks against them have advantage." />
-  <spell id="HuntersMark"   name="Hunter's Mark"  level="1" school="Divination" kind="Utility" range="18"
-         classes="Ranger" description="Marks a quarry for extra damage. Not yet modelled." />
 
   <!-- ============ 2nd Level ============ -->
   <spell id="ScorchingRay"  name="Scorching Ray"  level="2" school="Evocation" kind="Damage" resolution="SpellAttack"
@@ -196,16 +194,12 @@
          classes="Bard,Sorcerer,Wizard" description="Reveals the invisible. Not yet modelled." />
   <spell id="SpiderClimb"   name="Spider Climb"   level="2" school="Transmutation" kind="MovementMode" durationSeconds="3600" concentration="true" range="1" beneficial="true"
          classes="Sorcerer,Warlock,Wizard" description="Walk on walls and ceilings." />
-  <spell id="PassWithoutTrace" name="Pass without Trace" level="2" school="Abjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
-         classes="Druid,Ranger" description="A veil that hides the party. Not yet modelled." />
   <spell id="Knock"         name="Knock"          level="2" school="Transmutation" kind="Utility" range="12"
          classes="Bard,Sorcerer,Wizard" description="Opens a locked object. Not yet modelled." />
   <spell id="Levitate"      name="Levitate"       level="2" school="Transmutation" kind="MovementMode" durationSeconds="600" range="12" concentration="true"
          classes="Sorcerer,Wizard" description="Lifts a creature off the ground for ten minutes." />
   <spell id="Darkvision"    name="Darkvision"     level="2" school="Transmutation" kind="Light" durationSeconds="28800" range="1" beneficial="true"
          classes="Druid,Ranger,Sorcerer,Wizard" description="Grants sight in darkness for eight hours." />
-  <spell id="MagicWeapon"   name="Magic Weapon"   level="2" school="Transmutation" kind="Utility" range="1" beneficial="true" concentration="true"
-         classes="Paladin,Wizard" description="A weapon becomes magical. Not yet modelled." />
 
   <!-- ============ 3rd Level ============ -->
   <spell id="Fireball"      name="Fireball"       level="3" school="Evocation" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
@@ -249,8 +243,6 @@
          classes="Bard,Cleric,Druid,Paladin,Sorcerer,Warlock,Wizard" description="Ends spells on the target." />
   <spell id="Counterspell"  name="Counterspell"   level="3" school="Abjuration" kind="Dispel" range="12"
          classes="Sorcerer,Warlock,Wizard" description="Interrupts a creature in the process of casting a spell." />
-  <spell id="Haste"         name="Haste"          level="3" school="Transmutation" kind="Utility" range="6" beneficial="true" concentration="true"
-         classes="Sorcerer,Wizard" description="Doubles speed and grants an extra action. Not yet modelled." />
   <spell id="Fly"           name="Fly"            level="3" school="Transmutation" kind="MovementMode" durationSeconds="600" range="1" beneficial="true" concentration="true"
          classes="Sorcerer,Warlock,Wizard" description="Grants a flying speed." />
   <spell id="ProtectionFromEnergy" name="Protection from Energy" level="3" school="Abjuration" kind="Resistance" durationSeconds="3600" range="1" beneficial="true" concentration="true"

@@ -119,6 +119,18 @@ namespace Server.Spells.DnD
 
 		public static int Count { get { return m_Spells.Count; } }
 
+		/// <summary>
+		/// Names registered more than once, in the order the collisions happened.
+		/// <para>
+		/// A second registration of the same name replaces the first, and nothing about that is
+		/// visible: the spell still exists, still appears on the list, still casts. It is simply a
+		/// different spell than the one whoever wrote the other registration intended. That is how
+		/// four hand-written spells came to be overwritten by rows describing them as not yet
+		/// modelled, with no error anywhere. The self-test fails on anything in here.
+		/// </para>
+		/// </summary>
+		public static readonly List<string> DuplicateNames = new List<string>();
+
 		public static void Register(DnDSpell spell, params string[] classNames)
 		{
 			if (spell == null)
@@ -129,6 +141,11 @@ namespace Server.Spells.DnD
 			DnDSpell existing;
 			if (m_Spells.TryGetValue(spell.Name, out existing))
 			{
+				if (!DuplicateNames.Contains(spell.Name))
+				{
+					DuplicateNames.Add(spell.Name);
+				}
+
 				int index = m_Ordered.IndexOf(existing);
 				if (index >= 0)
 				{

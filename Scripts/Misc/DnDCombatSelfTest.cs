@@ -144,6 +144,7 @@ namespace Server.Misc
 			ok &= Guard("CheckHitDice", () => CheckHitDice());
 			ok &= Guard("CheckFeats", () => CheckFeats());
 			ok &= Guard("CheckSpellEffects", () => CheckSpellEffects());
+			ok &= Guard("CheckNoDuplicateSpells", () => CheckNoDuplicateSpells());
 			ok &= Guard("CheckDefenceSpells", () => CheckDefenceSpells());
 			ok &= Guard("CheckTurnEconomy", () => CheckTurnEconomy());
 			ok &= Guard("CheckResourcePools", () => CheckResourcePools());
@@ -1827,6 +1828,34 @@ namespace Server.Misc
 		}
 
 		/// <summary>
+		/// No spell name may be registered twice.
+		/// <para>
+		/// The registry is keyed by name and the second registration wins, silently. Four spells
+		/// with real hand-written implementations - Haste, Hunter's Mark, Pass without Trace and
+		/// Magic Weapon - each also had a data row describing them as not yet modelled, so whether
+		/// a player got the working spell or the inert one depended on which registration ran last.
+		/// Nothing anywhere reported it. The spell existed, appeared on the list and cast happily;
+		/// it just did nothing.
+		/// </para>
+		/// </summary>
+		private static bool CheckNoDuplicateSpells()
+		{
+			if (SpellRegistry.DuplicateNames.Count == 0)
+			{
+				return true;
+			}
+
+			foreach (string name in SpellRegistry.DuplicateNames)
+			{
+				Console.WriteLine(
+					"[combat-selftest] FAIL: '{0}' is registered twice - one registration silently replaced the other",
+					name);
+			}
+
+			return false;
+		}
+
+		/// <summary>
 		/// The spells that stopped being flavour text: Blur and Faerie Fire.
 		/// <para>
 		/// Both were rows saying "not yet modelled", and both turned out to need no new machinery
@@ -2342,8 +2371,21 @@ namespace Server.Misc
 				int before = pm.Hits;
 				int spent = 0;
 
-				while (pm.HitDiceRemaining > 0 && pm.SpendHitDie())
+				while (pm.HitDiceRemaining > 0)
 				{
+					// Re-wounded before each die. Spending is refused at full health - correctly,
+					// a character with nothing left to heal should not burn a die - and five
+					// d10+2 average well past a level-5 maximum, so without this the loop stopped
+					// early whenever the rolls ran high. The check failed perhaps one run in
+					// three, which is worse than not having it: an intermittent failure is one
+					// people learn to re-run rather than read.
+					pm.Hits = 1;
+
+					if (!pm.SpendHitDie())
+					{
+						break;
+					}
+
 					++spent;
 				}
 
