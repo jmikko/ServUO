@@ -308,7 +308,7 @@ namespace Server.Engines.Classes.Features
 			int die = classLevel >= 15 ? 12 : classLevel >= 10 ? 10 : classLevel >= 5 ? 8 : 6;
 
 			DnDRollModifiers.Add(
-				user, Name, die, 1, RollKind.Attack | RollKind.Save | RollKind.AbilityCheck,
+				user, Name, die, 0, 1, RollKind.Attack | RollKind.Save | RollKind.AbilityCheck,
 				TimeSpan.FromMinutes(10.0), true);
 
 			user.SendMessage(0x35, "You are inspired: add a d{0} to your next roll.", die);

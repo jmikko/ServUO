@@ -162,6 +162,11 @@ namespace Server
 
 			var target = defender as Mobile;
 			bool advantage = target != null && (Get(target) & DnDCondition.DefenceAdvantage) != 0;
+			
+			if (DnDRollModifiers.HasAdvantage(attacker, RollKind.Attack))
+			{
+				advantage = true;
+			}
 
 			if (advantage == disadvantage)
 			{

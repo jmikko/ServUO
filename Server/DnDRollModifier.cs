@@ -14,7 +14,8 @@ namespace Server
 		None = 0x0,
 		Attack = 0x1,
 		Save = 0x2,
-		AbilityCheck = 0x4
+		AbilityCheck = 0x4,
+		Damage = 0x8
 	}
 
 	/// <summary>
@@ -35,6 +36,9 @@ namespace Server
 		{
 			public string Source;
 			public int DiceSides;
+			
+			/// <summary>Flat bonus added to the roll.</summary>
+			public int Bonus;
 
 			/// <summary>+1 for a bonus, -1 for a penalty.</summary>
 			public int Sign;
@@ -49,9 +53,9 @@ namespace Server
 		private static readonly Dictionary<Mobile, List<Entry>> m_Table = new Dictionary<Mobile, List<Entry>>();
 
 		public static void Add(
-			Mobile m, string source, int diceSides, int sign, RollKind kinds, TimeSpan duration, bool oneShot)
+			Mobile m, string source, int diceSides, int bonus, int sign, RollKind kinds, TimeSpan duration, bool oneShot)
 		{
-			if (m == null || diceSides <= 0 || kinds == RollKind.None)
+			if (m == null || (diceSides <= 0 && bonus == 0) || kinds == RollKind.None)
 			{
 				return;
 			}
@@ -71,6 +75,7 @@ namespace Server
 				{
 					Source = source,
 					DiceSides = diceSides,
+					Bonus = bonus,
 					Sign = sign >= 0 ? 1 : -1,
 					Kinds = kinds,
 					Expires = duration == TimeSpan.Zero ? DateTime.MaxValue : DateTime.UtcNow + duration,
@@ -135,7 +140,12 @@ namespace Server
 					continue;
 				}
 
-				total += entry.Sign * Utility.RandomMinMax(1, entry.DiceSides);
+				if (entry.DiceSides > 0)
+				{
+					total += entry.Sign * Utility.RandomMinMax(1, entry.DiceSides);
+				}
+				
+				total += entry.Sign * entry.Bonus;
 
 				if (entry.OneShot)
 				{
@@ -173,5 +183,103 @@ namespace Server
 
 			return false;
 		}
+
+		#region Advantage and resistance
+
+		// These sit beside the roll modifiers rather than with the other spell effects in Scripts,
+		// because CombatRules consults them on every save and DnDCombat on every swing, and the
+		// engine cannot see Scripts. Same reason conditions live in Server.
+
+		private sealed class TimedEffect
+		{
+			public string Source;
+			public DateTime Expires;
+			public RollKind Kinds;
+		}
+
+		private static readonly Dictionary<Mobile, TimedEffect> m_Advantage =
+			new Dictionary<Mobile, TimedEffect>();
+
+		private static readonly Dictionary<Mobile, TimedEffect> m_Resistance =
+			new Dictionary<Mobile, TimedEffect>();
+
+		/// <summary>
+		/// Grants advantage on a kind of roll for a while - True Strike, Enhance Ability, Beacon
+		/// of Hope.
+		/// <para>
+		/// Deliberately not a roll modifier, even though it lives in the same file: advantage is
+		/// rolling twice and keeping the better, worth about five points in the middle of the range
+		/// and nothing at either end. A flat die would be a different rule wearing its name.
+		/// </para>
+		/// </summary>
+		public static void AddAdvantage(Mobile m, RollKind kinds, TimeSpan duration, string source)
+		{
+			if (m == null || kinds == RollKind.None)
+			{
+				return;
+			}
+
+			m_Advantage[m] = new TimedEffect
+			{
+				Source = source,
+				Kinds = kinds,
+				Expires = DateTime.UtcNow + duration
+			};
+		}
+
+		public static bool HasAdvantage(Mobile m, RollKind kind)
+		{
+			return IsActive(m_Advantage, m, kind);
+		}
+
+		/// <summary>Halves incoming physical damage - Blade Ward and the protection family.</summary>
+		public static void AddResistance(Mobile m, TimeSpan duration, string source)
+		{
+			if (m == null)
+			{
+				return;
+			}
+
+			m_Resistance[m] = new TimedEffect
+			{
+				Source = source,
+				Kinds = RollKind.Attack,
+				Expires = DateTime.UtcNow + duration
+			};
+		}
+
+		public static bool HasResistance(Mobile m)
+		{
+			return IsActive(m_Resistance, m, RollKind.Attack);
+		}
+
+		public static void ClearAdvantage(Mobile m)
+		{
+			m_Advantage.Remove(m);
+			m_Resistance.Remove(m);
+		}
+
+		private static bool IsActive(Dictionary<Mobile, TimedEffect> table, Mobile m, RollKind kind)
+		{
+			TimedEffect effect;
+
+			if (m == null || !table.TryGetValue(m, out effect))
+			{
+				return false;
+			}
+
+			if (DateTime.UtcNow >= effect.Expires)
+			{
+				table.Remove(m);
+
+				m.SendMessage("{0} fades.", effect.Source);
+
+				return false;
+			}
+
+			return (effect.Kinds & kind) != 0;
+		}
+
+		#endregion
 	}
 }

@@ -122,7 +122,19 @@ namespace Server.Items
 			}
 
 			int result;
-			return Int32.TryParse(value, out result) ? result : 0;
+
+			if (Int32.TryParse(value, out result))
+			{
+				return result;
+			}
+
+			// Returning 0 quietly is how a Flame Tongue written as damage="2d6" ended up with no
+			// damage bonus at all: the row looked right, the item did nothing, and nothing said so.
+			// These columns are flat numbers - dice belong to the weapon table.
+			Console.WriteLine(
+				"Warning: '{0}' in Data/DnDMagicItems.xml is not a number - these columns are flat bonuses", value);
+
+			return 0;
 		}
 
 		private static double ParseDouble(string value)

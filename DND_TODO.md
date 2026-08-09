@@ -82,18 +82,24 @@ needs ki.
 
 ## Smaller, unblocked
 
-These need no new system and are simply not done:
+Death saves, hit dice, feats, the wondrous item table and six new spell effect kinds are done.
+What they left behind:
 
-- The 60 spells registered with no mechanical effect (see `DND_STATUS.md`)
-
-Death saves, hit dice, feats and the wondrous item table are done. What they left behind:
-
-- **Four wondrous items are flavour only.** Boots and Cloak of Elvenkind, the Hat of Disguise and
-  Winged Boots have no numbers, because what they do is stealth, disguise and flight - none of
-  which the rules engine has. The self-test names them at boot rather than letting them look
-  finished.
-- **Magic items that do something on use.** Potions, wands, a bag of holding. The table covers
-  standing bonuses only, which is why it is a table; anything with an activation needs code.
+- **73 spells still have no mechanical effect.** The ones that could be backed by rules that exist
+  now are: reviving, removing conditions, resistance, advantage, dispelling and light. What is left
+  genuinely needs systems the game has none of - illusion, invisibility, planar travel, shapeshifting,
+  divination, and Wish. Those are not near-term work; they are each their own feature.
+- **Magic weapons are in the wrong table.** Flame Tongue, Vorpal Sword, Sun Blade, Holy Avenger, the
+  Staff of the Magi and the Wand of Magic Missiles sit on weapon layers as wondrous items, which
+  means their bonuses apply but the combat resolver cannot get damage dice out of them - a character
+  holding a Vorpal Sword swings as if unarmed. They belong in the weapon table with a magic variant,
+  not here. The self-test names each one at boot.
+- **Wondrous items that do something on use.** Potions, wands, a bag of holding, the Deck of Many
+  Things. The table covers standing bonuses only, which is why it is a table; anything with an
+  activation needs code, and roughly a dozen rows are currently inert.
+- **Items whose effect is stealth, disguise, invisibility or flight.** Boots and Cloak of Elvenkind,
+  the Hat of Disguise, Winged Boots, both invisibility items. Blocked on the same missing systems as
+  the spells above.
 
 - **Dying has no client UI.** The successes and failures arrive as system messages. They want to be
   three pips somewhere visible, since the whole tension of the rule is watching the count.

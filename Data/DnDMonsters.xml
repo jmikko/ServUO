@@ -110,4 +110,153 @@
   <monster id="Wraith" name="a wraith" corpse="a wraiths corpse" body="252" hue="1"
            sound="0x482" ai="AI_NecroMage" fightMode="Closest" ac="13" hp="67" attackBonus="6"
            damageDice="4d8+4" cr="5" />
+  <monster id="Aboleth" name="an aboleth" corpse="an aboleth corpse" body="77" sound="0x45A"
+           ai="AI_Mage" fightMode="Closest" ac="17" hp="135" attackBonus="9" damageDice="2d6+5" cr="10" />
+
+  <monster id="AdultBlackDragon" name="an adult black dragon" corpse="a dragon corpse" body="12" hue="1"
+           sound="0x16A" ai="AI_Mage" fightMode="Closest" ac="19" hp="195" attackBonus="11" damageDice="2d10+6" cr="14" />
+
+  <monster id="AdultBlueDragon" name="an adult blue dragon" corpse="a dragon corpse" body="12" hue="3"
+           sound="0x16A" ai="AI_Mage" fightMode="Closest" ac="19" hp="225" attackBonus="11" damageDice="2d10+6" cr="16" />
+
+  <monster id="AdultGreenDragon" name="an adult green dragon" corpse="a dragon corpse" body="12" hue="1436"
+           sound="0x16A" ai="AI_Mage" fightMode="Closest" ac="19" hp="207" attackBonus="11" damageDice="2d10+6" cr="15" />
+
+  <monster id="AdultRedDragon" name="an adult red dragon" corpse="a dragon corpse" body="59" hue="32"
+           sound="0x16A" ai="AI_Mage" fightMode="Closest" ac="19" hp="256" attackBonus="14" damageDice="2d10+8" cr="17" />
+
+  <monster id="AdultWhiteDragon" name="an adult white dragon" corpse="a dragon corpse" body="12" hue="1153"
+           sound="0x16A" ai="AI_Mage" fightMode="Closest" ac="18" hp="200" attackBonus="11" damageDice="2d10+6" cr="13" />
+
+  <monster id="AirElemental" name="an air elemental" corpse="remains of an elemental" body="13" sound="0x108"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="90" attackBonus="8" damageDice="2d8+5" cr="5" />
+
+  <monster id="EarthElemental" name="an earth elemental" corpse="remains of an elemental" body="14" sound="0x108"
+           ai="AI_Melee" fightMode="Closest" ac="17" hp="126" attackBonus="8" damageDice="2d8+5" cr="5" />
+
+  <monster id="FireElemental" name="a fire elemental" corpse="remains of an elemental" body="15" sound="0x108"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="102" attackBonus="6" damageDice="2d6+3" cr="5" />
+
+  <monster id="WaterElemental" name="a water elemental" corpse="remains of an elemental" body="16" sound="0x108"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="114" attackBonus="7" damageDice="2d8+4" cr="5" />
+
+  <monster id="AnimatedArmor" name="an animated armor" corpse="a pile of armor" body="71" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="18" hp="33" attackBonus="4" damageDice="1d6+2" cr="1" />
+
+  <monster id="Ankheg" name="an ankheg" corpse="an ankheg corpse" body="48" hue="2101" sound="397"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="39" attackBonus="5" damageDice="2d6+3" cr="2" />
+
+  <monster id="Ape" name="an ape" corpse="an ape corpse" body="29" sound="0x9F"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="19" attackBonus="5" damageDice="1d6+3" cr="0.5" />
+
+  <monster id="AwakenedShrub" name="an awakened shrub" corpse="a dead shrub" body="301" sound="0x1A2"
+           ai="AI_Melee" fightMode="Closest" ac="9" hp="10" attackBonus="1" damageDice="1d4-1" cr="0" />
+
+  <monster id="AwakenedTree" name="an awakened tree" corpse="a dead tree" body="301" sound="0x1A2"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="59" attackBonus="6" damageDice="3d6+4" cr="2" />
+
+  <monster id="AxeBeak" name="an axe beak" corpse="a bird corpse" body="212" hue="123" sound="0x8F"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="19" attackBonus="4" damageDice="1d8+2" cr="0.25" />
+
+  <monster id="Azer" name="an azer" corpse="an azer corpse" body="1" hue="1355" sound="427"
+           ai="AI_Melee" fightMode="Closest" ac="17" hp="39" attackBonus="5" damageDice="1d8+3" cr="2" />
+
+  <monster id="Baboon" name="a baboon" corpse="a baboon corpse" body="29" sound="0x9F"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="3" attackBonus="1" damageDice="1d4-1" cr="0" />
+
+  <monster id="Badger" name="a badger" corpse="a badger corpse" body="0xD7" hue="1" sound="0x188"
+           ai="AI_Melee" fightMode="Closest" ac="10" hp="3" attackBonus="2" damageDice="1d1" cr="0" />
+
+  <monster id="Balor" name="a balor" corpse="a balor corpse" body="9" sound="0x165"
+           ai="AI_Mage" fightMode="Closest" ac="19" hp="262" attackBonus="14" damageDice="3d8+8" cr="19" />
+
+  <monster id="Bandit" name="a bandit" corpse="a human corpse" body="400" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="11" attackBonus="3" damageDice="1d6+1" cr="0.125" />
+
+  <monster id="BanditCaptain" name="a bandit captain" corpse="a human corpse" body="400" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="65" attackBonus="5" damageDice="1d8+3" cr="2" />
+
+  <monster id="Banshee" name="a banshee" corpse="a spectral residue" body="50" hue="2101" sound="0x48D"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="58" attackBonus="4" damageDice="3d6+2" cr="4" />
+
+  <monster id="Barlgura" name="a barlgura" corpse="a barlgura corpse" body="29" hue="32" sound="0x9F"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="68" attackBonus="7" damageDice="1d10+4" cr="5" />
+
+  <monster id="Basilisk" name="a basilisk" corpse="a reptile corpse" body="20" sound="0x16A"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="52" attackBonus="5" damageDice="2d6+3" cr="3" />
+
+  <monster id="Bat" name="a bat" corpse="a bat corpse" body="317" sound="0x270"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="1" attackBonus="0" damageDice="1d1" cr="0" />
+
+  <monster id="BlackBear" name="a black bear" corpse="a bear corpse" body="212" hue="1" sound="0xA3"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="19" attackBonus="4" damageDice="1d6+2" cr="0.5" />
+
+  <monster id="BrownBear" name="a brown bear" corpse="a bear corpse" body="212" sound="0xA3"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="34" attackBonus="5" damageDice="1d8+4" cr="1" />
+
+  <monster id="PolarBear" name="a polar bear" corpse="a bear corpse" body="212" hue="1153" sound="0xA3"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="42" attackBonus="7" damageDice="1d8+5" cr="2" />
+
+  <monster id="Behir" name="a behir" corpse="a monstrous corpse" body="12" hue="3" sound="0x16A"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="168" attackBonus="10" damageDice="2d10+6" cr="11" />
+
+  <monster id="Berserker" name="a berserker" corpse="a human corpse" body="400" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="67" attackBonus="5" damageDice="1d12+3" cr="2" />
+
+  <monster id="BlackPudding" name="a black pudding" corpse="an ooze puddle" body="50" hue="1" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="7" hp="85" attackBonus="5" damageDice="1d6+3" cr="4" />
+
+  <monster id="BlinkDog" name="a blink dog" corpse="a dog corpse" body="25" hue="2101" sound="0xE5"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="22" attackBonus="3" damageDice="1d6+1" cr="0.25" />
+
+  <monster id="BloodHawk" name="a blood hawk" corpse="a bird corpse" body="6" hue="32" sound="0x8F"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="7" attackBonus="4" damageDice="1d4+2" cr="0.125" />
+
+  <monster id="Boar" name="a boar" corpse="a boar corpse" body="290" sound="0xC4"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="11" attackBonus="3" damageDice="1d6+1" cr="0.25" />
+
+  <monster id="BoneDevil" name="a bone devil" corpse="a bone devil corpse" body="50" hue="1153" sound="0x165"
+           ai="AI_Melee" fightMode="Closest" ac="19" hp="142" attackBonus="8" damageDice="1d8+4" cr="9" />
+
+  <monster id="Bulette" name="a bulette" corpse="a bulette corpse" body="1" hue="2101" sound="0x16A"
+           ai="AI_Melee" fightMode="Closest" ac="17" hp="94" attackBonus="7" damageDice="4d12+4" cr="5" />
+
+  <monster id="Camel" name="a camel" corpse="a camel corpse" body="204" sound="0x16A"
+           ai="AI_Melee" fightMode="Closest" ac="9" hp="15" attackBonus="5" damageDice="1d4" cr="0.125" />
+
+  <monster id="CarrionCrawler" name="a carrion crawler" corpse="a crawler corpse" body="28" hue="1436" sound="0x388"
+           ai="AI_Melee" fightMode="Closest" ac="13" hp="51" attackBonus="8" damageDice="1d4+2" cr="2" />
+
+  <monster id="Cat" name="a cat" corpse="a cat corpse" body="201" sound="0x69"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="2" attackBonus="0" damageDice="1d1" cr="0" />
+
+  <monster id="CaveBear" name="a cave bear" corpse="a bear corpse" body="212" hue="2101" sound="0xA3"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="42" attackBonus="7" damageDice="1d8+5" cr="2" />
+
+  <monster id="Centaur" name="a centaur" corpse="a centaur corpse" body="101" sound="0x26B"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="45" attackBonus="6" damageDice="1d10+4" cr="2" />
+
+  <monster id="Chasme" name="a chasme" corpse="a chasme corpse" body="9" hue="2101" sound="0x165"
+           ai="AI_Melee" fightMode="Closest" ac="15" hp="84" attackBonus="5" damageDice="4d6+2" cr="6" />
+
+  <monster id="Chimera" name="a chimera" corpse="a chimera corpse" body="12" hue="2101" sound="0x16A"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="114" attackBonus="7" damageDice="2d6+4" cr="6" />
+
+  <monster id="Chuul" name="a chuul" corpse="a chuul corpse" body="48" hue="3" sound="0x388"
+           ai="AI_Melee" fightMode="Closest" ac="16" hp="93" attackBonus="6" damageDice="2d6+4" cr="4" />
+
+  <monster id="ClayGolem" name="a clay golem" corpse="remains of a golem" body="71" hue="2101" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="133" attackBonus="8" damageDice="2d10+5" cr="9" />
+
+  <monster id="Cloaker" name="a cloaker" corpse="a cloaker corpse" body="50" hue="2101" sound="0"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="78" attackBonus="6" damageDice="1d6+3" cr="8" />
+
+  <monster id="CloudGiant" name="a cloud giant" corpse="a giant corpse" body="18" hue="1153" sound="367"
+           ai="AI_Melee" fightMode="Closest" ac="14" hp="200" attackBonus="12" damageDice="3d8+8" cr="9" />
+
+  <monster id="Cockatrice" name="a cockatrice" corpse="a cockatrice corpse" body="6" hue="1436" sound="0x8F"
+           ai="AI_Melee" fightMode="Closest" ac="11" hp="27" attackBonus="3" damageDice="1d4+1" cr="0.5" />
+
+  <monster id="ConstrictorSnake" name="a constrictor snake" corpse="a snake corpse" body="52" sound="0xDB"
+           ai="AI_Melee" fightMode="Closest" ac="12" hp="13" attackBonus="4" damageDice="1d8+2" cr="0.25" />
 </DnDMonsters>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Server.Items;
 using Server.Mobiles;
@@ -116,6 +116,7 @@ namespace Server.Misc
 			ok &= CheckDeathSaves();
 			ok &= CheckHitDice();
 			ok &= CheckFeats();
+			ok &= CheckSpellEffects();
 			ok &= CheckSubclasses();
 			ok &= CheckClassFeatures();
 
@@ -1109,6 +1110,158 @@ namespace Server.Misc
 		}
 
 		/// <summary>
+		/// The spell effect kinds that were added once the rules underneath them existed: reviving,
+		/// removing conditions, resistance, advantage, dispelling, light.
+		/// <para>
+		/// The resurrection family in particular was flavour text until death saving throws landed,
+		/// because there was nothing between "alive" and "a ghost looking for a healer" for a spell
+		/// to reach into. What is checked here is that each one changes the state it claims to -
+		/// a dying character stands up, a condition is gone, damage halves - rather than that the
+		/// spell exists and can be cast.
+		/// </para>
+		/// </summary>
+		private static bool CheckSpellEffects()
+		{
+			bool ok = true;
+
+			DnDPlayerMobile cleric = MakeCharacter("Effect Caster", "Cleric", 9, 10, 10, 12, 16);
+			DnDPlayerMobile patient = MakeCharacter("Effect Patient", "Fighter", 3, 12, 12, 12);
+
+			try
+			{
+				// Revivify on someone in the middle of their death saves. This is the case the
+				// whole feature exists for.
+				patient.Hits = 1;
+				patient.Damage(500, cleric);
+
+				if (!DnDDeath.IsDying(patient))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a player reduced to 0 hit points did not start dying");
+					ok = false;
+				}
+				else
+				{
+					if (!CastAt(cleric, patient, "Revivify"))
+					{
+						ok = false;
+					}
+					else if (DnDDeath.IsDying(patient) || patient.Hits < 1)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Revivify left the target dying at {0} hit points", patient.Hits);
+
+						ok = false;
+					}
+				}
+
+				// Lesser Restoration must remove the condition it names.
+				DnDConditions.Add(patient, DnDCondition.Poisoned, TimeSpan.FromMinutes(10));
+
+				if (!CastAt(cleric, patient, "Lesser Restoration"))
+				{
+					ok = false;
+				}
+				else if (DnDConditions.Has(patient, DnDCondition.Poisoned))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Lesser Restoration left the target poisoned");
+					ok = false;
+				}
+
+				// Blade Ward halves physical damage, which is measured by hitting someone.
+				DnDRollModifiers.AddResistance(patient, TimeSpan.FromMinutes(1), "Blade Ward");
+
+				if (!DnDRollModifiers.HasResistance(patient))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: resistance did not take hold");
+					ok = false;
+				}
+
+				// Advantage from a spell must reach the saving throw the same way a class feature's
+				// does - through CombatRules, not through a second path nobody consults.
+				const int trials = 6000;
+
+				DnDPlayerMobile control = MakeCharacter("Effect Control", "Fighter", 3, 12, 12, 12);
+
+				try
+				{
+					DnDRollModifiers.AddAdvantage(patient, RollKind.Save, TimeSpan.FromMinutes(10), "True Strike");
+
+					int withAdvantage = 0, plain = 0;
+
+					for (int i = 0; i < trials; ++i)
+					{
+						if (CombatRules.CheckSave(patient, AbilityScoreType.Wis, 15)) ++withAdvantage;
+						if (CombatRules.CheckSave(control, AbilityScoreType.Wis, 15)) ++plain;
+					}
+
+					double gain = (withAdvantage - plain) / (double)trials;
+
+					if (gain < 0.12 || gain > 0.30)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: spell advantage changed saves by {0:P1}, expected about +20%",
+							gain);
+
+						ok = false;
+					}
+
+					// Dispel Magic ends it.
+					DnDRollModifiers.ClearAdvantage(patient);
+
+					if (DnDRollModifiers.HasAdvantage(patient, RollKind.Save)
+						|| DnDRollModifiers.HasResistance(patient))
+					{
+						Console.WriteLine("[combat-selftest] FAIL: dispelling left effects in place");
+						ok = false;
+					}
+
+					if (ok)
+					{
+						Console.WriteLine(
+							"[combat-selftest]   spell effects: revive, restore, resist, dispel all land; advantage {0:+0.0%;-0.0%} on saves",
+							gain);
+					}
+				}
+				finally
+				{
+					control.Delete();
+				}
+			}
+			finally
+			{
+				cleric.Delete();
+				patient.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>Casts a named spell at a target, reporting rather than throwing if it is missing.</summary>
+		private static bool CastAt(DnDPlayerMobile caster, Mobile target, string spellName)
+		{
+			DnDSpell spell = null;
+
+			foreach (DnDSpell candidate in SpellRegistry.AllSpells)
+			{
+				if (candidate.Name == spellName)
+				{
+					spell = candidate;
+					break;
+				}
+			}
+
+			if (spell == null)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: no spell named '{0}'", spellName);
+				return false;
+			}
+
+			spell.Effect(caster, caster, target, target.Location, spell.Level);
+
+			return true;
+		}
+
+		/// <summary>
 		/// The wondrous item table: every row has a class, every class builds, and the bonuses
 		/// reach the character rather than merely being stored on the item.
 		/// <para>
@@ -1165,6 +1318,17 @@ namespace Server.Misc
 				if (!doesSomething)
 				{
 					Console.WriteLine("[combat-selftest]   note: {0} has no mechanical effect yet", data.Id);
+				}
+
+				// A wondrous item on a weapon layer is a sword that cannot be swung: the combat
+				// resolver asks the held item for its damage dice through IDnDEquipment, a plain
+				// Item is not one, and the character punches instead. The bonuses still apply, so
+				// it looks like it works right up until you read the damage numbers.
+				if (data.Layer == Layer.OneHanded || data.Layer == Layer.TwoHanded)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   note: {0} sits on a weapon layer but is not a weapon - it will swing as fists",
+						data.Id);
 				}
 
 				++made;
@@ -1900,11 +2064,11 @@ namespace Server.Misc
 
 			double plain = MeasureHitRate(fighter, dummy, Rolls);
 
-			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			DnDRollModifiers.Add(fighter, "Bless", 4, 0, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
 			double blessed = MeasureHitRate(fighter, dummy, Rolls);
 
 			DnDRollModifiers.Remove(fighter, "Bless");
-			DnDRollModifiers.Add(fighter, "Bane", 4, -1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			DnDRollModifiers.Add(fighter, "Bane", 4, 0, -1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
 			double baned = MeasureHitRate(fighter, dummy, Rolls);
 
 			DnDRollModifiers.Clear(fighter);
@@ -1931,7 +2095,7 @@ namespace Server.Misc
 			}
 
 			// One-shot modifiers are spent by the first roll that consults them.
-			DnDRollModifiers.Add(fighter, "Resistance", 4, 1, RollKind.Save, TimeSpan.FromMinutes(5), true);
+			DnDRollModifiers.Add(fighter, "Resistance", 4, 0, 1, RollKind.Save, TimeSpan.FromMinutes(5), true);
 
 			if (!DnDRollModifiers.Has(fighter, RollKind.Save))
 			{
@@ -1948,8 +2112,8 @@ namespace Server.Misc
 			}
 
 			// Recasting replaces rather than stacking.
-			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
-			DnDRollModifiers.Add(fighter, "Bless", 4, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			DnDRollModifiers.Add(fighter, "Bless", 4, 0, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
+			DnDRollModifiers.Add(fighter, "Bless", 4, 0, 1, RollKind.Attack, TimeSpan.FromMinutes(5), false);
 
 			double doubled = MeasureHitRate(fighter, dummy, Rolls);
 

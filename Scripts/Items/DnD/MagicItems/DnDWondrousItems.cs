@@ -5,6 +5,10 @@ namespace Server.Items
 	// Generated from Data/DnDMagicItems.xml - see the note in DnDWondrousTable.cs. These exist only
 	// so [add and the spawner, which resolve by C# type name through reflection, can find them. All
 	// the numbers live in the table.
+	//
+	// Regenerate after adding a row. The self-test fails loudly if a row has no class here, because
+	// otherwise the item exists in the data and simply cannot be spawned - invisible until someone
+	// tries to [add it.
 
 	public class DnDRingOfProtection : DnDWondrousItem
 	{
@@ -224,6 +228,336 @@ namespace Server.Items
 		public DnDEyesOfCharming() : base("EyesOfCharming") { }
 
 		public DnDEyesOfCharming(Serial serial) : base(serial) { }
+	}
+
+	public class DnDBagOfHolding : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "BagOfHolding"; } }
+
+		[Constructable]
+		public DnDBagOfHolding() : base("BagOfHolding") { }
+
+		public DnDBagOfHolding(Serial serial) : base(serial) { }
+	}
+
+	public class DnDFlameTongue : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "FlameTongue"; } }
+
+		[Constructable]
+		public DnDFlameTongue() : base("FlameTongue") { }
+
+		public DnDFlameTongue(Serial serial) : base(serial) { }
+	}
+
+	public class DnDWandOfMagicMissiles : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "WandOfMagicMissiles"; } }
+
+		[Constructable]
+		public DnDWandOfMagicMissiles() : base("WandOfMagicMissiles") { }
+
+		public DnDWandOfMagicMissiles(Serial serial) : base(serial) { }
+	}
+
+	public class DnDStaffOfTheMagi : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "StaffOfTheMagi"; } }
+
+		[Constructable]
+		public DnDStaffOfTheMagi() : base("StaffOfTheMagi") { }
+
+		public DnDStaffOfTheMagi(Serial serial) : base(serial) { }
+	}
+
+	public class DnDRobeOfTheArchmagi : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "RobeOfTheArchmagi"; } }
+
+		[Constructable]
+		public DnDRobeOfTheArchmagi() : base("RobeOfTheArchmagi") { }
+
+		public DnDRobeOfTheArchmagi(Serial serial) : base(serial) { }
+	}
+
+	public class DnDDeckOfManyThings : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "DeckOfManyThings"; } }
+
+		[Constructable]
+		public DnDDeckOfManyThings() : base("DeckOfManyThings") { }
+
+		public DnDDeckOfManyThings(Serial serial) : base(serial) { }
+	}
+
+	public class DnDRingOfInvisibility : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "RingOfInvisibility"; } }
+
+		[Constructable]
+		public DnDRingOfInvisibility() : base("RingOfInvisibility") { }
+
+		public DnDRingOfInvisibility(Serial serial) : base(serial) { }
+	}
+
+	public class DnDBootsOfStridingAndSpringing : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "BootsOfStridingAndSpringing"; } }
+
+		[Constructable]
+		public DnDBootsOfStridingAndSpringing() : base("BootsOfStridingAndSpringing") { }
+
+		public DnDBootsOfStridingAndSpringing(Serial serial) : base(serial) { }
+	}
+
+	public class DnDCloakOfInvisibility : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "CloakOfInvisibility"; } }
+
+		[Constructable]
+		public DnDCloakOfInvisibility() : base("CloakOfInvisibility") { }
+
+		public DnDCloakOfInvisibility(Serial serial) : base(serial) { }
+	}
+
+	public class DnDPortableHole : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "PortableHole"; } }
+
+		[Constructable]
+		public DnDPortableHole() : base("PortableHole") { }
+
+		public DnDPortableHole(Serial serial) : base(serial) { }
+	}
+
+	public class DnDVorpalSword : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "VorpalSword"; } }
+
+		[Constructable]
+		public DnDVorpalSword() : base("VorpalSword") { }
+
+		public DnDVorpalSword(Serial serial) : base(serial) { }
+	}
+
+	public class DnDSunBlade : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "SunBlade"; } }
+
+		[Constructable]
+		public DnDSunBlade() : base("SunBlade") { }
+
+		public DnDSunBlade(Serial serial) : base(serial) { }
+	}
+
+	public class DnDHolyAvenger : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "HolyAvenger"; } }
+
+		[Constructable]
+		public DnDHolyAvenger() : base("HolyAvenger") { }
+
+		public DnDHolyAvenger(Serial serial) : base(serial) { }
+	}
+
+	public class DnDAmuletOfThePlanes : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "AmuletOfThePlanes"; } }
+
+		[Constructable]
+		public DnDAmuletOfThePlanes() : base("AmuletOfThePlanes") { }
+
+		public DnDAmuletOfThePlanes(Serial serial) : base(serial) { }
+	}
+
+	public class DnDSphereOfAnnihilation : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "SphereOfAnnihilation"; } }
+
+		[Constructable]
+		public DnDSphereOfAnnihilation() : base("SphereOfAnnihilation") { }
+
+		public DnDSphereOfAnnihilation(Serial serial) : base(serial) { }
+	}
+
+	public class DnDWellOfManyWorlds : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "WellOfManyWorlds"; } }
+
+		[Constructable]
+		public DnDWellOfManyWorlds() : base("WellOfManyWorlds") { }
+
+		public DnDWellOfManyWorlds(Serial serial) : base(serial) { }
+	}
+
+	public class DnDRingOfThreeWishes : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "RingOfThreeWishes"; } }
+
+		[Constructable]
+		public DnDRingOfThreeWishes() : base("RingOfThreeWishes") { }
+
+		public DnDRingOfThreeWishes(Serial serial) : base(serial) { }
+	}
+
+	public class DnDRodOfLordlyMight : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "RodOfLordlyMight"; } }
+
+		[Constructable]
+		public DnDRodOfLordlyMight() : base("RodOfLordlyMight") { }
+
+		public DnDRodOfLordlyMight(Serial serial) : base(serial) { }
+	}
+
+	public class DnDTalismanOfPureGood : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "TalismanOfPureGood"; } }
+
+		[Constructable]
+		public DnDTalismanOfPureGood() : base("TalismanOfPureGood") { }
+
+		public DnDTalismanOfPureGood(Serial serial) : base(serial) { }
+	}
+
+	public class DnDMaceOfDisruption : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "MaceOfDisruption"; } }
+
+		[Constructable]
+		public DnDMaceOfDisruption() : base("MaceOfDisruption") { }
+
+		public DnDMaceOfDisruption(Serial serial) : base(serial) { }
+	}
+
+	public class DnDGemOfSeeing : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "GemOfSeeing"; } }
+
+		[Constructable]
+		public DnDGemOfSeeing() : base("GemOfSeeing") { }
+
+		public DnDGemOfSeeing(Serial serial) : base(serial) { }
+	}
+
+	public class DnDHornOfValhalla : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "HornOfValhalla"; } }
+
+		[Constructable]
+		public DnDHornOfValhalla() : base("HornOfValhalla") { }
+
+		public DnDHornOfValhalla(Serial serial) : base(serial) { }
+	}
+
+	public class DnDWandOfFireballs : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "WandOfFireballs"; } }
+
+		[Constructable]
+		public DnDWandOfFireballs() : base("WandOfFireballs") { }
+
+		public DnDWandOfFireballs(Serial serial) : base(serial) { }
+	}
+
+	public class DnDStaffOfPower : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "StaffOfPower"; } }
+
+		[Constructable]
+		public DnDStaffOfPower() : base("StaffOfPower") { }
+
+		public DnDStaffOfPower(Serial serial) : base(serial) { }
+	}
+
+	public class DnDApparatusOfKwalish : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "ApparatusOfKwalish"; } }
+
+		[Constructable]
+		public DnDApparatusOfKwalish() : base("ApparatusOfKwalish") { }
+
+		public DnDApparatusOfKwalish(Serial serial) : base(serial) { }
+	}
+
+	public class DnDCarpetOfFlying : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "CarpetOfFlying"; } }
+
+		[Constructable]
+		public DnDCarpetOfFlying() : base("CarpetOfFlying") { }
+
+		public DnDCarpetOfFlying(Serial serial) : base(serial) { }
+	}
+
+	public class DnDHelmOfTeleportation : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "HelmOfTeleportation"; } }
+
+		[Constructable]
+		public DnDHelmOfTeleportation() : base("HelmOfTeleportation") { }
+
+		public DnDHelmOfTeleportation(Serial serial) : base(serial) { }
+	}
+
+	public class DnDPearlOfPower : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "PearlOfPower"; } }
+
+		[Constructable]
+		public DnDPearlOfPower() : base("PearlOfPower") { }
+
+		public DnDPearlOfPower(Serial serial) : base(serial) { }
+	}
+
+	public class DnDIounStone : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "IounStone"; } }
+
+		[Constructable]
+		public DnDIounStone() : base("IounStone") { }
+
+		public DnDIounStone(Serial serial) : base(serial) { }
+	}
+
+	public class DnDCrystalBall : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "CrystalBall"; } }
+
+		[Constructable]
+		public DnDCrystalBall() : base("CrystalBall") { }
+
+		public DnDCrystalBall(Serial serial) : base(serial) { }
+	}
+
+	public class DnDBagOfTricks : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "BagOfTricks"; } }
+
+		[Constructable]
+		public DnDBagOfTricks() : base("BagOfTricks") { }
+
+		public DnDBagOfTricks(Serial serial) : base(serial) { }
+	}
+
+	public class DnDCapeOfTheMountebank : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "CapeOfTheMountebank"; } }
+
+		[Constructable]
+		public DnDCapeOfTheMountebank() : base("CapeOfTheMountebank") { }
+
+		public DnDCapeOfTheMountebank(Serial serial) : base(serial) { }
+	}
+
+	public class DnDCircletOfBlasting : DnDWondrousItem
+	{
+		public override string WondrousId { get { return "CircletOfBlasting"; } }
+
+		[Constructable]
+		public DnDCircletOfBlasting() : base("CircletOfBlasting") { }
+
+		public DnDCircletOfBlasting(Serial serial) : base(serial) { }
 	}
 
 }

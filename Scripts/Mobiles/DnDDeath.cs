@@ -118,7 +118,11 @@ namespace Server.Mobiles
 		/// </summary>
 		public static bool OnBeforeDeath(Mobile m)
 		{
-			if (m == null || !m.Player)
+			// Gated on the type, not on Mobile.Player. Player is set when a client attaches, so a
+			// character with nobody logged into it - a test character, or one mid-reconnect - would
+			// skip death saves entirely and just die. Being a player character is a property of the
+			// character, not of whether someone is currently watching.
+			if (!(m is DnDPlayerMobile))
 			{
 				return true;
 			}

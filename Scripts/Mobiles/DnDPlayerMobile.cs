@@ -13,6 +13,7 @@ namespace Server.Mobiles
 		private CharacterClass m_PrimaryClass;
 		private List<Feat> m_Feats = new List<Feat>();
 		private List<DnDSkill> m_SkillProficiencies = new List<DnDSkill>();
+		private List<DnDTool> m_ToolProficiencies = new List<DnDTool>();
 
 		private int m_PendingAbilityScorePoints;
 		private int m_PendingSpellsKnown;
@@ -103,6 +104,19 @@ namespace Server.Mobiles
 		public bool IsProficient(DnDSkill skill)
 		{
 			return m_SkillProficiencies.Contains(skill);
+		}
+
+		public void AddToolProficiency(DnDTool tool)
+		{
+			if (!m_ToolProficiencies.Contains(tool))
+			{
+				m_ToolProficiencies.Add(tool);
+			}
+		}
+
+		public bool IsProficient(DnDTool tool)
+		{
+			return m_ToolProficiencies.Contains(tool);
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -232,6 +246,7 @@ namespace Server.Mobiles
 				int dexMod = Math.Min(effectiveStats.DexMod, maxDex);
 
 				int floor = Spells.DnD.DnDEffects.GetArmorClassFloor(this);
+				magicBonus += Spells.DnD.DnDEffects.GetArmorClassBonus(this);
 
 				// Unarmored Defense replaces the whole calculation rather than adding to it, and
 				// only while no body armour is worn - that condition is what makes it a trade
@@ -710,8 +725,13 @@ namespace Server.Mobiles
 		public override void ComputeBaseLightLevels(out int global, out int personal)
 		{
 			global = LightCycleGlobal;
+
+			// A Light spell and a Dwarf's eyes reach the same place: what this character can see by.
+			// Whichever is better wins, rather than adding, because seeing in the dark is not a
+			// quantity you accumulate.
 			bool darkvision = m_DnDInitialized && (Race as IDnDSpecies)?.HasDarkvision == true;
-			personal = darkvision ? 30 : LightCyclePersonal;
+
+			personal = darkvision || Spells.DnD.DnDEffects.HasLight(this) ? 30 : LightCyclePersonal;
 		}
 
 		private const int LightCycleGlobal = 0;
@@ -721,7 +741,7 @@ namespace Server.Mobiles
 		{
 			base.Serialize(writer);
 
-			writer.Write((int)6); // version 6
+			writer.Write((int)7); // version 7
 
 			writer.Write(m_DnDInitialized);
 
@@ -758,6 +778,12 @@ namespace Server.Mobiles
 				foreach (DnDSkill skill in m_SkillProficiencies)
 				{
 					writer.Write((int)skill);
+				}
+
+				writer.Write(m_ToolProficiencies.Count);
+				foreach (DnDTool tool in m_ToolProficiencies)
+				{
+					writer.Write((int)tool);
 				}
 
 				writer.Write(m_PendingAbilityScorePoints);
@@ -840,6 +866,15 @@ namespace Server.Mobiles
 					for (int i = 0; i < count; i++)
 					{
 						m_SkillProficiencies.Add((DnDSkill)reader.ReadInt());
+					}
+				}
+
+				if (version >= 7)
+				{
+					int count = reader.ReadInt();
+					for (int i = 0; i < count; i++)
+					{
+						m_ToolProficiencies.Add((DnDTool)reader.ReadInt());
 					}
 				}
 

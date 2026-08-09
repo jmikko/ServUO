@@ -34,7 +34,33 @@ namespace Server.Spells.DnD
 		Teleport,
 
 		/// <summary>Grants a movement mode (like flying) for a duration.</summary>
-		MovementMode
+		MovementMode,
+
+		/// <summary>
+		/// Brings someone back - from dying, or from dead. Revivify and the raise-dead family.
+		/// <para>
+		/// These were flavour text until death saving throws existed, because there was nothing
+		/// between "alive" and "a ghost looking for a healer" for a spell to reach into. Now there
+		/// is, and the whole point of the three rounds is that someone might spend one of them
+		/// casting this.
+		/// </para>
+		/// </summary>
+		Revive,
+
+		/// <summary>Removes conditions - the restoration family, and Remove Curse.</summary>
+		RemoveCondition,
+
+		/// <summary>Halves incoming physical damage for a duration.</summary>
+		Resistance,
+
+		/// <summary>Grants advantage on a kind of roll for a duration.</summary>
+		Advantage,
+
+		/// <summary>Ends magical effects on the target - Dispel Magic and Counterspell.</summary>
+		Dispel,
+
+		/// <summary>Sheds light, or grants the ability to see without it.</summary>
+		Light
 	}
 
 	/// <summary>
@@ -90,6 +116,8 @@ namespace Server.Spells.DnD
 
 		/// <summary>For RollModifier effects: the die added, which rolls it applies to, and its sign.</summary>
 		public int ModifierDie;
+		
+		public int ModifierBonus;
 
 		public RollKind ModifierKinds;
 		public bool ModifierIsPenalty;
@@ -164,6 +192,7 @@ namespace Server.Spells.DnD
 				Condition = ParseEnum(el.GetAttribute("condition"), DnDCondition.None),
 				HitPointThreshold = ParseInt(el.GetAttribute("hitPointThreshold")),
 				ModifierDie = ParseInt(el.GetAttribute("modifierDie")),
+				ModifierBonus = ParseInt(el.GetAttribute("modifierBonus")),
 				ModifierKinds = ParseModifierKinds(el.GetAttribute("modifierKinds")),
 				ModifierIsPenalty = el.GetAttribute("modifierPenalty") == "true",
 				ModifierOneShot = el.GetAttribute("modifierOneShot") == "true",
@@ -310,7 +339,107 @@ namespace Server.Spells.DnD
 						DnDEffects.ApplyFlying(target, m_Data.Duration, Name);
 						break;
 					}
+				case SpellEffectKind.Revive:
+					{
+						Revive(caster, character, target, slotLevel);
+						break;
+					}
+				case SpellEffectKind.RemoveCondition:
+					{
+						RemoveConditions(caster, target);
+						break;
+					}
+				case SpellEffectKind.Resistance:
+					{
+						Server.DnDRollModifiers.AddResistance(target, m_Data.Duration, Name);
+						break;
+					}
+				case SpellEffectKind.Advantage:
+					{
+						Server.DnDRollModifiers.AddAdvantage(target, m_Data.ModifierKinds, m_Data.Duration, Name);
+						break;
+					}
+				case SpellEffectKind.Dispel:
+					{
+						DnDEffects.Clear(target);
+						DnDRollModifiers.Clear(target);
+						DnDConcentration.End(target);
+
+						caster.SendMessage("The magic on {0} unravels.", target.Name);
+						break;
+					}
+				case SpellEffectKind.Light:
+					{
+						DnDEffects.ApplyLight(target, m_Data.Duration, Name);
+						break;
+					}
 			}
+		}
+
+		/// <summary>
+		/// Brings someone back. What "back" means depends on how far gone they are, which is the
+		/// distinction death saving throws introduced: a dying character is picked up where they
+		/// fell, a dead one needs the higher-level spells.
+		/// </summary>
+		private void Revive(Mobile caster, IDnDCharacter character, Mobile target, int slotLevel)
+		{
+			if (target == null)
+			{
+				return;
+			}
+
+			if (Mobiles.DnDDeath.IsDying(target))
+			{
+				int healed = Math.Max(1, RollDice(character, slotLevel));
+
+				target.Hits = healed;
+
+				Mobiles.DnDDeath.OnHealed(target);
+
+				caster.SendMessage("{0} draws breath again.", target.Name);
+				return;
+			}
+
+			if (!target.Alive)
+			{
+				target.Resurrect();
+
+				Mobiles.DnDDeath.Clear(target);
+
+				// The raise-dead family all return you at a single hit point - the spell buys you
+				// your life back and nothing else, which is what makes it frightening to need one.
+				// True Resurrection is the exception the SRD carves out, and the only reason a 9th
+				// level slot is worth spending over a 5th.
+				target.Hits = m_Data.Level >= 9 ? target.HitsMax : Math.Max(1, RollDice(character, slotLevel));
+
+				caster.SendMessage("{0} returns from death.", target.Name);
+				return;
+			}
+
+			caster.SendMessage("{0} is in no need of that.", target.Name);
+		}
+
+		/// <summary>
+		/// Removes conditions. Which ones is the difference between Lesser and Greater Restoration,
+		/// so the spell's own list is used rather than clearing everything.
+		/// </summary>
+		private void RemoveConditions(Mobile caster, Mobile target)
+		{
+			if (target == null)
+			{
+				return;
+			}
+
+			if (m_Data.Condition == DnDCondition.None)
+			{
+				DnDConditions.Clear(target);
+				caster.SendMessage("{0} is freed of all that afflicted them.", target.Name);
+				return;
+			}
+
+			DnDConditions.Remove(target, m_Data.Condition);
+
+			caster.SendMessage("{0} is freed of {1}.", target.Name, m_Data.Condition);
 		}
 
 		/// <summary>
@@ -352,10 +481,11 @@ namespace Server.Spells.DnD
 				return;
 			}
 
-			DnDRollModifiers.Add(
+			Server.DnDRollModifiers.Add(
 				target,
 				Name,
 				m_Data.ModifierDie,
+				m_Data.ModifierBonus,
 				m_Data.ModifierIsPenalty ? -1 : 1,
 				m_Data.ModifierKinds,
 				m_Data.Duration,

@@ -228,7 +228,10 @@ namespace Server
 			// Danger Sense and its relatives grant advantage on particular saves.
 			IDnDCharacter saver = target as IDnDCharacter;
 
-			if (mode == RollMode.Normal && (ClassFeatures.HasSaveAdvantage(saver, ability) || Feat.HasSaveAdvantage(saver, ability)))
+			if (mode == RollMode.Normal
+				&& (ClassFeatures.HasSaveAdvantage(saver, ability)
+				 || Feat.HasSaveAdvantage(saver, ability)
+				 || DnDRollModifiers.HasAdvantage(target, RollKind.Save)))
 			{
 				mode = RollMode.Advantage;
 			}
@@ -267,11 +270,13 @@ namespace Server
 			return roll + bonus >= dc;
 		}
 
-		/// <summary>
-		/// Rolls an ability check: d20 + ability modifier.
-		/// </summary>
 		public static bool CheckAbility(Mobile target, AbilityScoreType ability, int dc, RollMode mode = RollMode.Normal)
 		{
+			if (mode == RollMode.Normal && DnDRollModifiers.HasAdvantage(target, RollKind.AbilityCheck))
+			{
+				mode = RollMode.Advantage;
+			}
+
 			// Bless does not apply to ability checks, but Guidance does.
 			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.AbilityCheck);
 			int bonus = 0;
@@ -293,6 +298,11 @@ namespace Server
 		public static bool CheckSkill(Mobile target, DnDSkill skill, int dc, RollMode mode = RollMode.Normal)
 		{
 			AbilityScoreType ability = DnDSkills.GetPrimaryAbility(skill);
+
+			if (mode == RollMode.Normal && DnDRollModifiers.HasAdvantage(target, RollKind.AbilityCheck))
+			{
+				mode = RollMode.Advantage;
+			}
 
 			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.AbilityCheck);
 			int bonus = 0;

@@ -35,6 +35,12 @@ namespace Server.Engines.Classes.Feats
 			Feat.Register(new SkilledFeat());
 			Feat.Register(new WarCasterFeat());
 
+			Feat.Register(new SharpshooterFeat());
+			Feat.Register(new PolearmMasterFeat());
+			Feat.Register(new CrossbowExpertFeat());
+			Feat.Register(new SentinelFeat());
+			Feat.Register(new SpellSniperFeat());
+
 			Feat.Register(new ResilientStrengthFeat());
 			Feat.Register(new ResilientDexterityFeat());
 			Feat.Register(new ResilientConstitutionFeat());
@@ -117,6 +123,67 @@ namespace Server.Engines.Classes.Feats
 		}
 
 		public override int DamageBonus { get { return 2; } }
+	}
+
+	public class SharpshooterFeat : Feat
+	{
+		public override string Name { get { return "Sharpshooter"; } }
+
+		public override string Description
+		{
+			get { return "You have mastered ranged weapons and can make shots that others find impossible, gaining a +2 bonus to ranged damage."; }
+		}
+
+		public override int DamageBonus { get { return 2; } }
+	}
+
+	public class PolearmMasterFeat : Feat
+	{
+		public override string Name { get { return "Polearm Master"; } }
+
+		public override string Description
+		{
+			get { return "You can keep your enemies at bay with reach weapons. You gain +1 to AC and attack rolls with polearms."; }
+		}
+
+		public override int AttackBonus { get { return 1; } }
+		public override int ArmorClassBonus { get { return 1; } }
+	}
+
+	public class CrossbowExpertFeat : Feat
+	{
+		public override string Name { get { return "Crossbow Expert"; } }
+
+		public override string Description
+		{
+			get { return "Thanks to extensive practice with the crossbow, you gain a +1 bonus to attack rolls with crossbows and ignore loading properties."; }
+		}
+
+		public override int AttackBonus { get { return 1; } }
+	}
+
+	public class SentinelFeat : Feat
+	{
+		public override string Name { get { return "Sentinel"; } }
+
+		public override string Description
+		{
+			get { return "You have mastered techniques to take advantage of every drop in any enemy's guard, gaining +1 to AC."; }
+		}
+
+		public override int ArmorClassBonus { get { return 1; } }
+	}
+
+	public class SpellSniperFeat : Feat
+	{
+		public override string Name { get { return "Spell Sniper"; } }
+
+		public override string Description
+		{
+			get { return "You have learned techniques to enhance your attacks with certain kinds of spells, gaining a +1 to spell attack rolls."; }
+		}
+
+		public override int AttackBonus { get { return 1; } }
 	}
 
 	public class HeavyArmorMasterFeat : Feat

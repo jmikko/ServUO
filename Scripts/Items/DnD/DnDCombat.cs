@@ -97,6 +97,12 @@ namespace Server.Items
 			// here as well would compound with the weapon dice already doubled above.
 			damage += ClassFeatures.RollBonusDamage(character, mode);
 			damage += Feat.GetDamageBonus(character);
+			damage += Server.DnDRollModifiers.Roll(attacker, Server.RollKind.Damage);
+			
+			if (Server.Spells.DnD.DnDEffects.HasHuntersMark(attacker, defender as Mobile))
+			{
+				damage += Utility.Dice(1, 6, 0);
+			}
 
 			result.Damage = Math.Max(1, damage); // a hit always does something
 
@@ -138,7 +144,7 @@ namespace Server.Items
 				int applied = result.Damage;
 
 				// Rage and its kin halve weapon damage.
-				if (ClassFeatures.ResistsPhysicalDamage(defender as IDnDCharacter))
+				if (ClassFeatures.ResistsPhysicalDamage(defender as IDnDCharacter) || Server.DnDRollModifiers.HasResistance(defender as Mobile))
 				{
 					applied = Math.Max(1, applied / 2);
 				}

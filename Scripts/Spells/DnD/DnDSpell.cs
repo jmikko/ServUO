@@ -126,12 +126,21 @@ namespace Server.Spells.DnD
 				return;
 			}
 
-			m_Spells[spell.Name] = spell;
-
-			if (!m_Ordered.Contains(spell))
+			DnDSpell existing;
+			if (m_Spells.TryGetValue(spell.Name, out existing))
+			{
+				int index = m_Ordered.IndexOf(existing);
+				if (index >= 0)
+				{
+					m_Ordered[index] = spell;
+				}
+			}
+			else
 			{
 				m_Ordered.Add(spell);
 			}
+
+			m_Spells[spell.Name] = spell;
 
 			foreach (string className in classNames)
 			{
