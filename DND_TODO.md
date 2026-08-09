@@ -45,8 +45,6 @@ poor for playing.
 
 - **The level-up window does not collect choices.** `[choose` does. The window already collects a
   class, ability improvements and spells known, so this is a fifth list rather than a new mechanism.
-- **Dying shows nothing.** Death save successes and failures arrive as system messages. They want to
-  be three pips somewhere visible, because the whole tension of the rule is watching the count.
 - **Pools and turn resources are invisible.** `[points` reads them. A Monk should be able to see
   their ki without typing, and whether their reaction is spent.
 - **Wild Shape forms are a list in chat.** `[use Wild Shape wolf`.
@@ -66,7 +64,15 @@ that need them.
 - **Divination.** Scrying, True Seeing, Foresight, the Gem of Seeing.
 - **Charges and activated items.** Potions, wands, the Deck of Many Things, the Horn of Valhalla.
   The wondrous table covers standing bonuses only, which is why it is a table; a dozen rows are
-  currently inert and the self-test names each one at boot.
+  currently inert and the self-test names each one at boot. `DnDMagicWeapon.OnHit` and
+  `DnDMagicArmor.OnTakeDamage` are the seams for the ones that trigger in combat rather than on
+  use - both are called by the resolver and both are currently empty everywhere.
+- **The rest of the DMG item tables.** Only the standing-bonus items are in. Importing the rest is
+  a real job, not a bulk paste: an item needs a layer that means something, art, a cost, and either
+  bonuses in the table or code behind one of the hooks above. A row with a name and nothing else is
+  worse than an absent row, because it looks finished. Weapons and armour in particular belong in
+  `DnDWeapons.xml`/`DnDArmor.xml`, not the wondrous table - the wondrous table has no damage dice,
+  and a "+2 chain mail" that lands on the talisman layer stacks its bonus on top of real armour.
 - **Wish.** Its own category, deliberately.
 
 ---
