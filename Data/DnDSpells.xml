@@ -127,8 +127,9 @@
   <spell id="Shield"        name="Shield"         level="1" school="Abjuration" kind="ArmorClass" resolution="Automatic"
          armorClass="15" durationSeconds="6" range="0" beneficial="true" selfOnly="true"
          classes="Sorcerer,Wizard" description="An invisible barrier briefly raises your armour class." />
-  <spell id="FaerieFire"    name="Faerie Fire"    level="1" school="Evocation" kind="Utility" range="12"
-         classes="Bard,Druid" description="Outlines creatures in light, granting advantage against them. Not yet modelled." />
+  <spell id="FaerieFire"    name="Faerie Fire"    level="1" school="Evocation" kind="Condition" resolution="SavingThrow" save="Dex"
+         condition="Outlined" durationSeconds="60" concentration="true" range="12"
+         classes="Bard,Druid" description="Outlines creatures in light; attacks against them have advantage." />
   <spell id="HuntersMark"   name="Hunter's Mark"  level="1" school="Divination" kind="Utility" range="18"
          classes="Ranger" description="Marks a quarry for extra damage. Not yet modelled." />
 
@@ -193,8 +194,8 @@
          classes="Bard,Cleric,Druid,Sorcerer" description="Advantage on ability checks." />
   <spell id="SeeInvisibility" name="See Invisibility" level="2" school="Divination" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Bard,Sorcerer,Wizard" description="Reveals the invisible. Not yet modelled." />
-  <spell id="SpiderClimb"   name="Spider Climb"   level="2" school="Transmutation" kind="Utility" range="1" beneficial="true"
-         classes="Sorcerer,Warlock,Wizard" description="Walk on walls and ceilings. Not yet modelled." />
+  <spell id="SpiderClimb"   name="Spider Climb"   level="2" school="Transmutation" kind="MovementMode" durationSeconds="3600" concentration="true" range="1" beneficial="true"
+         classes="Sorcerer,Warlock,Wizard" description="Walk on walls and ceilings." />
   <spell id="PassWithoutTrace" name="Pass without Trace" level="2" school="Abjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Druid,Ranger" description="A veil that hides the party. Not yet modelled." />
   <spell id="Knock"         name="Knock"          level="2" school="Transmutation" kind="Utility" range="12"
@@ -256,8 +257,8 @@
          classes="Cleric,Druid,Paladin,Ranger,Sorcerer,Wizard" description="Resistance to one damage type." />
   <spell id="RemoveCurse"   name="Remove Curse"   level="3" school="Abjuration" kind="RemoveCondition" range="1" beneficial="true"
          classes="Cleric,Paladin,Warlock,Wizard" description="Ends curses." />
-  <spell id="WaterBreathing" name="Water Breathing" level="3" school="Transmutation" kind="Utility" range="12" beneficial="true"
-         classes="Druid,Ranger,Sorcerer,Wizard" description="Breathe underwater. Not yet modelled." />
+  <spell id="WaterBreathing" name="Water Breathing" level="3" school="Transmutation" kind="MovementMode" durationSeconds="86400" range="12" beneficial="true"
+         classes="Druid,Ranger,Sorcerer,Wizard" description="Breathe underwater." />
   <spell id="Daylight"      name="Daylight"       level="3" school="Evocation" kind="Light" durationSeconds="3600" shape="Sphere" size="12" range="24" beneficial="true"
          classes="Cleric,Druid,Paladin,Ranger,Sorcerer" description="Bright light in a 60-foot radius." />
   <spell id="AnimateDead"   name="Animate Dead"   level="3" school="Necromancy" kind="Utility" range="2"
@@ -428,8 +429,9 @@
   <spell id="Maze"          name="Maze"           level="8" school="Conjuration" kind="Condition" resolution="Automatic"
          condition="Incapacitated" durationSeconds="600" range="12" concentration="true"
          classes="Wizard" description="Banishes a creature into a labyrinth." />
-  <spell id="HolyAura"      name="Holy Aura"      level="8" school="Abjuration" kind="Utility" shape="Sphere" size="6" range="0" beneficial="true" selfOnly="true" concentration="true"
-         classes="Cleric" description="Divine light shields your allies. Not yet modelled." />
+  <spell id="HolyAura"      name="Holy Aura"      level="8" school="Abjuration" kind="Advantage" modifierKinds="Save"
+         shape="Sphere" size="6" range="0" beneficial="true" selfOnly="true" concentration="true" durationSeconds="60"
+         classes="Cleric" description="Divine light shields your allies, who have advantage on saving throws." />
   <spell id="AntimagicField" name="Antimagic Field" level="8" school="Abjuration" kind="Utility" shape="Sphere" size="2" range="0" beneficial="true" selfOnly="true" concentration="true"
          classes="Cleric,Wizard" description="Magic simply stops working nearby. Not yet modelled." />
   <spell id="MindBlank"     name="Mind Blank"     level="8" school="Abjuration" kind="Utility" range="1" beneficial="true"
@@ -459,8 +461,9 @@
          classes="Sorcerer,Wizard" description="Time halts for everyone but you. Not yet modelled." />
   <spell id="Wish"          name="Wish"           level="9" school="Conjuration" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Sorcerer,Wizard" description="The mightiest spell mortals can cast. Not yet modelled." />
-  <spell id="Foresight"     name="Foresight"      level="9" school="Divination" kind="Utility" range="1" beneficial="true"
-         classes="Bard,Druid,Warlock,Wizard" description="You cannot be surprised, and see moments ahead. Not yet modelled." />
+  <spell id="Foresight"     name="Foresight"      level="9" school="Divination" kind="Advantage" modifierKinds="Attack,Save,AbilityCheck"
+         durationSeconds="28800" range="1" beneficial="true"
+         classes="Bard,Druid,Warlock,Wizard" description="You see moments ahead: advantage on attacks, saves and ability checks." />
   <spell id="TrueResurrection" name="True Resurrection" level="9" school="Necromancy" kind="Revive" range="1" beneficial="true"
          classes="Cleric,Druid" description="Restores any dead creature to life." />
   <spell id="Shapechange"   name="Shapechange"    level="9" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true" concentration="true"
@@ -538,8 +541,9 @@
          classes="Sorcerer,Wizard" description="Assume a different form. Not yet modelled." />
   <spell id="Augury" name="Augury" level="2" school="Divination" kind="Utility" range="0" beneficial="true" selfOnly="true"
          classes="Cleric" description="Receive an omen. Not yet modelled." />
-  <spell id="Blur" name="Blur" level="2" school="Illusion" kind="Utility" range="0" beneficial="true" selfOnly="true" concentration="true" durationSeconds="60"
-         classes="Sorcerer,Wizard" description="Attackers have disadvantage against you. Not yet modelled." />
+  <spell id="Blur" name="Blur" level="2" school="Illusion" kind="Condition" resolution="Automatic"
+         condition="Blurred" range="0" beneficial="true" selfOnly="true" concentration="true" durationSeconds="60"
+         classes="Sorcerer,Wizard" description="Your outline blurs; attackers have disadvantage against you." />
   <spell id="CalmEmotions" name="Calm Emotions" level="2" school="Enchantment" kind="RemoveCondition" range="12" shape="Sphere" size="4" concentration="true" durationSeconds="60"
          classes="Bard,Cleric" description="Suppress strong emotions." />
   <spell id="ContinualFlame" name="Continual Flame" level="2" school="Evocation" kind="Light" durationSeconds="86400" range="1" beneficial="true"
@@ -578,8 +582,8 @@
          classes="Druid,Ranger" description="Summon fey spirits in the form of beasts. Not yet modelled." />
   <spell id="CreateFoodAndWater" name="Create Food and Water" level="3" school="Conjuration" kind="Utility" range="6"
          classes="Cleric,Paladin" description="Create food and water. Not yet modelled." />
-  <spell id="GaseousForm" name="Gaseous Form" level="3" school="Transmutation" kind="Utility" range="1" beneficial="true" concentration="true" durationSeconds="3600"
-         classes="Sorcerer,Warlock,Wizard" description="Transform into a misty cloud. Not yet modelled." />
+  <spell id="GaseousForm" name="Gaseous Form" level="3" school="Transmutation" kind="MovementMode" range="1" beneficial="true" concentration="true" durationSeconds="3600"
+         classes="Sorcerer,Warlock,Wizard" description="Transform into a misty cloud that drifts where a body could not." />
   <spell id="GlyphOfWarding" name="Glyph of Warding" level="3" school="Abjuration" kind="Damage" resolution="SavingThrow" save="Dex" halfOnSave="true"
          dice="5" die="8" dicePerSlot="1" shape="Sphere" size="4" range="1"
          classes="Bard,Cleric,Wizard" description="Inscribe a rune that harms intruders." />
@@ -597,8 +601,8 @@
          classes="Bard,Cleric" description="Ask questions of a corpse. Not yet modelled." />
   <spell id="SpeakWithPlants" name="Speak with Plants" level="3" school="Transmutation" kind="Utility" range="0" beneficial="true" selfOnly="true" durationSeconds="600"
          classes="Bard,Druid,Ranger" description="Communicate with plants. Not yet modelled." />
-  <spell id="WaterWalk" name="Water Walk" level="3" school="Transmutation" kind="Utility" range="6" beneficial="true" durationSeconds="3600"
-         classes="Cleric,Druid,Ranger,Sorcerer" description="Walk on liquid as if it were solid ground. Not yet modelled." />
+  <spell id="WaterWalk" name="Water Walk" level="3" school="Transmutation" kind="MovementMode" range="6" beneficial="true" durationSeconds="3600"
+         classes="Cleric,Druid,Ranger,Sorcerer" description="Walk on liquid as if it were solid ground." />
   <spell id="WindWall" name="Wind Wall" level="3" school="Evocation" kind="Damage" resolution="SavingThrow" save="Str" halfOnSave="true"
          dice="3" die="8" dicePerSlot="1" shape="Line" size="10" range="24" concentration="true" durationSeconds="60"
          classes="Druid,Ranger" description="A wall of strong wind." />

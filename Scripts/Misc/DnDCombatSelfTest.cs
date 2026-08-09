@@ -144,6 +144,7 @@ namespace Server.Misc
 			ok &= Guard("CheckHitDice", () => CheckHitDice());
 			ok &= Guard("CheckFeats", () => CheckFeats());
 			ok &= Guard("CheckSpellEffects", () => CheckSpellEffects());
+			ok &= Guard("CheckDefenceSpells", () => CheckDefenceSpells());
 			ok &= Guard("CheckTurnEconomy", () => CheckTurnEconomy());
 			ok &= Guard("CheckResourcePools", () => CheckResourcePools());
 			ok &= Guard("CheckLevelUpChoices", () => CheckLevelUpChoices());
@@ -1820,6 +1821,93 @@ namespace Server.Misc
 			{
 				cleric.Delete();
 				patient.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// The spells that stopped being flavour text: Blur and Faerie Fire.
+		/// <para>
+		/// Both were rows saying "not yet modelled", and both turned out to need no new machinery
+		/// at all - the attack roll already decides advantage from a set of condition flags, so
+		/// each is one more flag in that set. What has to be checked is therefore not that the
+		/// spell exists but that the flag reached the dice, and the only honest way to see that is
+		/// to swing a few thousand times and count. A description promising disadvantage while the
+		/// hit rate sits unchanged is exactly the failure these rows used to be.
+		/// </para>
+		/// </summary>
+		private static bool CheckDefenceSpells()
+		{
+			const int Swings = 6000;
+
+			bool ok = true;
+
+			DnDPlayerMobile target = MakeCharacter("Defence Probe", "Fighter", 1, 10, 10, 10);
+			SrdGoblin attacker = new SrdGoblin();
+
+			attacker.MoveToWorld(TestLocation, Map.Felucca);
+
+			try
+			{
+				double plain = MeasureHitRate(attacker, target, Swings);
+
+				DnDConditions.Add(target, DnDCondition.Blurred, TimeSpan.FromMinutes(10));
+				double blurred = MeasureHitRate(attacker, target, Swings);
+				DnDConditions.Remove(target, DnDCondition.Blurred);
+
+				DnDConditions.Add(target, DnDCondition.Outlined, TimeSpan.FromMinutes(10));
+				double outlined = MeasureHitRate(attacker, target, Swings);
+				DnDConditions.Remove(target, DnDCondition.Outlined);
+
+				// Disadvantage squares the miss chance and advantage squares the hit chance, so at
+				// these rates the gaps are enormous - several times any plausible sampling noise.
+				if (blurred >= plain - 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Blur left the hit rate at {0:P1}, from {1:P1}", blurred, plain);
+
+					ok = false;
+				}
+
+				if (outlined <= plain + 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: Faerie Fire left the hit rate at {0:P1}, from {1:P1}", outlined, plain);
+
+					ok = false;
+				}
+
+				// Faerie Fire's point is that it beats invisibility. Outlined and Invisible together
+				// must cancel rather than one silently winning.
+				DnDConditions.Add(target, DnDCondition.Invisible, TimeSpan.FromMinutes(10));
+				DnDConditions.Add(target, DnDCondition.Outlined, TimeSpan.FromMinutes(10));
+
+				double both = MeasureHitRate(attacker, target, Swings);
+
+				DnDConditions.Remove(target, DnDCondition.Invisible);
+				DnDConditions.Remove(target, DnDCondition.Outlined);
+
+				if (Math.Abs(both - plain) > 0.05)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: outlined and invisible together rolled {0:P1}, expected the plain {1:P1}",
+						both, plain);
+
+					ok = false;
+				}
+
+				if (ok)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   defence spells: plain {0:P1}, blurred {1:P1}, outlined {2:P1}, both {3:P1}",
+						plain, blurred, outlined, both);
+				}
+			}
+			finally
+			{
+				attacker.Delete();
+				target.Delete();
 			}
 
 			return ok;
