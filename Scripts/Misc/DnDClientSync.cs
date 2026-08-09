@@ -20,6 +20,30 @@ namespace Server.Misc
 			EventSink.Login += OnLogin;
 		}
 
+		/// <summary>
+		/// Pushes the whole character sheet - stats and skills - to a player's client.
+		/// <para>
+		/// One call rather than two at each of a dozen sites, because the two halves go stale
+		/// together and a site that sends one without the other is a bug nobody sees: the sheet
+		/// keeps showing the old numbers and looks merely out of date rather than broken. Levelling
+		/// up is the case that matters, since a new proficiency bonus moves every proficient skill
+		/// at once.
+		/// </para>
+		/// <para>
+		/// Safe to call on a character with no client attached; it does nothing.
+		/// </para>
+		/// </summary>
+		public static void SendSheet(Mobile m)
+		{
+			if (m == null || m.NetState == null)
+			{
+				return;
+			}
+
+			m.NetState.Send(new DnDStatSync(m));
+			m.NetState.Send(new DnDSkillSync(m));
+		}
+
 		private static void OnLogin(LoginEventArgs e)
 		{
 			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
@@ -42,7 +66,7 @@ namespace Server.Misc
 						return;
 					}
 
-					pm.NetState.Send(new DnDStatSync(pm));
+					SendSheet(pm);
 
 					DnDSpellPackets.SendSpellList(pm);
 				});

@@ -297,43 +297,59 @@ namespace Server
 		}
 
 		/// <summary>
+		/// What a character adds to a roll of this skill: the ability modifier, plus proficiency
+		/// if they have it, doubled again for expertise.
+		/// <para>
+		/// Split out of <see cref="CheckSkill"/> so the number the character sheet shows and the
+		/// number the dice actually get come from one place. Computing the display separately is
+		/// how a sheet ends up promising +7 on a roll that quietly adds +5, and a player has no
+		/// way to tell which of the two is lying.
+		/// </para>
+		/// </summary>
+		public static int GetSkillModifier(Mobile target, DnDSkill skill)
+		{
+			IDnDCharacter character = target as IDnDCharacter;
+
+			if (character == null || !character.DnDInitialized)
+			{
+				return 0;
+			}
+
+			AbilityScoreType ability = DnDSkills.GetPrimaryAbility(skill);
+
+			int bonus = Spellcasting.GetModifier(character.EffectiveAbilityScores, ability);
+
+			if (character.IsProficient(skill) && character.PrimaryClass != null)
+			{
+				int proficiency = character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
+
+				// Expertise doubles it, which is what makes a Rogue's chosen skills feel
+				// different in kind rather than just better.
+				if (DnDChoices.HasChosen(character, "Expertise: " + skill))
+				{
+					proficiency *= 2;
+				}
+
+				bonus += proficiency;
+			}
+
+			return bonus;
+		}
+
+		/// <summary>
 		/// Rolls a skill check, which is an ability check that adds the proficiency bonus
 		/// if the character is proficient.
 		/// </summary>
 		public static bool CheckSkill(Mobile target, DnDSkill skill, int dc, RollMode mode = RollMode.Normal)
 		{
-			AbilityScoreType ability = DnDSkills.GetPrimaryAbility(skill);
-
 			if (mode == RollMode.Normal && DnDRollModifiers.HasAdvantage(target, RollKind.AbilityCheck))
 			{
 				mode = RollMode.Advantage;
 			}
 
 			int roll = RollD20(mode) + DnDRollModifiers.Roll(target, RollKind.AbilityCheck);
-			int bonus = 0;
 
-			IDnDCharacter character = target as IDnDCharacter;
-
-			if (character != null && character.DnDInitialized)
-			{
-				bonus = Spellcasting.GetModifier(character.EffectiveAbilityScores, ability);
-
-				if (character.IsProficient(skill) && character.PrimaryClass != null)
-				{
-					int proficiency = character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
-
-					// Expertise doubles it, which is what makes a Rogue's chosen skills feel
-					// different in kind rather than just better.
-					if (DnDChoices.HasChosen(character, "Expertise: " + skill))
-					{
-						proficiency *= 2;
-					}
-
-					bonus += proficiency;
-				}
-			}
-
-			return roll + bonus >= dc;
+			return roll + GetSkillModifier(target, skill) >= dc;
 		}
 
 		/// <summary>Defender AC. Anything with no D&amp;D data at all sits at the SRD floor of 10.</summary>

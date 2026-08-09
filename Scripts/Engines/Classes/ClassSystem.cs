@@ -131,7 +131,7 @@ namespace Server.Engines.Classes
 
 			if (pm.NetState != null)
 			{
-				pm.NetState.Send(new DnDStatSync(pm));
+				Server.Misc.DnDClientSync.SendSheet(pm);
 			}
 
 			Spells.DnD.DnDSpellPackets.SendSpellList(pm);
@@ -210,7 +210,7 @@ namespace Server.Engines.Classes
 
 			if (pm.NetState != null)
 			{
-				pm.NetState.Send(new DnDStatSync(pm));
+				Server.Misc.DnDClientSync.SendSheet(pm);
 			}
 		}
 
@@ -333,7 +333,7 @@ namespace Server.Engines.Classes
 
 			if (pm.NetState != null)
 			{
-				pm.NetState.Send(new DnDStatSync(pm));
+				Server.Misc.DnDClientSync.SendSheet(pm);
 				Server.Spells.DnD.DnDSpellPackets.SendSpellList(pm);
 				if (pm.PendingLevels > 0 || pm.PendingAbilityScorePoints > 0 || pm.PendingSpellsKnown > 0)
 				{

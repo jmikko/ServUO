@@ -82,7 +82,7 @@ namespace Server.Mobiles
 
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 
 			return true;
@@ -167,7 +167,7 @@ namespace Server.Mobiles
 
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 
 			return true;
@@ -458,7 +458,7 @@ namespace Server.Mobiles
 
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 
 			Spells.DnD.DnDSpellPackets.SendSpellList(this);
@@ -676,7 +676,7 @@ namespace Server.Mobiles
 			SendMessage(0x35, "You finish a long rest.");
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 		}
 
@@ -704,7 +704,7 @@ namespace Server.Mobiles
 			SendMessage(0x35, "You finish a short rest.");
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 		}
 
@@ -762,7 +762,7 @@ namespace Server.Mobiles
 
 			if (NetState != null)
 			{
-				NetState.Send(new DnDStatSync(this));
+				Server.Misc.DnDClientSync.SendSheet(this);
 			}
 
 			return true;

@@ -50,7 +50,7 @@ namespace Server.Spells.DnD
 			// The client cannot recompute slots or hit points itself, so refresh both after any
 			// cast - including a failed one, whose whole point may be that a slot was missing.
 			SendSpellList(pm);
-			Send(pm, new DnDStatSync(pm));
+			Server.Misc.DnDClientSync.SendSheet(pm);
 		}
 
 		/// <summary>

@@ -2550,7 +2550,53 @@ namespace Server.Misc
 				}
 			}
 
+			ok &= CheckSkillModifierMatchesTheDice(rogue);
+
 			rogue.Delete();
+
+			return ok;
+		}
+
+		/// <summary>
+		/// The number on the character sheet has to be the number the dice add.
+		/// <para>
+		/// The sheet is drawn from GetSkillModifier and the roll is made by CheckSkill. They share
+		/// that function today, but sharing it is the kind of thing a later edit quietly undoes -
+		/// inline the maths back into CheckSkill for a special case and the sheet goes on promising
+		/// a bonus the roll no longer adds. Nothing about that failure is visible from either side
+		/// alone, so this measures the roll and holds it against the advertised figure: against a
+		/// known DC the success rate is fixed by the modifier, and a mismatch of even one point
+		/// moves it by a full 5%.
+		/// </para>
+		/// </summary>
+		private static bool CheckSkillModifierMatchesTheDice(DnDPlayerMobile rogue)
+		{
+			const int Rolls = 20000;
+			const int DC = 12;
+
+			bool ok = true;
+
+			foreach (DnDSkill skill in Enum.GetValues(typeof(DnDSkill)))
+			{
+				int advertised = CombatRules.GetSkillModifier(rogue, skill);
+
+				// P(d20 + modifier >= DC), with the d20 never doing better than 20 or worse than 1.
+				int needed = DC - advertised;
+				double expected = (21 - Math.Min(21, Math.Max(1, needed))) / 20.0;
+
+				double measured = MeasureSkillRate(rogue, skill, DC, Rolls);
+
+				// Three standard deviations at this sample size is a shade under 1%; a one-point
+				// disagreement is 5%, so the gap between noise and a real fault is wide.
+				if (Math.Abs(measured - expected) > 0.02)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0} advertises {1:+#;-#;+0} (expect {2:P1} at DC {3}) but rolled {4:P1}",
+						skill, advertised, expected, DC, measured);
+
+					ok = false;
+				}
+			}
 
 			return ok;
 		}

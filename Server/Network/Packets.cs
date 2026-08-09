@@ -863,6 +863,67 @@ namespace Server.Network
 	}
 
 	/// <summary>
+	/// The eighteen SRD skills and what the character adds to each. Subcommand 0x46.
+	/// <para>
+	/// Every skill is sent, not only the proficient ones, because "what do I roll for Stealth"
+	/// is a question about all of them - an unproficient skill still has an ability modifier, and
+	/// a player deciding whether to try needs to see it. Which ones are proficient is a flag
+	/// rather than a filter.
+	/// </para>
+	/// <para>
+	/// The modifiers come from <see cref="CombatRules.GetSkillModifier"/>, the same function the
+	/// dice use, so the sheet cannot promise a number the roll does not add.
+	/// </para>
+	/// </summary>
+	public sealed class DnDSkillSync : Packet
+	{
+		[Flags]
+		public enum SkillFlag : byte
+		{
+			None = 0x00,
+			Proficient = 0x01,
+			Expertise = 0x02
+		}
+
+		public DnDSkillSync(Mobile m)
+			: base(0xBF)
+		{
+			var skills = (DnDSkill[])Enum.GetValues(typeof(DnDSkill));
+
+			EnsureCapacity(6 + (skills.Length * 3));
+
+			m_Stream.Write((short)0x46);
+			m_Stream.Write((byte)skills.Length);
+
+			IDnDCharacter character = m as IDnDCharacter;
+
+			for (int i = 0; i < skills.Length; ++i)
+			{
+				DnDSkill skill = skills[i];
+
+				var flags = SkillFlag.None;
+
+				if (character != null && character.DnDInitialized && character.IsProficient(skill))
+				{
+					flags |= SkillFlag.Proficient;
+
+					if (DnDChoices.HasChosen(character, "Expertise: " + skill))
+					{
+						flags |= SkillFlag.Expertise;
+					}
+				}
+
+				m_Stream.Write((byte)skill);
+
+				// Signed: a character with 8 Dexterity is at -1 on Stealth, and hiding that
+				// behind a byte would show them +255.
+				m_Stream.Write((sbyte)CombatRules.GetSkillModifier(m, skill));
+				m_Stream.Write((byte)flags);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Syncs D&amp;D 5.5e character-sheet data (ability scores, class, level, proficiency bonus, AC,
 	/// current/max HP) to the client. Extended (0xBF) subcommand 0x41. Sent once after character
 	/// setup completes, and again whenever those values change (damage, level-up, equipment swap).
