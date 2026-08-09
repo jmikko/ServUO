@@ -240,36 +240,6 @@ namespace Server.Items
 		public DnDBagOfHolding(Serial serial) : base(serial) { }
 	}
 
-	public class DnDFlameTongue : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "FlameTongue"; } }
-
-		[Constructable]
-		public DnDFlameTongue() : base("FlameTongue") { }
-
-		public DnDFlameTongue(Serial serial) : base(serial) { }
-	}
-
-	public class DnDWandOfMagicMissiles : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "WandOfMagicMissiles"; } }
-
-		[Constructable]
-		public DnDWandOfMagicMissiles() : base("WandOfMagicMissiles") { }
-
-		public DnDWandOfMagicMissiles(Serial serial) : base(serial) { }
-	}
-
-	public class DnDStaffOfTheMagi : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "StaffOfTheMagi"; } }
-
-		[Constructable]
-		public DnDStaffOfTheMagi() : base("StaffOfTheMagi") { }
-
-		public DnDStaffOfTheMagi(Serial serial) : base(serial) { }
-	}
-
 	public class DnDRobeOfTheArchmagi : DnDWondrousItem
 	{
 		public override string WondrousId { get { return "RobeOfTheArchmagi"; } }
@@ -330,36 +300,6 @@ namespace Server.Items
 		public DnDPortableHole(Serial serial) : base(serial) { }
 	}
 
-	public class DnDVorpalSword : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "VorpalSword"; } }
-
-		[Constructable]
-		public DnDVorpalSword() : base("VorpalSword") { }
-
-		public DnDVorpalSword(Serial serial) : base(serial) { }
-	}
-
-	public class DnDSunBlade : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "SunBlade"; } }
-
-		[Constructable]
-		public DnDSunBlade() : base("SunBlade") { }
-
-		public DnDSunBlade(Serial serial) : base(serial) { }
-	}
-
-	public class DnDHolyAvenger : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "HolyAvenger"; } }
-
-		[Constructable]
-		public DnDHolyAvenger() : base("HolyAvenger") { }
-
-		public DnDHolyAvenger(Serial serial) : base(serial) { }
-	}
-
 	public class DnDAmuletOfThePlanes : DnDWondrousItem
 	{
 		public override string WondrousId { get { return "AmuletOfThePlanes"; } }
@@ -400,16 +340,6 @@ namespace Server.Items
 		public DnDRingOfThreeWishes(Serial serial) : base(serial) { }
 	}
 
-	public class DnDRodOfLordlyMight : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "RodOfLordlyMight"; } }
-
-		[Constructable]
-		public DnDRodOfLordlyMight() : base("RodOfLordlyMight") { }
-
-		public DnDRodOfLordlyMight(Serial serial) : base(serial) { }
-	}
-
 	public class DnDTalismanOfPureGood : DnDWondrousItem
 	{
 		public override string WondrousId { get { return "TalismanOfPureGood"; } }
@@ -418,16 +348,6 @@ namespace Server.Items
 		public DnDTalismanOfPureGood() : base("TalismanOfPureGood") { }
 
 		public DnDTalismanOfPureGood(Serial serial) : base(serial) { }
-	}
-
-	public class DnDMaceOfDisruption : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "MaceOfDisruption"; } }
-
-		[Constructable]
-		public DnDMaceOfDisruption() : base("MaceOfDisruption") { }
-
-		public DnDMaceOfDisruption(Serial serial) : base(serial) { }
 	}
 
 	public class DnDGemOfSeeing : DnDWondrousItem
@@ -458,16 +378,6 @@ namespace Server.Items
 		public DnDWandOfFireballs() : base("WandOfFireballs") { }
 
 		public DnDWandOfFireballs(Serial serial) : base(serial) { }
-	}
-
-	public class DnDStaffOfPower : DnDWondrousItem
-	{
-		public override string WondrousId { get { return "StaffOfPower"; } }
-
-		[Constructable]
-		public DnDStaffOfPower() : base("StaffOfPower") { }
-
-		public DnDStaffOfPower(Serial serial) : base(serial) { }
 	}
 
 	public class DnDApparatusOfKwalish : DnDWondrousItem

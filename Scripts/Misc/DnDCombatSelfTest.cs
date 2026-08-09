@@ -117,6 +117,10 @@ namespace Server.Misc
 			ok &= CheckHitDice();
 			ok &= CheckFeats();
 			ok &= CheckSpellEffects();
+			ok &= CheckTurnEconomy();
+			ok &= CheckResourcePools();
+			ok &= CheckLevelUpChoices();
+			ok &= CheckWildShape();
 			ok &= CheckSubclasses();
 			ok &= CheckClassFeatures();
 
@@ -1104,6 +1108,483 @@ namespace Server.Misc
 				Console.WriteLine(
 					"[combat-selftest] death saves: {0:P1} die, {1:P1} stabilise, {2:P1} come round",
 					deathRate, stabilised / (double)trials, revived / (double)trials);
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// The turn economy: one action, one bonus action and one reaction per six-second round.
+		/// <para>
+		/// This is the design decision the TODO had been deferring, and the thing to check is that
+		/// scarcity actually bites - a reaction that can be spent twice in a round is not a reaction,
+		/// and every feature built on top of this assumes it cannot be.
+		/// </para>
+		/// </summary>
+		private static bool CheckTurnEconomy()
+		{
+			bool ok = true;
+
+			DnDPlayerMobile pm = MakeCharacter("Turn Test", "Fighter", 5, 12, 12, 12);
+
+			try
+			{
+				DnDTurn.Reset(pm);
+
+				if (!DnDTurn.TrySpendReaction(pm))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a fresh round had no reaction");
+					ok = false;
+				}
+
+				if (DnDTurn.TrySpendReaction(pm))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: the reaction was spent twice in one round");
+					ok = false;
+				}
+
+				// The three are separate budgets, not one.
+				if (!DnDTurn.TrySpendBonusAction(pm) || !DnDTurn.TrySpendAction(pm))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: spending the reaction consumed the other resources");
+					ok = false;
+				}
+
+				if (DnDTurn.IsAvailable(pm, TurnResource.Action))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a spent action still reported available");
+					ok = false;
+				}
+
+				// Uncanny Dodge measured through the damage path, which is the only place it can be
+				// seen: half of one blow per round, and full damage on every blow after it.
+				DnDPlayerMobile rogue = MakeCharacter("Dodge Test", "Rogue", 5, 12, 14, 12);
+
+				try
+				{
+					DnDTurn.Reset(rogue);
+
+					int first = ClassFeatures.ReduceIncomingDamage(rogue, rogue, 20, false);
+					int second = ClassFeatures.ReduceIncomingDamage(rogue, rogue, 20, false);
+
+					if (first != 10)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Uncanny Dodge took 20 damage to {0}, expected 10", first);
+
+						ok = false;
+					}
+
+					if (second != 20)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: a second blow in the same round was reduced to {0}", second);
+
+						ok = false;
+					}
+
+					if (ok)
+					{
+						Console.WriteLine(
+							"[combat-selftest]   turn economy: action/bonus/reaction each spend once; Uncanny Dodge 20 -> {0}, then {1}",
+							first, second);
+					}
+				}
+				finally
+				{
+					rogue.Delete();
+				}
+			}
+			finally
+			{
+				pm.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Resource pools: points, not uses. The distinction is the entire reason these classes were
+		/// blocked, so what is checked is that a pool can be spent in different amounts and refuses
+		/// a spend it cannot afford rather than clamping it.
+		/// </summary>
+		private static bool CheckResourcePools()
+		{
+			bool ok = true;
+
+			DnDPlayerMobile monk = MakeCharacter("Ki Test", "Monk", 5, 12, 14, 12);
+
+			try
+			{
+				DnDResourcePools.Clear(monk);
+
+				if (DnDResourcePools.GetMaximum(monk, ResourcePoolType.Ki) != 5)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: a level 5 Monk has {0} ki, expected 5",
+						DnDResourcePools.GetMaximum(monk, ResourcePoolType.Ki));
+
+					ok = false;
+				}
+
+				// Different amounts out of one pool - what a use counter could not express.
+				if (!DnDResourcePools.Spend(monk, monk, ResourcePoolType.Ki, 2)
+					|| !DnDResourcePools.Spend(monk, monk, ResourcePoolType.Ki, 3))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: could not spend 2 then 3 ki from a pool of 5");
+					ok = false;
+				}
+
+				if (DnDResourcePools.GetRemaining(monk, monk, ResourcePoolType.Ki) != 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: 5 ki spent did not empty a pool of 5");
+					ok = false;
+				}
+
+				// Refused, not clamped: a Monk who wanted 3 and has 0 gets nothing.
+				if (DnDResourcePools.Spend(monk, monk, ResourcePoolType.Ki, 1))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: spent ki from an empty pool");
+					ok = false;
+				}
+
+				// Ki comes back on a short rest.
+				monk.ShortRest();
+
+				if (DnDResourcePools.GetRemaining(monk, monk, ResourcePoolType.Ki) != 5)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a short rest did not restore ki");
+					ok = false;
+				}
+
+				// Sorcery points do not.
+				DnDPlayerMobile sorcerer = MakeCharacter("Sorcery Test", "Sorcerer", 5, 10, 12, 12, 16);
+
+				try
+				{
+					DnDResourcePools.Clear(sorcerer);
+					DnDResourcePools.Spend(sorcerer, sorcerer, ResourcePoolType.Sorcery, 3);
+
+					sorcerer.ShortRest();
+
+					if (DnDResourcePools.GetRemaining(sorcerer, sorcerer, ResourcePoolType.Sorcery) != 2)
+					{
+						Console.WriteLine("[combat-selftest] FAIL: a short rest restored sorcery points");
+						ok = false;
+					}
+
+					sorcerer.LongRest();
+
+					if (DnDResourcePools.GetRemaining(sorcerer, sorcerer, ResourcePoolType.Sorcery) != 5)
+					{
+						Console.WriteLine("[combat-selftest] FAIL: a long rest did not restore sorcery points");
+						ok = false;
+					}
+
+					// Lay on Hands scales with level, which was the point of rewriting it as a pool -
+					// it was a flat 5 per use, so a 10th level Paladin healed like a 1st level one.
+					DnDPlayerMobile paladin = MakeCharacter("Hands Test", "Paladin", 10, 14, 10, 12, 14);
+
+					try
+					{
+						int pool = DnDResourcePools.GetMaximum(paladin, ResourcePoolType.LayOnHands);
+
+						if (pool != 50)
+						{
+							Console.WriteLine(
+								"[combat-selftest] FAIL: a level 10 Paladin has {0} Lay on Hands, expected 50", pool);
+
+							ok = false;
+						}
+
+						if (ok)
+						{
+							Console.WriteLine(
+								"[combat-selftest]   resource pools: Monk 5 ki (2+3 spent, short rest back), Sorcerer 5 points (long rest only), Paladin {0} healing",
+								pool);
+						}
+					}
+					finally
+					{
+						paladin.Delete();
+					}
+				}
+				finally
+				{
+					sorcerer.Delete();
+				}
+			}
+			finally
+			{
+				monk.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Level-up choices, and the bonuses they carry.
+		/// <para>
+		/// Fighting styles were written and left unattached because granting one automatically
+		/// raised every martial character's armour class. So the two things worth measuring are
+		/// that a style does nothing until chosen, and that once chosen it applies only under its
+		/// own condition - Archery to ranged attacks, Defense only while armoured.
+		/// </para>
+		/// </summary>
+		private static bool CheckLevelUpChoices()
+		{
+			bool ok = true;
+
+			if (DnDChoices.AllOptions.Count == 0)
+			{
+				Console.WriteLine("[combat-selftest] FAIL: no level-up options registered");
+				return false;
+			}
+
+			DnDPlayerMobile fighter = MakeCharacter("Choice Test", "Fighter", 5, 14, 14, 12);
+
+			try
+			{
+				// A Fighter is owed exactly one fighting style at 1st level.
+				if (DnDChoices.GetPending(fighter, ChoiceKind.FightingStyle) != 1)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: a Fighter is owed {0} fighting style(s), expected 1",
+						DnDChoices.GetPending(fighter, ChoiceKind.FightingStyle));
+
+					ok = false;
+				}
+
+				// Nothing until chosen - the whole reason this system exists.
+				var unarmoured = new WeaponContext { Ranged = true };
+
+				if (DnDFightingStyles.GetAttackBonus(fighter, unarmoured) != 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a fighting style applied before it was chosen");
+					ok = false;
+				}
+
+				if (!fighter.AddChoice("Archery"))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: could not take Archery");
+					ok = false;
+				}
+
+				if (DnDFightingStyles.GetAttackBonus(fighter, unarmoured) != 2)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Archery gave no bonus to a ranged attack");
+					ok = false;
+				}
+
+				// And not to melee, which is what the weapon context was added for.
+				var melee = new WeaponContext { Ranged = false };
+
+				if (DnDFightingStyles.GetAttackBonus(fighter, melee) != 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Archery applied to a melee attack");
+					ok = false;
+				}
+
+				// One style only: the entitlement is spent.
+				if (fighter.AddChoice("Defense"))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a Fighter took two fighting styles");
+					ok = false;
+				}
+
+				// Expertise doubles proficiency, measured through the skill check itself.
+				DnDPlayerMobile rogue = MakeCharacter("Expertise Test", "Rogue", 5, 12, 16, 12);
+
+				try
+				{
+					rogue.AddSkillProficiency(DnDSkill.Stealth);
+
+					const int trials = 6000;
+
+					int before = 0;
+
+					for (int i = 0; i < trials; ++i)
+					{
+						if (CombatRules.CheckSkill(rogue, DnDSkill.Stealth, 18)) ++before;
+					}
+
+					if (!rogue.AddChoice("Expertise: Stealth"))
+					{
+						Console.WriteLine("[combat-selftest] FAIL: a Rogue could not take Expertise");
+						ok = false;
+					}
+
+					int after = 0;
+
+					for (int i = 0; i < trials; ++i)
+					{
+						if (CombatRules.CheckSkill(rogue, DnDSkill.Stealth, 18)) ++after;
+					}
+
+					// A level 5 Rogue's proficiency is +3, so doubling it is +3 more - about 15
+					// points on a DC in the middle of the range.
+					double gain = (after - before) / (double)trials;
+
+					if (gain < 0.08 || gain > 0.25)
+					{
+						Console.WriteLine(
+							"[combat-selftest] FAIL: Expertise changed the skill check by {0:P1}, expected about +15%",
+							gain);
+
+						ok = false;
+					}
+
+					if (ok)
+					{
+						Console.WriteLine(
+							"[combat-selftest]   choices: {0} option(s); Archery +2 ranged and +0 melee, Expertise {1:+0.0%;-0.0%} on Stealth",
+							DnDChoices.AllOptions.Count, gain);
+					}
+				}
+				finally
+				{
+					rogue.Delete();
+				}
+			}
+			finally
+			{
+				fighter.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Wild Shape. The interesting part is not that the body changes - it is that the beast's
+		/// hit points are a separate pool, so a Druid who is knocked out of the form comes back with
+		/// their own hit points intact. That is what makes it defensive rather than cosmetic.
+		/// </summary>
+		private static bool CheckWildShape()
+		{
+			bool ok = true;
+
+			DnDPlayerMobile druid = MakeCharacter("Shape Test", "Druid", 8, 10, 12, 14);
+
+			try
+			{
+				druid.Hits = druid.HitsMax;
+
+				int ownHits = druid.Hits;
+				int ownBody = druid.Body.BodyID;
+
+				var wolf = SrdMonster.Lookup("Wolf");
+
+				if (wolf == null)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: no Wolf stat block to shape into");
+					return false;
+				}
+
+				if (!DnDWildShape.Assume(druid, "Wolf", 1.0, TimeSpan.FromMinutes(10.0)))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a level 8 Druid could not become a Wolf");
+					return false;
+				}
+
+				if (druid.Body.BodyID == ownBody)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: shaping did not change the body");
+					ok = false;
+				}
+
+				if (druid.Hits != wolf.HitPoints)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: shaped hit points are {0}, expected the wolf's {1}",
+						druid.Hits, wolf.HitPoints);
+
+					ok = false;
+				}
+
+				// The beast's armour class replaces the Druid's own.
+				if (druid.ArmorClass != wolf.ArmorClass)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: shaped armour class is {0}, expected the wolf's {1}",
+						druid.ArmorClass, wolf.ArmorClass);
+
+					ok = false;
+				}
+
+				// Damage short of the beast's total does not reach the Druid.
+				DnDWildShape.OnDamage(druid, 1);
+
+				if (!DnDWildShape.IsShaped(druid))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: a single point of damage broke the form");
+					ok = false;
+				}
+
+				// Exactly the beast's remaining hit points, so nothing spills over. That isolates
+				// the thing being checked: the Druid's own total is untouched by the form's death.
+				DnDWildShape.OnDamage(druid, wolf.HitPoints - 1);
+
+				if (DnDWildShape.IsShaped(druid))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: the form survived losing all its hit points");
+					ok = false;
+				}
+
+				if (druid.Body.BodyID != ownBody)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: reverting did not restore the body");
+					ok = false;
+				}
+
+				if (druid.Hits != ownHits)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: the Druid came back with {0} hit points, expected {1}",
+						druid.Hits, ownHits);
+
+					ok = false;
+				}
+
+				// Damage beyond what the beast can absorb does reach the Druid, though - a bear
+				// killed by a huge hit does not leave its wearer untouched.
+				DnDWildShape.Assume(druid, "Wolf", 1.0, TimeSpan.FromMinutes(10.0));
+
+				int beforeOverkill = druid.Hits;
+
+				DnDWildShape.OnDamage(druid, wolf.HitPoints + 5);
+
+				if (DnDWildShape.IsShaped(druid))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: overwhelming damage did not break the form");
+					ok = false;
+				}
+				else if (druid.Hits != ownHits - 5)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: 5 points of overkill left the Druid at {0}, expected {1}",
+						druid.Hits, ownHits - 5);
+
+					ok = false;
+				}
+
+				// The challenge rating cap is what makes it scale with level.
+				if (DnDWildShape.GetMaxChallengeRating(2) >= DnDWildShape.GetMaxChallengeRating(8))
+				{
+					Console.WriteLine("[combat-selftest] FAIL: Wild Shape does not widen with level");
+					ok = false;
+				}
+
+				if (ok)
+				{
+					Console.WriteLine(
+						"[combat-selftest]   wild shape: wolf AC {0}, {1} beast hit points spent, Druid back at {2}",
+						wolf.ArmorClass, wolf.HitPoints, druid.Hits);
+				}
+			}
+			finally
+			{
+				DnDWildShape.Revert(druid, null);
+				druid.Delete();
 			}
 
 			return ok;

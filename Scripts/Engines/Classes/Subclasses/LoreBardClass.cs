@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "College of Lore"; } }
 
 		public override Type ParentClass { get { return typeof(BardClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.BardicInspirationFeature(), new Features.CuttingWordsFeature() }; }
+		}
 	}
 }

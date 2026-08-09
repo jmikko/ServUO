@@ -136,10 +136,12 @@ namespace Server
 			{
 				int abilityMod = GetWeaponAbilityModifier(character, ranged, finesse);
 
-				// Fighting styles and their kin.
+				WeaponContext context = WeaponContext.For(attacker, weapon as IDnDEquipment);
+
 				return abilityMod + character.PrimaryClass.GetProficiencyBonus(character.TotalLevel) + magicBonus
 					 + ClassFeatures.GetAttackBonus(character)
-					 + Feat.GetAttackBonus(character);
+					 + Feat.GetAttackBonus(character, context)
+					 + DnDFightingStyles.GetAttackBonus(character, context);
 			}
 
 			return magicBonus;
@@ -170,7 +172,10 @@ namespace Server
 
 			if (character != null)
 			{
-				return GetWeaponAbilityModifier(character, ranged, finesse) + magicBonus;
+				WeaponContext context = WeaponContext.For(attacker, weapon as IDnDEquipment);
+
+				return GetWeaponAbilityModifier(character, ranged, finesse) + magicBonus
+					 + DnDFightingStyles.GetDamageBonus(character, context);
 			}
 
 			return magicBonus;
@@ -315,7 +320,16 @@ namespace Server
 
 				if (character.IsProficient(skill) && character.PrimaryClass != null)
 				{
-					bonus += character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
+					int proficiency = character.PrimaryClass.GetProficiencyBonus(character.TotalLevel);
+
+					// Expertise doubles it, which is what makes a Rogue's chosen skills feel
+					// different in kind rather than just better.
+					if (DnDChoices.HasChosen(character, "Expertise: " + skill))
+					{
+						proficiency *= 2;
+					}
+
+					bonus += proficiency;
 				}
 			}
 

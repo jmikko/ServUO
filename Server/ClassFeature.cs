@@ -74,6 +74,22 @@ namespace Server
 		public virtual bool ResistsPhysicalDamage(IDnDCharacter character) { return false; }
 
 		/// <summary>
+		/// A chance to reduce incoming damage, returning what gets through.
+		/// <para>
+		/// This is where the reaction features live - Uncanny Dodge, Deflect Missiles, Evasion.
+		/// They are separate from <see cref="ResistsPhysicalDamage"/> because that one is a standing
+		/// state (Rage halves everything, always) while these are spent: the feature must decide
+		/// whether this particular hit is worth its one reaction this round, and say so by calling
+		/// DnDTurn.TrySpendReaction itself. A hook that only reported a fraction could not do that.
+		/// </para>
+		/// </summary>
+		public virtual int ReduceIncomingDamage(
+			Mobile defender, IDnDCharacter character, int classLevel, int damage, bool ranged)
+		{
+			return damage;
+		}
+
+		/// <summary>
 		/// How many times this can be used between rests, or 0 if it is passive. An activated
 		/// feature is invoked by name and spends one use.
 		/// </summary>
@@ -262,6 +278,26 @@ namespace Server
 			}
 
 			return false;
+		}
+
+		/// <summary>
+		/// Runs the incoming damage past every feature that might reduce it, in turn.
+		/// <para>
+		/// Chained rather than taking the best: a Monk 7 who deflects a missile and then evades the
+		/// same damage has spent a reaction to earn both, and each feature checks its own reaction
+		/// budget. In practice the reaction is gone after the first, which is exactly the limit the
+		/// SRD puts on stacking them.
+		/// </para>
+		/// </summary>
+		public static int ReduceIncomingDamage(
+			Mobile defender, IDnDCharacter character, int damage, bool ranged)
+		{
+			foreach (var entry in GetActive(character))
+			{
+				damage = entry.Key.ReduceIncomingDamage(defender, character, entry.Value, damage, ranged);
+			}
+
+			return Math.Max(0, damage);
 		}
 
 		/// <summary>Extra damage dice on a critical, beyond the usual doubling.</summary>

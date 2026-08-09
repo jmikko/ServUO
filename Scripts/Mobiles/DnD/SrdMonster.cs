@@ -112,6 +112,16 @@ namespace Server.Mobiles
 			return result;
 		}
 
+		/// <summary>The stat block for an id, for anything that needs one - Wild Shape, mainly.</summary>
+		public static SrdMonsterData Lookup(string id)
+		{
+			SrdMonsterData data;
+
+			return m_Data.TryGetValue(id, out data) ? data : null;
+		}
+
+		public static System.Collections.Generic.IEnumerable<SrdMonsterData> AllData { get { return m_Data.Values; } }
+
 		private static SrdMonsterData GetData(string id)
 		{
 			SrdMonsterData data;

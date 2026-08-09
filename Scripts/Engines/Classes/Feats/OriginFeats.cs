@@ -75,9 +75,12 @@ namespace Server.Engines.Classes.Feats
 			get { return "You gain a +2 bonus to attack rolls you make with ranged weapons."; }
 		}
 
-		// The hook is a flat attack bonus rather than a ranged-only one, because the engine does not
-		// pass the weapon down to the feat. Rolled into the fighting-style work in DND_TODO.md.
-		public override int AttackBonus { get { return 2; } }
+		// Ranged only, now that the hook is handed the weapon. It used to be a flat +2 to every
+		// attack, melee included, which is not what the feat says.
+		public override int GetAttackBonus(WeaponContext weapon)
+		{
+			return weapon.Ranged ? 2 : 0;
+		}
 	}
 
 	public class DefensiveDuelistFeat : Feat
@@ -122,7 +125,11 @@ namespace Server.Engines.Classes.Feats
 			return base.CanSelect(character) && character != null && character.AbilityScores.Str >= 13;
 		}
 
-		public override int DamageBonus { get { return 2; } }
+		// Heavy weapons only.
+		public override int GetDamageBonus(WeaponContext weapon)
+		{
+			return weapon.Heavy ? 2 : 0;
+		}
 	}
 
 	public class SharpshooterFeat : Feat
@@ -134,7 +141,10 @@ namespace Server.Engines.Classes.Feats
 			get { return "You have mastered ranged weapons and can make shots that others find impossible, gaining a +2 bonus to ranged damage."; }
 		}
 
-		public override int DamageBonus { get { return 2; } }
+		public override int GetDamageBonus(WeaponContext weapon)
+		{
+			return weapon.Ranged ? 2 : 0;
+		}
 	}
 
 	public class PolearmMasterFeat : Feat
@@ -146,7 +156,11 @@ namespace Server.Engines.Classes.Feats
 			get { return "You can keep your enemies at bay with reach weapons. You gain +1 to AC and attack rolls with polearms."; }
 		}
 
-		public override int AttackBonus { get { return 1; } }
+		public override int GetAttackBonus(WeaponContext weapon)
+		{
+			return weapon.TwoHanded ? 1 : 0;
+		}
+
 		public override int ArmorClassBonus { get { return 1; } }
 	}
 
@@ -159,7 +173,10 @@ namespace Server.Engines.Classes.Feats
 			get { return "Thanks to extensive practice with the crossbow, you gain a +1 bonus to attack rolls with crossbows and ignore loading properties."; }
 		}
 
-		public override int AttackBonus { get { return 1; } }
+		public override int GetAttackBonus(WeaponContext weapon)
+		{
+			return weapon.Ranged ? 1 : 0;
+		}
 	}
 
 	public class SentinelFeat : Feat
@@ -272,23 +289,19 @@ namespace Server.Engines.Classes.Feats
 
 		public override string Description { get { return "You gain proficiency in three skills."; } }
 
+		/// <summary>
+		/// Which three skills is the whole feat, so it asks rather than picking. Taking it grants
+		/// three Skill Proficiency choices, collected the same way a fighting style is - it used to
+		/// silently hand out Perception, Athletics and Insight to everyone who took it.
+		/// </summary>
 		public override void OnSelected(IDnDCharacter character)
-		{
-			// Which three is a choice the player should make, and there is no UI to ask. Rather than
-			// pick for them silently, the three most broadly useful are granted and the choice is
-			// left to the feat UI listed in DND_TODO.md.
-			GrantSkill(character, DnDSkill.Perception);
-			GrantSkill(character, DnDSkill.Athletics);
-			GrantSkill(character, DnDSkill.Insight);
-		}
-
-		private static void GrantSkill(IDnDCharacter character, DnDSkill skill)
 		{
 			var pm = character as Mobiles.DnDPlayerMobile;
 
 			if (pm != null)
 			{
-				pm.AddSkillProficiency(skill);
+				pm.PendingSkillChoices += 3;
+				pm.SendMessage(0x35, "Choose three skills with [skill <name>.");
 			}
 		}
 	}

@@ -36,7 +36,7 @@ namespace Server.Engines.Classes
 
 		public override ClassFeature[] Features
 		{
-			get { return new ClassFeature[] { new Features.LayOnHandsFeature(), new Features.ExtraAttackFeature(), new Features.AuraOfProtectionFeature(), new Features.ImprovedDivineSmiteFeature() }; }
+			get { return new ClassFeature[] { new Features.LayOnHandsPoolFeature(), new Features.ExtraAttackFeature(), new Features.AuraOfProtectionFeature(), new Features.ImprovedDivineSmiteFeature(), new Features.DivineSmiteFeature() }; }
 		}
 	}
 }

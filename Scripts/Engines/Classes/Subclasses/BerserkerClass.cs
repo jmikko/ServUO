@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "Path of the Berserker"; } }
 
 		public override Type ParentClass { get { return typeof(BarbarianClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.RageFeature(), new Features.FrenzyFeature() }; }
+		}
 	}
 }

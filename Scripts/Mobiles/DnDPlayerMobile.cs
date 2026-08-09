@@ -96,6 +96,88 @@ namespace Server.Mobiles
 			}
 		}
 
+		/// <summary>
+		/// Skill proficiencies owed but not yet picked - from the Skilled feat, which grants three
+		/// of the character's choosing. It used to pick them silently, which meant every Skilled
+		/// character had the same three.
+		/// </summary>
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int PendingSkillChoices { get; set; }
+
+		public bool ChooseSkill(DnDSkill skill)
+		{
+			if (PendingSkillChoices <= 0)
+			{
+				SendMessage("You have no skill choices waiting.");
+				return false;
+			}
+
+			if (m_SkillProficiencies.Contains(skill))
+			{
+				SendMessage("You are already proficient in {0}.", skill);
+				return false;
+			}
+
+			m_SkillProficiencies.Add(skill);
+			--PendingSkillChoices;
+
+			SendMessage(0x35, "You gain proficiency in {0}. ({1} left)", skill, PendingSkillChoices);
+
+			return true;
+		}
+
+		private List<string> m_Choices = new List<string>();
+
+		public List<string> Choices { get { return m_Choices; } }
+
+		/// <summary>
+		/// Takes a level-up choice - a fighting style, an expertise, an invocation, a pact boon or
+		/// a metamagic option.
+		/// <para>
+		/// Refused unless the character is actually owed one of that kind. The client sends a name
+		/// and the client is not trusted: without this, a player could send six fighting styles and
+		/// collect all six bonuses.
+		/// </para>
+		/// </summary>
+		public bool AddChoice(string optionName)
+		{
+			DnDChoiceOption option = DnDChoices.Find(optionName);
+
+			if (option == null)
+			{
+				SendMessage("There is no such option.");
+				return false;
+			}
+
+			if (DnDChoices.HasChosen(this, option.Name))
+			{
+				SendMessage("You have already taken {0}.", option.Name);
+				return false;
+			}
+
+			if (DnDChoices.GetPending(this, option.Kind) <= 0)
+			{
+				SendMessage("You are not owed another {0}.", option.Kind);
+				return false;
+			}
+
+			m_Choices.Add(option.Name);
+
+			SendMessage(0x35, "You take {0}.", option.Name);
+
+			if (NetState != null)
+			{
+				NetState.Send(new DnDStatSync(this));
+			}
+
+			return true;
+		}
+
+		public bool HasChoice(string optionName)
+		{
+			return DnDChoices.HasChosen(this, optionName);
+		}
+
 		public bool IsAttunedTo(Item item)
 		{
 			return m_AttunedItems.Contains(item);
@@ -204,6 +286,13 @@ namespace Server.Mobiles
 		{
 			get
 			{
+				// A shapechanged character uses the beast.s armour class outright - their own gear
+				// is not on the bear.
+				if (DnDWildShape.IsShaped(this))
+				{
+					return DnDWildShape.GetArmorClass(this);
+				}
+
 				int baseAC = 10;
 				int shieldBonus = 0;
 				int maxDex = int.MaxValue;
@@ -263,7 +352,8 @@ namespace Server.Mobiles
 				}
 
 				return Math.Max(baseAC + dexMod, floor + (floor > 0 ? dexMod : 0)) + shieldBonus + magicBonus
-					 + ClassFeatures.GetArmorClassBonus(this) + Feat.GetArmorClassBonus(this);
+					 + ClassFeatures.GetArmorClassBonus(this) + Feat.GetArmorClassBonus(this)
+					 + DnDFightingStyles.GetArmorClassBonus(this, baseAC > 10);
 			}
 		}
 
@@ -530,6 +620,37 @@ namespace Server.Mobiles
 			return 0;
 		}
 
+		/// <summary>
+		/// The highest slot level this character can still spend, or 0 for none. Divine Smite reads
+		/// it, because the level of the slot burned is what makes that a decision worth making.
+		/// </summary>
+		public int GetHighestAvailableSlot()
+		{
+			for (int level = Spellcasting.MaxSpellLevel; level >= 1; --level)
+			{
+				if (GetAvailableSpellSlots(level) > 0)
+				{
+					return level;
+				}
+			}
+
+			return 0;
+		}
+
+		/// <summary>Gives one slot of a level back - Font of Magic and Arcane Recovery.</summary>
+		public bool RestoreSpellSlot(int spellLevel)
+		{
+			if (spellLevel < 1 || spellLevel > Spellcasting.MaxSpellLevel
+				|| m_SpellSlotsUsed[spellLevel - 1] <= 0)
+			{
+				return false;
+			}
+
+			--m_SpellSlotsUsed[spellLevel - 1];
+
+			return true;
+		}
+
 		public void RestoreAllSpellSlots()
 		{
 			for (int i = 0; i < m_SpellSlotsUsed.Length; ++i)
@@ -548,6 +669,8 @@ namespace Server.Mobiles
 			Engines.Classes.Features.FeatureUses.Restore(this, this, true);
 
 			RestoreHitDice();
+			DnDResourcePools.Restore(this, true);
+			DnDTurn.Reset(this);
 			Mobiles.DnDDeath.Clear(this);
 
 			SendMessage(0x35, "You finish a long rest.");
@@ -563,6 +686,9 @@ namespace Server.Mobiles
 			// As a simplification for now, if they have pact magic we just restore all.
 			// Second Wind and Action Surge return on a short rest; Rage and Lay on Hands do not.
 			Engines.Classes.Features.FeatureUses.Restore(this, this, false);
+
+			// Ki comes back on a short rest; sorcery points and Lay on Hands do not.
+			DnDResourcePools.Restore(this, false);
 
 			bool hasPact = false;
 			foreach(var kv in m_Classes)
@@ -741,7 +867,7 @@ namespace Server.Mobiles
 		{
 			base.Serialize(writer);
 
-			writer.Write((int)7); // version 7
+			writer.Write((int)8); // version 8 - adds level-up choices
 
 			writer.Write(m_DnDInitialized);
 
@@ -792,6 +918,12 @@ namespace Server.Mobiles
 				foreach (int spellId in m_KnownSpells)
 				{
 					writer.Write(spellId);
+				}
+
+				writer.Write(m_Choices.Count);
+				foreach (string choice in m_Choices)
+				{
+					writer.Write(choice);
 				}
 
 				writer.WriteItemList(m_AttunedItems);
@@ -886,6 +1018,17 @@ namespace Server.Mobiles
 					for (int i = 0; i < count; i++)
 					{
 						m_KnownSpells.Add(reader.ReadInt());
+					}
+				}
+
+				// Written before the attuned items, so it has to be read before them too.
+				if (version >= 8)
+				{
+					int choiceCount = reader.ReadInt();
+
+					for (int i = 0; i < choiceCount; ++i)
+					{
+						m_Choices.Add(reader.ReadString());
 					}
 				}
 

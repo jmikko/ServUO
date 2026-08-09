@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "The Fiend"; } }
 
 		public override Type ParentClass { get { return typeof(WarlockClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.DarkOnesBlessingFeature() }; }
+		}
 	}
 }

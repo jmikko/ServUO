@@ -39,7 +39,7 @@ namespace Server.Engines.Classes
 
 		public override ClassFeature[] Features
 		{
-			get { return new ClassFeature[] { new Features.SneakAttackFeature(), new Features.SlipperyMindFeature() }; }
+			get { return new ClassFeature[] { new Features.SneakAttackFeature(), new Features.SlipperyMindFeature(), new Features.CunningActionFeature(), new Features.UncannyDodgeFeature(), new Features.EvasionFeature() }; }
 		}
 	}
 }

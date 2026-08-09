@@ -34,6 +34,11 @@ namespace Server.Engines.Classes
 
 		public override int SkillChoiceCount { get { return 2; } }
 
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.FontOfMagicFeature(), new Features.EmpoweredSpellFeature(), new Features.QuickenedSpellFeature() }; }
+		}
+
 		public override DnDSkill[] SkillChoices
 		{
 			get { return new[] { DnDSkill.Arcana, DnDSkill.Deception, DnDSkill.Insight, DnDSkill.Intimidation, DnDSkill.Persuasion, DnDSkill.Religion }; }

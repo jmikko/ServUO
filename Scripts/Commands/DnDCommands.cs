@@ -18,6 +18,9 @@ namespace Server.Commands
 			CommandSystem.Register("rest", AccessLevel.Player, LongRest_OnCommand);
 			CommandSystem.Register("shortrest", AccessLevel.Player, ShortRest_OnCommand);
 			CommandSystem.Register("hitdie", AccessLevel.Player, HitDie_OnCommand);
+			CommandSystem.Register("choose", AccessLevel.Player, Choose_OnCommand);
+			CommandSystem.Register("skill", AccessLevel.Player, Skill_OnCommand);
+			CommandSystem.Register("points", AccessLevel.Player, Points_OnCommand);
 			CommandSystem.Register("spells", AccessLevel.Player, Spells_OnCommand);
 			CommandSystem.Register("Attune", AccessLevel.Player, Attune_OnCommand);
 			CommandSystem.Register("Unattune", AccessLevel.Player, Unattune_OnCommand);
@@ -171,6 +174,23 @@ namespace Server.Commands
 
 			int classLevel;
 			ClassFeature feature = ClassFeatures.Find(pm, wanted, out classLevel);
+
+			// Wild Shape takes an argument - which beast - and no other feature does. Rather than
+			// widen Activate for one caller, the trailing words are handed over here: everything
+			// after the longest feature name that matched.
+			Engines.Classes.Features.WildShapeFeature.LastRequestedForm = null;
+
+			if (feature == null && e.Length > 1)
+			{
+				string head = String.Join(" ", e.Arguments, 0, e.Length - 1);
+
+				feature = ClassFeatures.Find(pm, head, out classLevel);
+
+				if (feature != null)
+				{
+					Engines.Classes.Features.WildShapeFeature.LastRequestedForm = e.Arguments[e.Length - 1];
+				}
+			}
 
 			if (feature == null)
 			{
@@ -334,6 +354,144 @@ namespace Server.Commands
 			}
 
 			pm.ShortRest();
+		}
+
+		[Usage("skill <name>")]
+		[Description("Takes a skill proficiency you are owed, from the Skilled feat.")]
+		private static void Skill_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (e.Length == 0)
+			{
+				pm.SendMessage("You have {0} skill choice(s). Usage: [skill <name>.", pm.PendingSkillChoices);
+				return;
+			}
+
+			try
+			{
+				pm.ChooseSkill((DnDSkill)Enum.Parse(typeof(DnDSkill), e.GetString(0), true));
+			}
+			catch
+			{
+				pm.SendMessage("There is no skill by that name.");
+			}
+		}
+
+		/// <summary>
+		/// [choose - takes a level-up option: a fighting style, an expertise, an invocation, a pact
+		/// boon or a metamagic. With no argument it lists what is owed and what is available.
+		/// <para>
+		/// The level-up window should collect these, and eventually will; until then this is how a
+		/// player actually gets a fighting style, which is better than the alternative the codebase
+		/// had before - granting one automatically, which silently raised everyone's armour class.
+		/// </para>
+		/// </summary>
+		[Usage("choose [option]")]
+		[Description("Takes a fighting style, expertise, invocation, pact boon or metamagic option.")]
+		private static void Choose_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			if (e.Length == 0)
+			{
+				ListChoices(pm);
+				return;
+			}
+
+			pm.AddChoice(String.Join(" ", e.Arguments));
+		}
+
+		private static void ListChoices(DnDPlayerMobile pm)
+		{
+			bool anyOwed = false;
+
+			foreach (ChoiceKind kind in Enum.GetValues(typeof(ChoiceKind)))
+			{
+				int pending = DnDChoices.GetPending(pm, kind);
+
+				if (pending <= 0)
+				{
+					continue;
+				}
+
+				anyOwed = true;
+
+				pm.SendMessage(0x35, "--- {0}: {1} to choose ---", kind, pending);
+
+				foreach (DnDChoiceOption option in DnDChoices.GetAvailable(pm, kind))
+				{
+					pm.SendMessage("{0} - {1}", option.Name, option.Description);
+				}
+			}
+
+			if (!anyOwed)
+			{
+				pm.SendMessage("You have no choices waiting.");
+			}
+
+			if (pm.Choices.Count > 0)
+			{
+				pm.SendMessage(0x35, "--- Taken ---");
+
+				foreach (string chosen in pm.Choices)
+				{
+					pm.SendMessage(chosen);
+				}
+			}
+		}
+
+		/// <summary>
+		/// [points - what is left in each pool. Separate from [features because a pool is a number
+		/// of points, not a count of uses, and showing them in the same column would suggest a Monk
+		/// with 5 ki has five of something rather than five points to divide up.
+		/// </summary>
+		[Usage("points")]
+		[Description("Shows what remains in your ki, sorcery point or Lay on Hands pools.")]
+		private static void Points_OnCommand(CommandEventArgs e)
+		{
+			DnDPlayerMobile pm = e.Mobile as DnDPlayerMobile;
+
+			if (!IsSetUp(pm))
+			{
+				return;
+			}
+
+			bool any = false;
+
+			foreach (ResourcePoolType type in Enum.GetValues(typeof(ResourcePoolType)))
+			{
+				int max = DnDResourcePools.GetMaximum(pm, type);
+
+				if (max <= 0)
+				{
+					continue;
+				}
+
+				any = true;
+
+				pm.SendMessage(
+					"{0}: {1} of {2}{3}",
+					type,
+					DnDResourcePools.GetRemaining(pm, pm, type),
+					max,
+					DnDResourcePools.RecoversOnShortRest(type) ? " (short rest)" : " (long rest)");
+			}
+
+			if (!any)
+			{
+				pm.SendMessage("You have no resource pools.");
+			}
 		}
 
 		/// <summary>

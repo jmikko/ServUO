@@ -96,7 +96,7 @@ namespace Server.Items
 			// doubles a critical's dice, and these dice are part of the attack, but doubling them
 			// here as well would compound with the weapon dice already doubled above.
 			damage += ClassFeatures.RollBonusDamage(character, mode);
-			damage += Feat.GetDamageBonus(character);
+			damage += Feat.GetDamageBonus(character, WeaponContext.For(attacker, weapon));
 			damage += Server.DnDRollModifiers.Roll(attacker, Server.RollKind.Damage);
 			
 			if (Server.Spells.DnD.DnDEffects.HasHuntersMark(attacker, defender as Mobile))
@@ -137,6 +137,17 @@ namespace Server.Items
 
 				if (!result.Hit)
 				{
+					// A miss is a trigger too: Riposte turns it into an opening, once per round.
+					if (Engines.Classes.Features.RiposteFeature.OnMissed(defender as Mobile, attacker))
+					{
+						AttackResult counter = RollAttack(defender as Mobile, attacker, null);
+
+						if (counter.Hit)
+						{
+							attacker.Damage(counter.Damage, defender as Mobile);
+						}
+					}
+
 					Announce(attacker, defender, "misses");
 					continue;
 				}
@@ -149,6 +160,11 @@ namespace Server.Items
 					applied = Math.Max(1, applied / 2);
 				}
 
+				// The reaction features - Uncanny Dodge, Deflect Missiles - each decide for
+				// themselves whether this hit is worth the round's one reaction.
+				applied = ClassFeatures.ReduceIncomingDamage(
+					defender as Mobile, defender as IDnDCharacter, applied, IsRanged(weapon));
+
 				// A hit on someone already down costs them a death save rather than hit points.
 				Mobile downed = defender as Mobile;
 
@@ -159,7 +175,11 @@ namespace Server.Items
 					continue;
 				}
 
+				// Damage while shaped comes off the beast.s hit points, not the character.s.
+				if (!Mobiles.DnDWildShape.OnDamage(downed, applied))
+				{
 				defender.Damage(applied, attacker);
+				}
 
 				// Taking a hit risks dropping whatever the defender was concentrating on.
 				Server.Spells.DnD.DnDConcentration.OnDamaged(defender as Mobile, applied);
@@ -187,6 +207,14 @@ namespace Server.Items
 		/// </summary>
 		private static string GetDamageDice(Mobile attacker, IDnDEquipment weapon)
 		{
+			// A shapechanged character attacks with the beast.s natural weapons, not their sword.
+			string shaped = Mobiles.DnDWildShape.GetDamageDice(attacker);
+
+			if (!String.IsNullOrEmpty(shaped))
+			{
+				return shaped;
+			}
+
 			IDnDCreature creature = attacker as IDnDCreature;
 
 			if (creature != null && !String.IsNullOrEmpty(creature.DamageDiceExpression))

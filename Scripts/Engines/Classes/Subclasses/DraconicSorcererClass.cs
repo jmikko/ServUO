@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "Draconic Bloodline"; } }
 
 		public override Type ParentClass { get { return typeof(SorcererClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.FontOfMagicFeature(), new Features.EmpoweredSpellFeature(), new Features.QuickenedSpellFeature(), new Features.DraconicResilienceFeature() }; }
+		}
 	}
 }

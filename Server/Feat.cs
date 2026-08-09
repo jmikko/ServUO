@@ -68,6 +68,20 @@ namespace Server
 
         public virtual int AttackBonus { get { return 0; } }
 
+        /// <summary>
+        /// The weapon-conditional forms of the two bonuses that need it.
+        /// <para>
+        /// Archery is +2 to *ranged* attacks, and Great Weapon Master is extra damage with *heavy*
+        /// weapons. The hooks below were not handed a weapon, so neither feat could tell the
+        /// difference and both applied to everything - a set of conditional bonuses wearing
+        /// conditional names and behaving unconditionally. These default to the flat versions so a
+        /// feat that genuinely does not care need not override them.
+        /// </para>
+        /// </summary>
+        public virtual int GetAttackBonus(WeaponContext weapon) { return AttackBonus; }
+
+        public virtual int GetDamageBonus(WeaponContext weapon) { return DamageBonus; }
+
         public virtual int ArmorClassBonus { get { return 0; } }
 
         public virtual int DamageBonus { get { return 0; } }
@@ -155,6 +169,11 @@ namespace Server
             return Sum(character, f => f.AttackBonus);
         }
 
+        public static int GetAttackBonus(IDnDCharacter character, WeaponContext weapon)
+        {
+            return Sum(character, f => f.GetAttackBonus(weapon));
+        }
+
         public static int GetArmorClassBonus(IDnDCharacter character)
         {
             return Sum(character, f => f.ArmorClassBonus);
@@ -163,6 +182,11 @@ namespace Server
         public static int GetDamageBonus(IDnDCharacter character)
         {
             return Sum(character, f => f.DamageBonus);
+        }
+
+        public static int GetDamageBonus(IDnDCharacter character, WeaponContext weapon)
+        {
+            return Sum(character, f => f.GetDamageBonus(weapon));
         }
 
         public static int GetInitiativeBonus(IDnDCharacter character)

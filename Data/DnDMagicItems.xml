@@ -59,29 +59,20 @@
 
   <!-- ===== Added Iconic Magic Items ===== -->
   <item id="BagOfHolding" name="a Bag of Holding" itemID="0x0E76" layer="Backpack" hue="1150" weight="15" cost="50000" />
-  <item id="FlameTongue" name="a Flame Tongue" attunement="true" damage="7" itemID="0x0F61" layer="OneHanded" hue="1354" weight="3" cost="500000" />
-  <item id="WandOfMagicMissiles" name="a Wand of Magic Missiles" itemID="0x0DF0" layer="OneHanded" hue="1150" weight="1" cost="100000" />
-  <item id="StaffOfTheMagi" name="a Staff of the Magi" attunement="true" attack="2" damage="2" itemID="0x0DF0" layer="TwoHanded" hue="1153" weight="4" cost="5000000" />
   <item id="RobeOfTheArchmagi" name="a Robe of the Archmagi" attunement="true" ac="2" save="2" itemID="0x1F03" layer="OuterTorso" hue="1175" weight="2" cost="2000000" />
   <item id="DeckOfManyThings" name="a Deck of Many Things" itemID="0x12AB" layer="Talisman" hue="1150" weight="1" cost="1000000" />
   <item id="RingOfInvisibility" name="a Ring of Invisibility" attunement="true" itemID="0x108A" layer="Ring" hue="1150" weight="0.1" cost="500000" />
   <item id="BootsOfStridingAndSpringing" name="Boots of Striding and Springing" attunement="true" itemID="0x170B" layer="Shoes" hue="1150" weight="2" cost="150000" />
   <item id="CloakOfInvisibility" name="a Cloak of Invisibility" attunement="true" itemID="0x1515" layer="Cloak" hue="1175" weight="3" cost="1000000" />
   <item id="PortableHole" name="a Portable Hole" itemID="0x0E76" layer="Waist" hue="1" weight="0" cost="250000" />
-  <item id="VorpalSword" name="a Vorpal Sword" attunement="true" attack="3" damage="3" itemID="0x0F61" layer="OneHanded" hue="1150" weight="3" cost="1500000" />
-  <item id="SunBlade" name="a Sun Blade" attunement="true" attack="2" damage="2" itemID="0x0F5E" layer="OneHanded" hue="1153" weight="2" cost="300000" />
-  <item id="HolyAvenger" name="a Holy Avenger" attunement="true" attack="3" damage="3" itemID="0x0F61" layer="OneHanded" hue="1150" weight="3" cost="1000000" />
   <item id="AmuletOfThePlanes" name="an Amulet of the Planes" attunement="true" itemID="0x1088" layer="Neck" hue="1153" weight="1" cost="500000" />
   <item id="SphereOfAnnihilation" name="a Sphere of Annihilation" itemID="0x0E2E" layer="Talisman" hue="1" weight="0" cost="2000000" />
   <item id="WellOfManyWorlds" name="a Well of Many Worlds" itemID="0x0E76" layer="Talisman" hue="1153" weight="0" cost="1000000" />
   <item id="RingOfThreeWishes" name="a Ring of Three Wishes" itemID="0x108A" layer="Ring" hue="1150" weight="0.1" cost="2000000" />
-  <item id="RodOfLordlyMight" name="a Rod of Lordly Might" attunement="true" itemID="0x13B4" layer="OneHanded" hue="1153" weight="4" cost="500000" />
   <item id="TalismanOfPureGood" name="a Talisman of Pure Good" attunement="true" itemID="0x1088" layer="Neck" hue="1150" weight="1" cost="1000000" />
-  <item id="MaceOfDisruption" name="a Mace of Disruption" attunement="true" itemID="0x0F5C" layer="OneHanded" hue="1153" weight="4" cost="200000" />
   <item id="GemOfSeeing" name="a Gem of Seeing" attunement="true" itemID="0x0F19" layer="Talisman" hue="1150" weight="0.1" cost="100000" />
   <item id="HornOfValhalla" name="a Horn of Valhalla" itemID="0x0FC4" layer="Talisman" hue="1153" weight="2" cost="150000" />
   <item id="WandOfFireballs" name="a Wand of Fireballs" attunement="true" itemID="0x0DF0" layer="OneHanded" hue="1354" weight="1" cost="200000" />
-  <item id="StaffOfPower" name="a Staff of Power" attunement="true" attack="2" damage="2" ac="2" save="2" itemID="0x0DF0" layer="TwoHanded" hue="1175" weight="4" cost="1000000" />
   <item id="ApparatusOfKwalish" name="an Apparatus of Kwalish" itemID="0x0E76" layer="Talisman" hue="1150" weight="500" cost="500000" />
   <item id="CarpetOfFlying" name="a Carpet of Flying" itemID="0x0A59" layer="Talisman" hue="1153" weight="15" cost="150000" />
   <item id="HelmOfTeleportation" name="a Helm of Teleportation" attunement="true" itemID="0x140E" layer="Helm" hue="1150" weight="3" cost="200000" />

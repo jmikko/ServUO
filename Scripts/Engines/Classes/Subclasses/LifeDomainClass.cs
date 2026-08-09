@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "Life Domain"; } }
 
 		public override Type ParentClass { get { return typeof(ClericClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ChannelDivinityFeature(), new Features.DiscipleOfLifeFeature() }; }
+		}
 	}
 }

@@ -5,113 +5,87 @@ Things deliberately not built yet, and what each is waiting on. Kept separate fr
 
 ---
 
-## Blocked on a turn economy
+## Resolved
 
-This is a real-time server. There are no turns, no actions, no bonus actions and no reactions —
-combat resolves on a swing timer. Every feature below is phrased in the SRD as something you do
-*instead of* or *in reaction to* something else, and none of them has anywhere to live until
-there is a notion of a turn to spend.
+The four structural blockers this file was organised around are gone. Recorded here because the
+reasoning matters more than the fact:
 
-Implementing them anyway would produce features that fire at arbitrary moments and cannot be
-tested, which is worse than their absence.
+**The turn economy.** This file used to say the choice between "a faithful turn-based port" and "a
+real-time game with D&D's numbers" was a real design decision that should be made deliberately. It
+was made: real-time. A turn-based port would mean discarding the swing timer, movement and spawning
+that everything else is built on, to gain a pause between swings nobody asked for. So a turn is a
+six-second window that refills on its own — one action, one bonus action, one reaction. The SRD's
+ordering is lost; you cannot hold a reaction for a named trigger. The scarcity is kept, and scarcity
+is what those features are about. Uncanny Dodge mattering once per round is most of Uncanny Dodge.
 
-- **Cunning Action** (Rogue 2) — dash, disengage or hide as a bonus action
-- **Uncanny Dodge** (Rogue 5) — halve one attack's damage, as a reaction
-- **Evasion** (Rogue 7, Monk 7) — no damage on a successful Dexterity save
-- **Deflect Missiles** (Monk 3) — reduce ranged damage, as a reaction
-- **Riposte, Parry and the Battle Master manoeuvres**
-- **Opportunity attacks** generally
+**Resource pools.** Ki, sorcery points and Lay on Hands now spend points rather than uses. The
+distinction was the whole blocker: a use is all-or-nothing, so modelling ki as uses would have made
+every ki ability cost the same regardless of what it was.
 
-**What would unblock them:** a per-combatant turn state with an action, a bonus action and a
-reaction, each refreshing on the swing timer. That is a real design decision about what this game
-is — a faithful turn-based port, or a real-time game with D&D's numbers — and it should be made
-deliberately rather than fallen into.
+**Level-up pick-lists.** Fighting styles, expertise, invocations, pact boons and metamagic all
+wanted the same thing — a list to choose from and a record of what was chosen — and building five
+mechanisms for that would have been five places to get the entitlement arithmetic wrong. Fighting
+styles in particular had been written and deliberately left unattached, because granting one
+automatically raised every martial character's armour class.
 
----
+**Creature-form substitution.** Wild Shape and the Polymorph family. The monster data was already
+data-driven, which was most of what this needed; what was missing was a reliable swap back. The
+beast's hit points are a separate pool, so a Druid knocked out of the form returns with their own
+total intact — which is what makes Wild Shape defensive rather than cosmetic.
 
-## Blocked on a resource-pool system
-
-Several classes spend from a pool of points, choosing how many to spend per use. The activated
-feature system added alongside class features handles *uses*, not *points*, and the difference
-matters: a Monk spending 2 ki of 5 on one ability is a different mechanism from spending one of
-three uses.
-
-- **Ki** (Monk 2) — Flurry of Blows, Patient Defense, Step of the Wind, Stunning Strike
-- **Sorcery Points and Metamagic** (Sorcerer 2, 3)
-- **Divine Smite** (Paladin 2) — spends a spell slot of a chosen level on extra damage
-- **Lay on Hands** as written — a pool of hit points, currently a fixed 5 per use
-
-**What would unblock them:** a point pool per class with a spend-N interface, plus a way for the
-client to ask "how many?" at the moment of use.
+All twelve subclasses now have features of their own. Most of them were waiting on one of the four
+above.
 
 ---
 
-## Blocked on a pick-list at level-up
+## Blocked on a client UI
 
-The level-up window already collects a class, ability improvements and spells known. These need
-the same treatment: a list to choose from, stored on the character.
+Everything below works and has no way to be operated except a command. That is fine for testing and
+poor for playing.
 
-- **Fighting Styles** (Fighter 1, Paladin 2, Ranger 2) — the features exist in
-  `Features/PassiveFeatures.cs` and are deliberately unattached. Granting one automatically was
-  tried and reverted: it silently raised every martial character's armour class.
-- **Eldritch Invocations** (Warlock 2)
-- **Pact Boon** (Warlock 3)
-- **Metamagic options** (Sorcerer 3)
-- **Expertise** (Rogue 1, Bard 3) — doubles proficiency on chosen skills
-
----
-
-## Blocked on creature-form substitution
-
-- **Wild Shape** (Druid 2), **Polymorph**, **Shapechange**, **True Polymorph**
-
-A character would have to adopt another creature's stat block while keeping their own identity,
-hit points and equipment state. The monster data is already data-driven, which is most of what
-this needs, but nothing can currently swap a player's stats for a monster's and back.
+- **The level-up window does not collect choices.** `[choose` does. The window already collects a
+  class, ability improvements and spells known, so this is a fifth list rather than a new mechanism.
+- **Dying shows nothing.** Death save successes and failures arrive as system messages. They want to
+  be three pips somewhere visible, because the whole tension of the rule is watching the count.
+- **Pools and turn resources are invisible.** `[points` reads them. A Monk should be able to see
+  their ki without typing, and whether their reaction is spent.
+- **Wild Shape forms are a list in chat.** `[use Wild Shape wolf`.
+- **"How many?" is never asked.** Lay on Hands spends exactly what the wound needs and Divine Smite
+  takes the highest slot available, because there is no way to prompt. Both should ask.
 
 ---
 
-## Subclass features
+## Blocked on systems that do not exist at all
 
-All twelve subclasses exist and resolve their parent correctly, but only the Champion has
-features of its own (Improved Critical). The other eleven need the systems above more often than
-not — Circle of the Land needs Wild Shape, the Fiend needs invocations, Way of the Open Hand
-needs ki.
+Not near-term work. Each is its own feature, and naming them is more honest than listing the spells
+that need them.
+
+- **Illusion and invisibility.** Minor Illusion, Mirror Image's actual mechanism, Greater Invisibility,
+  the Cloak and Ring of Invisibility, Boots and Cloak of Elvenkind, the Hat of Disguise.
+- **Planar travel.** Plane Shift, Gate, Etherealness, the Amulet of the Planes, the Well of Many Worlds.
+- **Divination.** Scrying, True Seeing, Foresight, the Gem of Seeing.
+- **Charges and activated items.** Potions, wands, the Deck of Many Things, the Horn of Valhalla.
+  The wondrous table covers standing bonuses only, which is why it is a table; a dozen rows are
+  currently inert and the self-test names each one at boot.
+- **Wish.** Its own category, deliberately.
 
 ---
 
-## Smaller, unblocked
+## Approximations, recorded rather than hidden
 
-Death saves, hit dice, feats, the wondrous item table and six new spell effect kinds are done.
-What they left behind:
+These work, but not the way the SRD writes them. Listed so nobody has to rediscover the gap.
 
-- **73 spells still have no mechanical effect.** The ones that could be backed by rules that exist
-  now are: reviving, removing conditions, resistance, advantage, dispelling and light. What is left
-  genuinely needs systems the game has none of - illusion, invisibility, planar travel, shapeshifting,
-  divination, and Wish. Those are not near-term work; they are each their own feature.
-- **Magic weapons are in the wrong table.** Flame Tongue, Vorpal Sword, Sun Blade, Holy Avenger, the
-  Staff of the Magi and the Wand of Magic Missiles sit on weapon layers as wondrous items, which
-  means their bonuses apply but the combat resolver cannot get damage dice out of them - a character
-  holding a Vorpal Sword swings as if unarmed. They belong in the weapon table with a magic variant,
-  not here. The self-test names each one at boot.
-- **Wondrous items that do something on use.** Potions, wands, a bag of holding, the Deck of Many
-  Things. The table covers standing bonuses only, which is why it is a table; anything with an
-  activation needs code, and roughly a dozen rows are currently inert.
-- **Items whose effect is stealth, disguise, invisibility or flight.** Boots and Cloak of Elvenkind,
-  the Hat of Disguise, Winged Boots, both invisibility items. Blocked on the same missing systems as
-  the spells above.
-
-- **Dying has no client UI.** The successes and failures arrive as system messages. They want to be
-  three pips somewhere visible, since the whole tension of the rule is watching the count.
-- **What happens after death is still UO's.** Three failed saves ends in a UO ghost and a healer.
-  Revivify, and what resurrection costs, are a separate question from how you get there.
-- **Feats that need machinery the game has no notion of.** Everything reaction-driven - Sentinel,
-  Mage Slayer, Polearm Master's opportunity attack, Lucky's reroll - waits on a turn structure with
-  reactions in it. There is no such structure; combat is a swing timer.
-- **`Feat.AttackBonus` is unconditional.** Archery should apply to ranged weapons only, and Great
-  Weapon Master to heavy ones, but the hook is not handed the weapon. Same shape as the fighting
-  styles below, and worth fixing once for both.
-- **`SkilledFeat` picks its own three skills.** There is no UI to ask which, so it grants Perception,
-  Athletics and Insight. It should ask.
-- **Fighting styles are still defined and unattached** (`DefenseStyleFeature`, `ArcheryStyleFeature`).
-  Choosing one at 1st level is the missing piece, and it is the same weapon-context problem.
+- **Great Weapon Fighting rerolls a total, not individual dice.** The resolver rolls a dice
+  expression and gets back one number, so the "reroll 1s and 2s" rule is applied as "reroll a total
+  in the bottom fifth of the range". Close in expectation, not the same rule.
+- **Flurry of Blows grants advantage rather than two extra strikes.** Resolving the strikes here
+  would duplicate the combat resolver's damage rules in a second place.
+- **Cunning Action's Dash and Disengage have no meaning** without turn-based movement, so it does
+  the third thing — breaking off — and grants advantage on the next attack.
+- **Colossus Slayer rides the bonus action** to get its once-per-round limit, because a passive
+  feature has no other per-round currency to claim.
+- **Only Riposte of the Battle Master manoeuvres exists.** It is the one whose trigger the engine
+  can see. The rest want superiority dice, which is another resource pool, and a way to declare
+  intent before a roll — which the real-time model does not have.
+- **Metamagic is two options of six.** Careful, Distant, Subtle and Twinned change who or how a
+  spell reaches, which needs a targeting rework. Empowered and Quickened are about the roll.

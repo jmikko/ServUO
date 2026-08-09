@@ -23,6 +23,8 @@ namespace Server.Engines.Classes
 
 			Feats.OriginFeats.Configure();
 
+			ChoiceOptions.Configure();
+
 			CharacterClass.Register(new FighterClass());
 			CharacterClass.Register(new BarbarianClass());
 			CharacterClass.Register(new BardClass());

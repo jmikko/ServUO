@@ -36,7 +36,7 @@ namespace Server.Engines.Classes
 
 		public override ClassFeature[] Features
 		{
-			get { return new ClassFeature[] { new Features.SecondWindFeature(), new Features.ActionSurgeFeature(), new Features.ExtraAttackFeature(), new Features.FighterExtraAttackFeature(11, 2), new Features.FighterExtraAttackFeature(20, 3), new Features.IndomitableFeature() }; }
+			get { return new ClassFeature[] { new Features.SecondWindFeature(), new Features.ActionSurgeFeature(), new Features.ExtraAttackFeature(), new Features.FighterExtraAttackFeature(11, 2), new Features.FighterExtraAttackFeature(20, 3), new Features.IndomitableFeature(), new Features.RiposteFeature() }; }
 		}
 	}
 }

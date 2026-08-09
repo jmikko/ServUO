@@ -27,6 +27,13 @@ namespace Server
 		/// </summary>
 		int TotalLevel { get; }
 		System.Collections.Generic.List<Feat> Feats { get; }
+
+		/// <summary>
+		/// Names of the level-up options this character has chosen - fighting styles, expertise,
+		/// invocations, pact boon, metamagic. Stored as names rather than objects so the save file
+		/// does not depend on a registry that may be reordered.
+		/// </summary>
+		System.Collections.Generic.List<string> Choices { get; }
 		int ArmorClass { get; }
 		int Experience { get; }
 		bool IsProficient(DnDSkill skill);

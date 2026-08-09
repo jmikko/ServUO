@@ -8,5 +8,10 @@ namespace Server.Engines.Classes.Subclasses
 		public override string Name { get { return "Hunter"; } }
 
 		public override Type ParentClass { get { return typeof(RangerClass); } }
+
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.ExtraAttackFeature(), new Features.ColossusSlayerFeature() }; }
+		}
 	}
 }

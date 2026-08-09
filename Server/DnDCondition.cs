@@ -28,6 +28,13 @@ namespace Server
 		Stunned = 0x1000,
 		Unconscious = 0x2000,
 
+		/// <summary>
+		/// Actively defending - the Dodge action, and Patient Defense. Not an SRD condition but it
+		/// behaves exactly like one, and putting it here means the attack roll consults a single
+		/// place rather than two.
+		/// </summary>
+		Dodging = 0x4000,
+
 		/// <summary>Conditions that stop a creature acting at all.</summary>
 		CannotAct = Incapacitated | Paralyzed | Petrified | Stunned | Unconscious,
 
@@ -36,6 +43,9 @@ namespace Server
 
 		/// <summary>Conditions that give attackers advantage against the sufferer.</summary>
 		DefenceAdvantage = Blinded | Paralyzed | Petrified | Restrained | Stunned | Unconscious,
+
+		/// <summary>Conditions that give attackers disadvantage against the sufferer.</summary>
+		DefenceDisadvantage = Dodging | Invisible,
 
 		/// <summary>Conditions that auto-fail Strength and Dexterity saving throws.</summary>
 		AutoFailStrDexSaves = Paralyzed | Petrified | Stunned | Unconscious
@@ -162,7 +172,15 @@ namespace Server
 
 			var target = defender as Mobile;
 			bool advantage = target != null && (Get(target) & DnDCondition.DefenceAdvantage) != 0;
-			
+
+			// A dodging or unseen defender is harder to hit, which is disadvantage on the attacker
+			// rather than a bonus to the defender - and so cancels against their advantage instead
+			// of stacking with their armour class.
+			if (target != null && (Get(target) & DnDCondition.DefenceDisadvantage) != 0)
+			{
+				disadvantage = true;
+			}
+
 			if (DnDRollModifiers.HasAdvantage(attacker, RollKind.Attack))
 			{
 				advantage = true;

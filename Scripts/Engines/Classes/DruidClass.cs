@@ -2,6 +2,11 @@ namespace Server.Engines.Classes
 {
 	public class DruidClass : CharacterClass
 	{
+		public override ClassFeature[] Features
+		{
+			get { return new ClassFeature[] { new Features.WildShapeFeature() }; }
+		}
+
 		public override string Name { get { return "Druid"; } }
 
 		public override int HitDie { get { return 8; } }

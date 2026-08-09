@@ -35,7 +35,7 @@ namespace Server.Engines.Classes
 
 		public override ClassFeature[] Features
 		{
-			get { return new ClassFeature[] { new Features.MonkUnarmoredDefenseFeature(), new Features.MartialArtsFeature(), new Features.ExtraAttackFeature(), new Features.DiamondSoulFeature() }; }
+			get { return new ClassFeature[] { new Features.MonkUnarmoredDefenseFeature(), new Features.MartialArtsFeature(), new Features.ExtraAttackFeature(), new Features.DiamondSoulFeature(), new Features.FlurryOfBlowsFeature(), new Features.PatientDefenseFeature(), new Features.StepOfTheWindFeature(), new Features.StunningStrikeFeature(), new Features.DeflectMissilesFeature(), new Features.EvasionFeature() }; }
 		}
 	}
 }
