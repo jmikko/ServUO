@@ -93,7 +93,19 @@ string? apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
 if (string.IsNullOrWhiteSpace(apiKey))
 {
     Console.Error.WriteLine("Set GEMINI_API_KEY (get one free at https://aistudio.google.com/apikey).");
+    Console.Error.WriteLine("On Windows, `setx` only reaches NEW processes - open a fresh terminal after setting it.");
     return 1;
+}
+
+// A warning rather than a refusal: the prefix is a long-standing Google convention, not a promise,
+// and refusing a key that turns out to be valid would be worse than a line of noise. But an OAuth
+// token pasted in place of an API key fails with a bare 403, and guessing why costs a round trip.
+if (!apiKey.StartsWith("AIza"))
+{
+    Console.Error.WriteLine(
+        $"Warning: GEMINI_API_KEY starts '{apiKey[..Math.Min(4, apiKey.Length)]}...' - AI Studio keys "
+        + "normally start 'AIza'. If authentication fails, check you took the key from "
+        + "https://aistudio.google.com/apikey rather than an OAuth token from elsewhere.");
 }
 
 Directory.CreateDirectory(iconDirectory);
