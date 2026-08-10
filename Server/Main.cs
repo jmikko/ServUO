@@ -676,6 +676,47 @@ namespace Server
         private static readonly Type[] m_SerialTypeArray = { typeof(Serial) };
         private static readonly Type[] m_CustomsSerialTypeArray = { typeof(CustomSerial) };
 
+        private const BindingFlags SerializationBinding =
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+        /// <summary>
+        /// Does this type declare its own Serialize/Deserialize, rather than inheriting one?
+        /// <para>
+        /// DeclaredOnly is deliberate and must stay. Every Item and Mobile inherits a Serialize
+        /// from its base, so a check that walks the hierarchy passes for absolutely everything and
+        /// silently stops being a check at all. What matters is whether this type saves its own
+        /// fields, and only a Serialize it declares itself can do that.
+        /// </para>
+        /// </summary>
+        private static bool DeclaresSerialization(Type t, string name)
+        {
+            return t.GetMethod(name, SerializationBinding | BindingFlags.DeclaredOnly) != null;
+        }
+
+        /// <summary>
+        /// True if this type carries instance state of its own that serialization would have to
+        /// save - which is the case the warning actually exists for.
+        /// <para>
+        /// A type with its own fields and no Serialize of its own really is losing them on a world
+        /// save. A type with no fields is not, however many of them there are.
+        /// </para>
+        /// </summary>
+        private static bool HasOwnState(Type t)
+        {
+            FieldInfo[] fields = t.GetFields(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            for (int i = 0; i < fields.Length; ++i)
+            {
+                if (!fields[i].IsInitOnly && !fields[i].IsLiteral)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static void VerifyType(Type t)
         {
             bool isItem = t.IsSubclassOf(typeof(Item));
@@ -695,17 +736,14 @@ namespace Server
 
                 try
                 {
-                    if (t.GetConstructor(m_SerialTypeArray) == null)
+                    if (!t.IsAbstract && t.GetConstructor(SerializationBinding, null, m_SerialTypeArray, null) == null)
                     {
                         warningSb = new StringBuilder();
 
                         warningSb.AppendLine("       - No serialization constructor");
                     }
 
-                    if (
-                        t.GetMethod(
-                            "Serialize",
-                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
+                    if (HasOwnState(t) && !DeclaresSerialization(t, "Serialize"))
                     {
                         if (warningSb == null)
                         {
@@ -715,10 +753,7 @@ namespace Server
                         warningSb.AppendLine("       - No Serialize() method");
                     }
 
-                    if (
-                        t.GetMethod(
-                            "Deserialize",
-                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
+                    if (HasOwnState(t) && !DeclaresSerialization(t, "Deserialize"))
                     {
                         if (warningSb == null)
                         {
@@ -750,17 +785,14 @@ namespace Server
 
                 try
                 {
-                    if (t.GetConstructor(m_CustomsSerialTypeArray) == null)
+                    if (!t.IsAbstract && t.GetConstructor(SerializationBinding, null, m_CustomsSerialTypeArray, null) == null)
                     {
                         warningSb = new StringBuilder();
 
                         warningSb.AppendLine("       - No serialization constructor");
                     }
 
-                    if (
-                        t.GetMethod(
-                            "Serialize",
-                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
+                    if (HasOwnState(t) && !DeclaresSerialization(t, "Serialize"))
                     {
                         if (warningSb == null)
                         {
@@ -770,10 +802,7 @@ namespace Server
                         warningSb.AppendLine("       - No Serialize() method");
                     }
 
-                    if (
-                        t.GetMethod(
-                            "Deserialize",
-                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
+                    if (HasOwnState(t) && !DeclaresSerialization(t, "Deserialize"))
                     {
                         if (warningSb == null)
                         {
