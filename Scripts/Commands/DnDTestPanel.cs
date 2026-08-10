@@ -115,7 +115,18 @@ namespace Server.Commands
 	{
 		private readonly Mobile m_From;
 
-		private const int Width = 480;
+		// Sized from the content rather than guessed. The first version was 480x470 while the rows
+		// actually ran to y=504, so the last three collided with the footer, and the hint column
+		// was 270px for text that needs about 400 - both visible the moment it was opened and
+		// neither visible from the code.
+		private const int Width = 660;
+		private const int Height = 560;
+
+		private const int LabelX = 48;
+		private const int LabelWidth = 168;
+		private const int HintX = 222;
+
+		private const int RowHeight = 22;
 
 		// Button ids. Grouped in hundreds so a new row in one section cannot silently take the
 		// number another section was already using.
@@ -149,7 +160,7 @@ namespace Server.Commands
 			Dragable = true;
 
 			AddPage(0);
-			AddBackground(0, 0, Width, 470, 5054);
+			AddBackground(0, 0, Width, Height, 5054);
 
 			AddHtml(10, 10, Width - 20, 22, "<center>D&D Test Panel</center>", false, false);
 
@@ -157,7 +168,7 @@ namespace Server.Commands
 
 			y = AddSection("Windows - check the client actually draws them", y);
 
-			y = AddRow(BtnSheet, "Character sheet", "[sheet - and the paperdoll Status button opens the same thing.", y);
+			y = AddRow(BtnSheet, "Character sheet", "[sheet - the paperdoll Status button opens the same window.", y);
 			y = AddRow(BtnSpells, "Spellbook", "[spells - a Fighter is sent an empty list and gets no window.", y);
 			y = AddRow(BtnFeatures, "Features", "[features", y);
 			y = AddRow(BtnPoints, "Resource pools", "[points - Monk ki, sorcery points, Lay on Hands.", y);
@@ -178,15 +189,15 @@ namespace Server.Commands
 
 			y = AddSection("Spawn something to fight", y + 4);
 
-			y = AddRow(BtnGoblin, "A goblin", "CR 1/4. Pack tactics - spawn two and watch the hit rate climb.", y);
+			y = AddRow(BtnGoblin, "A goblin", "CR 1/4. Spawn two - one goblin cannot show pack tactics.", y);
 			y = AddRow(BtnWolfPack, "Three wolves", "Pack tactics with enough bodies to actually trigger it.", y);
-			y = AddRow(BtnTroll, "A troll", "Regeneration is authored but not yet wired - expect it not to regrow.", y);
+			y = AddRow(BtnTroll, "A troll", "Regeneration is authored but unread - it will not regrow yet.", y);
 			y = AddRow(BtnSkeleton, "A skeleton", "Vulnerable to bludgeoning, immune to poison. Try both.", y);
 			y = AddRow(BtnKit, "Starting kit", "A longsword, a chain shirt and a shield.", y);
 
 			AddHtml(
 				12,
-				438,
+				Height - 30,
 				Width - 24,
 				20,
 				"<basefont color=#888888>[dndhelp lists every command. [add Srd&lt;Name&gt; spawns any of 694 monsters.</basefont>",
@@ -204,10 +215,18 @@ namespace Server.Commands
 		private int AddRow(int buttonId, string label, string hint, int y)
 		{
 			AddButton(14, y + 1, 4005, 4007, buttonId, GumpButtonType.Reply, 0);
-			AddHtml(48, y, 150, 20, label, false, false);
-			AddHtml(200, y, Width - 210, 20, String.Format("<basefont color=#AAAAAA>{0}</basefont>", hint), false, false);
+			AddHtml(LabelX, y, LabelWidth, 20, label, false, false);
 
-			return y + 22;
+			AddHtml(
+				HintX,
+				y,
+				Width - HintX - 14,
+				20,
+				String.Format("<basefont color=#AAAAAA>{0}</basefont>", hint),
+				false,
+				false);
+
+			return y + RowHeight;
 		}
 
 		public override void OnResponse(NetState state, RelayInfo info)
