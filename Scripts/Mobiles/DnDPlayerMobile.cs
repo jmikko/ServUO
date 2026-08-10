@@ -7,6 +7,15 @@ namespace Server.Mobiles
 {
 	public class DnDPlayerMobile : Mobile, IDnDCharacter
 	{
+		/// <summary>
+		/// Players do not heal by waiting either - see the note on DnDCreature.CanRegenHits.
+		/// <para>
+		/// This is the half that matters most: with UO regen running, hit dice, a short rest and
+		/// every healing spell were competing with a timer that gave the hit points back for free.
+		/// </para>
+		/// </summary>
+		public override bool CanRegenHits { get { return false; } }
+
 		private bool m_DnDInitialized;
 		private AbilityScores m_AbilityScores;
 		private Dictionary<CharacterClass, int> m_Classes = new Dictionary<CharacterClass, int>();

@@ -21,7 +21,7 @@ namespace Server.Mobiles
 	public static class DnDDeath
 	{
 		/// <summary>An SRD round. Death saves are rolled once per round, so this is the pace.</summary>
-		private static readonly TimeSpan RoundLength = TimeSpan.FromSeconds(6.0);
+		public static readonly TimeSpan RoundLength = TimeSpan.FromSeconds(6.0);
 
 		private const int DeathSaveDC = 10;
 		private const int Needed = 3;

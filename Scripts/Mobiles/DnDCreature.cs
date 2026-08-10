@@ -36,6 +36,22 @@ namespace Server.Mobiles
 	/// </summary>
 	public abstract class DnDCreature : Mobile, IDnDCreature
 	{
+		/// <summary>
+		/// Nothing here heals just by standing still.
+		/// <para>
+		/// Mobile runs a HitsTimer that ticks a hit point back at UO's default rate for every
+		/// creature in the game, and nothing in this rebuild had ever turned it off - so a troll
+		/// left alone quietly refilled, and so did everything else, including players. That is UO's
+		/// attrition model, and it is the opposite of D&amp;D's: hit points are meant to be a
+		/// resource spent across a day and recovered at a rest or from a spell, which is what makes
+		/// hit dice and healing worth anything.
+		/// </para>
+		/// <para>
+		/// Creatures with the Regeneration trait get theirs from the trait, on their own terms.
+		/// </para>
+		/// </summary>
+		public override bool CanRegenHits { get { return false; } }
+
 		private static readonly TimeSpan ThinkInterval = TimeSpan.FromSeconds(0.5);
 
 		private Timer m_ThinkTimer;
@@ -144,6 +160,41 @@ namespace Server.Mobiles
 		/// Mobile's own combat timer drives the actual swing once Combatant is set and we are
 		/// adjacent, so this only has to handle target selection and movement.
 		/// </summary>
+		private DateTime m_NextRegeneration;
+
+		/// <summary>
+		/// The Regeneration trait: hit points back at the start of each of the creature's turns.
+		/// <para>
+		/// Once per round rather than per think tick, because the trait is written per turn and a
+		/// half-second tick would hand a troll twelve times its stated rate. It stops at nothing
+		/// left to heal, and does not raise the dead - a creature reduced to 0 is finished, which
+		/// is what makes killing a troll possible at all.
+		/// </para>
+		/// </summary>
+		private void ApplyRegeneration()
+		{
+			var traited = this as IDnDTraited;
+
+			if (traited == null || traited.Traits == null || traited.Traits.Regeneration <= 0)
+			{
+				return;
+			}
+
+			if (!Alive || Hits >= HitsMax)
+			{
+				return;
+			}
+
+			if (DateTime.UtcNow < m_NextRegeneration)
+			{
+				return;
+			}
+
+			m_NextRegeneration = DateTime.UtcNow + Mobiles.DnDDeath.RoundLength;
+
+			Hits = Math.Min(HitsMax, Hits + traited.Traits.Regeneration);
+		}
+
 		protected virtual void Think()
 		{
 			if (Deleted || Map == null || Map == Map.Internal)
@@ -151,6 +202,8 @@ namespace Server.Mobiles
 				StopThinking();
 				return;
 			}
+
+			ApplyRegeneration();
 
 			if (!Alive)
 			{

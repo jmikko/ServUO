@@ -191,7 +191,7 @@ namespace Server.Commands
 
 			y = AddRow(BtnGoblin, "A goblin", "CR 1/4. Spawn two - one goblin cannot show pack tactics.", y);
 			y = AddRow(BtnWolfPack, "Three wolves", "Pack tactics with enough bodies to actually trigger it.", y);
-			y = AddRow(BtnTroll, "A troll", "Regeneration is authored but unread - it will not regrow yet.", y);
+			y = AddRow(BtnTroll, "A troll", "Regenerates each round. Nothing else heals by waiting any more.", y);
 			y = AddRow(BtnSkeleton, "A skeleton", "Vulnerable to bludgeoning, immune to poison. Try both.", y);
 			y = AddRow(BtnKit, "Starting kit", "A longsword, a chain shirt and a shield.", y);
 
