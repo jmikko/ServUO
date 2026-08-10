@@ -46,6 +46,17 @@ namespace Server.Spells.DnD
 
 		public virtual SpellResolution Resolution { get { return SpellResolution.Automatic; } }
 
+		/// <summary>
+		/// What this spell's damage is made of, so the target's resistances can answer it.
+		/// <para>
+		/// None for anything that does not deal damage, and None is also the safe default for a
+		/// damaging spell whose row forgot to say - untyped damage passes through resistances
+		/// untouched, which errs towards the spell working rather than towards it silently doing
+		/// nothing to half the bestiary.
+		/// </para>
+		/// </summary>
+		public virtual DnDDamageType DamageType { get { return DnDDamageType.None; } }
+
 		/// <summary>Only consulted when <see cref="Resolution"/> is SavingThrow.</summary>
 		public virtual AbilityScoreType SaveAbility { get { return AbilityScoreType.Dex; } }
 

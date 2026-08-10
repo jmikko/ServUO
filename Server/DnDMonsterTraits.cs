@@ -86,6 +86,16 @@ namespace Server
 		public string Flavour = string.Empty;
 
 		/// <summary>
+		/// What this creature's own attacks are made of - claws, bite, slam, or something worse.
+		/// <para>
+		/// A monster has no weapon item to carry a type, so without this every natural attack is
+		/// untyped and resistances only ever bite against armed players. That is a strange
+		/// half-rule: a skeleton would resist a player's mace and not an ogre's club.
+		/// </para>
+		/// </summary>
+		public DnDDamageType NaturalDamageType = DnDDamageType.None;
+
+		/// <summary>
 		/// How a damage type lands: 0 for immune, half for resistant, double for vulnerable.
 		/// <para>
 		/// Rounded down, and floored at zero rather than one - immunity has to mean immunity, or a

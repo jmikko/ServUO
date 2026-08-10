@@ -1976,6 +1976,51 @@ namespace Server.Misc
 				// resistance quietly becomes a resistance to everything.
 				ok &= CheckValue("unrelated type untouched", resistant.ApplyDamageType(11, DnDDamageType.Fire), 11);
 
+				// Every damaging spell must name what its damage is made of, or a fire immunity
+				// silently fails to stop a Fireball - and the spell looks like it worked.
+				int untypedSpells = 0;
+
+				foreach (DnDSpell spell in SpellRegistry.AllSpells)
+				{
+					var data = spell as DataDrivenSpell;
+
+					if (data != null && data.Data.Kind == SpellEffectKind.Damage && spell.DamageType == DnDDamageType.None)
+					{
+						if (untypedSpells < 3)
+						{
+							Console.WriteLine("[combat-selftest] FAIL: '{0}' deals damage of no type", spell.Name);
+						}
+
+						++untypedSpells;
+					}
+				}
+
+				if (untypedSpells > 0)
+				{
+					Console.WriteLine("[combat-selftest] FAIL: {0} damaging spell(s) have no damage type", untypedSpells);
+					ok = false;
+				}
+
+				// And every monster must name what its own attacks are made of, for the same
+				// reason from the other side: an untyped claw ignores every resistance in the game.
+				int untypedMonsters = 0;
+
+				foreach (SrdMonsterData data in SrdMonster.AllData)
+				{
+					if (data.Traits != null && data.Traits.NaturalDamageType == DnDDamageType.None)
+					{
+						++untypedMonsters;
+					}
+				}
+
+				if (untypedMonsters > 0)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: {0} monster row(s) have no natural damage type", untypedMonsters);
+
+					ok = false;
+				}
+
 				// Multiattack, counted as hits landed per action. The goblin has one attack; the
 				// same creature given two must land close to twice as many.
 				int single = CountHits(attacker, target, Swings, 1);
@@ -2080,7 +2125,14 @@ namespace Server.Misc
 			DnDPlayerMobile target = MakeCharacter("Defence Probe", "Fighter", 1, 10, 10, 10);
 			SrdGoblin attacker = new SrdGoblin();
 
-			attacker.MoveToWorld(TestLocation, Map.Felucca);
+			// Well away from the other goblins the suite leaves standing at the test tile. Goblins
+			// have pack tactics, so a second one within a square of the target hands this attacker
+			// permanent advantage and every rate below reads as though Faerie Fire were already up.
+			// The measurement wants one attacker and one defender and nothing else nearby.
+			var probeLocation = new Point3D(TestLocation.X + 12, TestLocation.Y + 12, TestLocation.Z);
+
+			attacker.MoveToWorld(probeLocation, Map.Felucca);
+			target.MoveToWorld(probeLocation, Map.Felucca);
 
 			try
 			{

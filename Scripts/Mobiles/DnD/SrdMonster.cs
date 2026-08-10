@@ -181,6 +181,9 @@ namespace Server.Mobiles
 
 			traits.Flavour = el.GetAttribute("flavour");
 
+			traits.NaturalDamageType =
+				DnDMonsterTraits.ParseDamageTypes(el.GetAttribute("damageType"), id, "damageType");
+
 			return traits;
 		}
 

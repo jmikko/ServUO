@@ -167,10 +167,20 @@ namespace Server.Items
 
 				int applied = result.Damage;
 
-				DnDDamageType damageType = DnDDamageType.Bludgeoning;
+				// The weapon names the damage type when there is one. A monster has no weapon item
+				// to carry it, so its stat block does instead - otherwise every natural attack in
+				// the game is untyped and resistances only ever bite against armed players, which
+				// would mean a skeleton resisting a player's mace but not an ogre's club.
+				DnDDamageType damageType = DnDDamageType.None;
+
 				if (weapon is IDnDEquipment dndEq)
 				{
 					damageType = dndEq.DamageTypeDnD;
+				}
+
+				if (damageType == DnDDamageType.None && attackerTraits != null && attackerTraits.Traits != null)
+				{
+					damageType = attackerTraits.Traits.NaturalDamageType;
 				}
 
 				IDnDTraited traited = defender as IDnDTraited;

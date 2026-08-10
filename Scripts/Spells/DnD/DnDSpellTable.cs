@@ -76,6 +76,9 @@ namespace Server.Spells.DnD
 		public SpellSchool School;
 		public SpellEffectKind Kind;
 		public SpellResolution Resolution;
+
+		/// <summary>What the damage is made of, for the target.s resistances. None if it deals none.</summary>
+		public DnDDamageType DamageType;
 		public AbilityScoreType SaveAbility;
 		public bool HalfOnSave;
 		public int Range;
@@ -176,6 +179,8 @@ namespace Server.Spells.DnD
 				School = ParseEnum(el.GetAttribute("school"), SpellSchool.Evocation),
 				Kind = ParseEnum(el.GetAttribute("kind"), SpellEffectKind.Damage),
 				Resolution = ParseEnum(el.GetAttribute("resolution"), SpellResolution.Automatic),
+				DamageType = DnDMonsterTraits.ParseDamageTypes(
+					el.GetAttribute("damageType"), el.GetAttribute("id"), "damageType"),
 				SaveAbility = ParseEnum(el.GetAttribute("save"), AbilityScoreType.Dex),
 				HalfOnSave = el.GetAttribute("halfOnSave") == "true",
 				TargetType = ParseEnum(el.GetAttribute("targetType"), SpellTargetType.Mobile),
@@ -274,6 +279,7 @@ namespace Server.Spells.DnD
 		public override int Level { get { return m_Data.Level; } }
 		public override SpellSchool School { get { return m_Data.School; } }
 		public override SpellResolution Resolution { get { return m_Data.Resolution; } }
+		public override DnDDamageType DamageType { get { return m_Data.DamageType; } }
 		public override AbilityScoreType SaveAbility { get { return m_Data.SaveAbility; } }
 		public override int Range { get { return m_Data.Range; } }
 		public override bool HalfDamageOnSave { get { return m_Data.HalfOnSave; } }

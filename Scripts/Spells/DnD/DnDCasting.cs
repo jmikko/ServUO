@@ -181,6 +181,16 @@ namespace Server.Spells.DnD
 					}
 			}
 
+			// The target's own nature answers last, after the save has decided how much of the
+			// spell landed. Order matters: halving a resisted total is not the same as resisting a
+			// halved one when both round down, and the SRD resolves the save first.
+			IDnDTraited traited = target as IDnDTraited;
+
+			if (traited != null && traited.Traits != null)
+			{
+				damage = traited.Traits.ApplyDamageType(damage, spell.DamageType);
+			}
+
 			if (damage > 0)
 			{
 				target.Damage(damage, caster);
