@@ -35,6 +35,11 @@ namespace Server.Mobiles
 		/// gets a default block, so nothing has to null-check before asking about resistances.
 		/// </summary>
 		public DnDMonsterTraits Traits = new DnDMonsterTraits();
+
+		public List<DnDAction> Actions = new List<DnDAction>();
+		public List<DnDLegendaryAction> LegendaryActions = new List<DnDLegendaryAction>();
+		// Reactions could be just a list of DnDAction or a string/custom object. For now we use strings
+		public List<string> Reactions = new List<string>();
 	}
 
 	/// <summary>
@@ -95,6 +100,52 @@ namespace Server.Mobiles
 					ChallengeRating = Advancement.ParseChallengeRating(el.GetAttribute("cr")),
 					Traits = ParseTraits(el)
 				};
+
+				XmlElement scoresEl = el["abilityScores"];
+				if (scoresEl != null)
+				{
+					data.Traits.Scores = new AbilityScores(
+						ParseInt(scoresEl.GetAttribute("str")),
+						ParseInt(scoresEl.GetAttribute("dex")),
+						ParseInt(scoresEl.GetAttribute("con")),
+						ParseInt(scoresEl.GetAttribute("int")),
+						ParseInt(scoresEl.GetAttribute("wis")),
+						ParseInt(scoresEl.GetAttribute("cha"))
+					);
+				}
+
+				XmlElement actionsEl = el["actions"];
+				if (actionsEl != null)
+				{
+					foreach (XmlNode actionNode in actionsEl.ChildNodes)
+					{
+						XmlElement actionEl = actionNode as XmlElement;
+						if (actionEl == null || actionEl.Name != "action") continue;
+
+						DnDAction action = new DnDAction();
+						action.Name = actionEl.GetAttribute("name");
+						Enum.TryParse(actionEl.GetAttribute("type"), true, out DnDActionType actType);
+						action.Type = actType;
+						action.ToHit = ParseInt(actionEl.GetAttribute("toHit"));
+						action.ReachOrRange = actionEl.GetAttribute("reachOrRange");
+						action.PrimaryDamageDice = actionEl.GetAttribute("primaryDamageDice");
+						action.PrimaryDamageType = DnDMonsterTraits.ParseDamageTypes(actionEl.GetAttribute("primaryDamageType"), data.Id, "primaryDamageType");
+						Enum.TryParse(actionEl.GetAttribute("usage"), true, out DnDUsageType usage);
+						action.Usage = usage;
+
+						data.Actions.Add(action);
+					}
+				}
+
+				// Backwards compatibility for AttackBonus / DamageDice if not provided but actions are present
+				// IsNullOrEmpty, not == null: XmlElement.GetAttribute returns "" for an attribute
+				// that is not there, never null, so the null test never fired and every migrated
+				// monster fell through with no damage dice at all.
+				if (data.AttackBonus == 0 && string.IsNullOrEmpty(data.DamageDice) && data.Actions.Count > 0)
+				{
+					data.AttackBonus = data.Actions[0].ToHit;
+					data.DamageDice = data.Actions[0].PrimaryDamageDice;
+				}
 
 				List<SrdMonsterData> list;
 				if (!m_Data.TryGetValue(data.Id, out list))
@@ -181,8 +232,27 @@ namespace Server.Mobiles
 
 			traits.Flavour = el.GetAttribute("flavour");
 
+			// The natural damage type now lives on the creature's first action, since an action
+			// list is a better place for it than a second copy on the element. The old flat
+			// attribute is still read as a fallback so a row written either way works.
 			traits.NaturalDamageType =
 				DnDMonsterTraits.ParseDamageTypes(el.GetAttribute("damageType"), id, "damageType");
+
+			if (traits.NaturalDamageType == DnDDamageType.None)
+			{
+				XmlNodeList actionNodes = el.SelectNodes("actions/action");
+
+				if (actionNodes != null && actionNodes.Count > 0)
+				{
+					var first = actionNodes[0] as XmlElement;
+
+					if (first != null)
+					{
+						traits.NaturalDamageType = DnDMonsterTraits.ParseDamageTypes(
+							first.GetAttribute("primaryDamageType"), id, "primaryDamageType");
+					}
+				}
+			}
 
 			return traits;
 		}
@@ -242,6 +312,8 @@ namespace Server.Mobiles
 
 		private string m_MonsterId;
 		private int m_VariantIndex;
+
+		public List<DnDAction> Actions { get { return GetDataList(m_MonsterId)[m_VariantIndex].Actions; } }
 
 		protected SrdMonster(string monsterId)
 			: base(GetDataList(monsterId)[Utility.Random(GetDataList(monsterId).Count)].Aggression)

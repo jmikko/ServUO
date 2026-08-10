@@ -59,6 +59,13 @@ namespace Server
 
 		public DnDCondition ConditionImmunities;
 
+		public AbilityScores Scores;
+		public Dictionary<AbilityScoreType, int> SavingThrows = new Dictionary<AbilityScoreType, int>();
+		public Dictionary<string, int> Skills = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+		public int PassivePerception;
+		public string Languages = string.Empty;
+
 		public int Darkvision;
 		public int Blindsight;
 		public int Truesight;

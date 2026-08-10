@@ -179,6 +179,57 @@ namespace Server.Mobiles
 			else
 			{
 				Direction = GetDirectionTo(target);
+				SelectAndExecuteAction(target);
+			}
+		}
+
+		private DateTime m_NextActionTime;
+
+		protected virtual void SelectAndExecuteAction(Mobile target)
+		{
+			if (DateTime.UtcNow < m_NextActionTime)
+			{
+				return;
+			}
+
+			// Throttle actions to roughly once per 3 seconds (standard UO combat swing speed)
+			m_NextActionTime = DateTime.UtcNow + TimeSpan.FromSeconds(3.0);
+
+			SrdMonster srd = this as SrdMonster;
+			if (srd == null || srd.Actions == null || srd.Actions.Count == 0)
+			{
+				// Fallback to standard UO Combatant-driven melee swings
+				return; 
+			}
+
+			// Priority 1: Check Limited Usage Actions (e.g. Breath Weapons)
+			foreach (DnDAction action in srd.Actions)
+			{
+				if (action.Usage == DnDUsageType.Recharge5_6 || action.Usage == DnDUsageType.Recharge6)
+				{
+					// Simple recharge roll
+					int roll = Utility.RandomMinMax(1, 6);
+					if ((action.Usage == DnDUsageType.Recharge5_6 && roll >= 5) ||
+						(action.Usage == DnDUsageType.Recharge6 && roll == 6))
+					{
+						ExecuteAction(action, target);
+						return;
+					}
+				}
+			}
+
+			// Priority 2: Standard Multiattack or Basic Melee
+			// For now, the BaseWeapon combat timer handles standard melee, so if we 
+			// reach this point, we just do nothing and let the Combatant system swing.
+		}
+
+		protected virtual void ExecuteAction(DnDAction action, Mobile target)
+		{
+			// Skeleton for executing complex non-melee actions
+			if (action.Type == DnDActionType.BreathWeapon || action.Type == DnDActionType.RangedSpell)
+			{
+				this.PublicOverheadMessage(Network.MessageType.Regular, 0x3B2, true, string.Format("*uses {0}*", action.Name));
+				// TODO: Implement actual damage dealing / area of effect calculation
 			}
 		}
 
