@@ -126,6 +126,18 @@ namespace Server.Items
 			// attacks rather than extra damage.
 			int swings = 1 + ClassFeatures.GetExtraAttacks(attacker as IDnDCharacter);
 
+			// A monster's Multiattack is the same idea from the other side of the table, and it is
+			// what stops a high-CR creature being a single swing with a big number on it. Taken as
+			// the count rather than added to it: Extra Attack is a class feature no monster has, so
+			// the two never both apply, and adding them would silently double anything that later
+			// had both.
+			IDnDTraited attackerTraits = attacker as IDnDTraited;
+
+			if (attackerTraits != null && attackerTraits.Traits != null && attackerTraits.Traits.Multiattack > swings)
+			{
+				swings = attackerTraits.Traits.Multiattack;
+			}
+
 			for (int i = 0; i < swings; ++i)
 			{
 				// A target that died to the first swing does not get hit again.
@@ -155,8 +167,25 @@ namespace Server.Items
 
 				int applied = result.Damage;
 
-				// Rage and its kin halve weapon damage.
-				if (ClassFeatures.ResistsPhysicalDamage(defender as IDnDCharacter) || Server.DnDRollModifiers.HasResistance(defender as Mobile))
+				DnDDamageType damageType = DnDDamageType.Bludgeoning;
+				if (weapon is IDnDEquipment dndEq)
+				{
+					damageType = dndEq.DamageTypeDnD;
+				}
+
+				IDnDTraited traited = defender as IDnDTraited;
+				if (traited != null && traited.Traits != null)
+				{
+					applied = traited.Traits.ApplyDamageType(applied, damageType);
+				}
+
+				// Rage and its kin halve weapon damage. Skipped entirely once the damage is already
+				// zero: the floor of 1 exists so a resisted hit still stings, but applied to an
+				// immune creature it would put a point back that immunity had just removed, and a
+				// fire elemental taking chip damage from a torch makes the word meaningless.
+				if (applied > 0
+					&& (ClassFeatures.ResistsPhysicalDamage(defender as IDnDCharacter)
+						|| Server.DnDRollModifiers.HasResistance(defender as Mobile)))
 				{
 					applied = Math.Max(1, applied / 2);
 				}

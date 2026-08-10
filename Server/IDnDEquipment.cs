@@ -22,5 +22,7 @@ namespace Server
 		/// now and kept on the shared contract so later weapons do not need combat special cases).
 		/// </summary>
 		bool IsFinesse { get; }
+
+		DnDDamageType DamageTypeDnD { get; }
 	}
 }

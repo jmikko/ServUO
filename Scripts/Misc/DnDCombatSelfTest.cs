@@ -1928,6 +1928,8 @@ namespace Server.Misc
 			ok &= CheckValue("vulnerable takes double", probe.ApplyDamageType(20, DnDDamageType.Radiant), 40);
 			ok &= CheckValue("untyped is untouched", probe.ApplyDamageType(20, DnDDamageType.Cold), 20);
 
+			ok &= CheckTraitsReachCombat();
+
 			if (ok)
 			{
 				Console.WriteLine(
@@ -1936,6 +1938,98 @@ namespace Server.Misc
 			}
 
 			return ok;
+		}
+
+		/// <summary>
+		/// Resistance, immunity and multiattack, measured through the resolver rather than asserted.
+		/// <para>
+		/// Every one of these was authored onto hundreds of rows, parsed, and counted before
+		/// anything read it - multiattack in particular sat in the data for a while being reported
+		/// by this very suite while combat ignored it entirely. A trait that never reaches the dice
+		/// is indistinguishable, from the outside, from a trait that works, which is why this
+		/// swings for real and counts what lands.
+		/// </para>
+		/// </summary>
+		private static bool CheckTraitsReachCombat()
+		{
+			const int Swings = 4000;
+
+			bool ok = true;
+
+			DnDPlayerMobile target = MakeCharacter("Trait Dummy", "Fighter", 1, 10, 10, 10);
+			SrdGoblin attacker = new SrdGoblin();
+
+			attacker.MoveToWorld(TestLocation, Map.Felucca);
+
+			try
+			{
+				// Damage typing, straight through the resolver's own arithmetic.
+				var plain = new DnDMonsterTraits();
+				var resistant = new DnDMonsterTraits { Resistances = DnDDamageType.Slashing };
+				var immune = new DnDMonsterTraits { Immunities = DnDDamageType.Slashing };
+
+				ok &= CheckValue("plain takes it all", plain.ApplyDamageType(11, DnDDamageType.Slashing), 11);
+				ok &= CheckValue("resistant takes half", resistant.ApplyDamageType(11, DnDDamageType.Slashing), 5);
+				ok &= CheckValue("immune takes none", immune.ApplyDamageType(11, DnDDamageType.Slashing), 0);
+
+				// A type the creature has no opinion about must pass through untouched, or every
+				// resistance quietly becomes a resistance to everything.
+				ok &= CheckValue("unrelated type untouched", resistant.ApplyDamageType(11, DnDDamageType.Fire), 11);
+
+				// Multiattack, counted as hits landed per action. The goblin has one attack; the
+				// same creature given two must land close to twice as many.
+				int single = CountHits(attacker, target, Swings, 1);
+				int doubled = CountHits(attacker, target, Swings, 2);
+
+				double ratio = single > 0 ? doubled / (double)single : 0.0;
+
+				if (ratio < 1.7 || ratio > 2.3)
+				{
+					Console.WriteLine(
+						"[combat-selftest] FAIL: multiattack 2 landed {0} hits against {1} for one - ratio {2:0.00}, wanted about 2",
+						doubled, single, ratio);
+
+					ok = false;
+				}
+				else
+				{
+					Console.WriteLine(
+						"[combat-selftest]   traits in combat: multiattack {0:0.00}x hits, resist halves, immune zeroes",
+						ratio);
+				}
+			}
+			finally
+			{
+				attacker.Delete();
+				target.Delete();
+			}
+
+			return ok;
+		}
+
+		/// <summary>
+		/// Counts hits landed over a number of actions, with the attacker's multiattack forced.
+		/// <para>
+		/// Rolls attacks directly rather than calling Resolve, so nothing dies mid-measurement and
+		/// skews the count - what is being measured is how many swings an action buys.
+		/// </para>
+		/// </summary>
+		private static int CountHits(Mobile attacker, Mobile defender, int actions, int swingsPerAction)
+		{
+			int hits = 0;
+
+			for (int i = 0; i < actions; ++i)
+			{
+				for (int s = 0; s < swingsPerAction; ++s)
+				{
+					if (DnDCombat.RollAttack(attacker, defender, attacker.Weapon as IDnDEquipment).Hit)
+					{
+						++hits;
+					}
+				}
+			}
+
+			return hits;
 		}
 
 		/// <summary>

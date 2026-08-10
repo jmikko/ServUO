@@ -53,7 +53,7 @@ namespace Server.Mobiles
 	/// </summary>
 	public abstract class SrdMonster : DnDCreature, IDnDTraited
 	{
-		private static readonly Dictionary<string, SrdMonsterData> m_Data = new Dictionary<string, SrdMonsterData>();
+		private static readonly Dictionary<string, List<SrdMonsterData>> m_Data = new Dictionary<string, List<SrdMonsterData>>();
 
 		public static void Configure()
 		{
@@ -96,10 +96,23 @@ namespace Server.Mobiles
 					Traits = ParseTraits(el)
 				};
 
-				m_Data[data.Id] = data;
+				List<SrdMonsterData> list;
+				if (!m_Data.TryGetValue(data.Id, out list))
+				{
+					list = new List<SrdMonsterData>();
+					m_Data[data.Id] = list;
+				}
+
+				list.Add(data);
 			}
 
-			Console.WriteLine("SrdMonster: loaded {0} monster stat blocks from Data/DnDMonsters.xml", m_Data.Count);
+			int totalRows = 0;
+			foreach (var list in m_Data.Values)
+			{
+				totalRows += list.Count;
+			}
+
+			Console.WriteLine("SrdMonster: loaded {0} monster stat blocks across {1} ids from Data/DnDMonsters.xml", totalRows, m_Data.Count);
 		}
 
 		/// <summary>
@@ -188,38 +201,54 @@ namespace Server.Mobiles
 			return result;
 		}
 
-		/// <summary>The stat block for an id, for anything that needs one - Wild Shape, mainly.</summary>
+		/// <summary>The stat block for an id, for anything that needs one - Wild Shape, mainly. Returns the first variant.</summary>
 		public static SrdMonsterData Lookup(string id)
 		{
-			SrdMonsterData data;
+			List<SrdMonsterData> list;
 
-			return m_Data.TryGetValue(id, out data) ? data : null;
+			return m_Data.TryGetValue(id, out list) && list.Count > 0 ? list[0] : null;
 		}
 
-		public static System.Collections.Generic.IEnumerable<SrdMonsterData> AllData { get { return m_Data.Values; } }
+		public static System.Collections.Generic.IEnumerable<SrdMonsterData> AllData 
+		{ 
+			get 
+			{ 
+				foreach (var list in m_Data.Values)
+				{
+					foreach (var data in list)
+					{
+						yield return data;
+					}
+				}
+			} 
+		}
 
-		private static SrdMonsterData GetData(string id)
+		private static List<SrdMonsterData> GetDataList(string id)
 		{
-			SrdMonsterData data;
+			List<SrdMonsterData> list;
 
-			if (!m_Data.TryGetValue(id, out data))
+			if (!m_Data.TryGetValue(id, out list) || list.Count == 0)
 			{
 				throw new InvalidOperationException(
 					"SrdMonster: no data for id '" + id + "' - is Data/DnDMonsters.xml missing an entry, " +
 					"or did SrdMonster.Configure() not run before this monster was constructed?");
 			}
 
-			return data;
+			return list;
 		}
 
 		private string m_MonsterId;
+		private int m_VariantIndex;
 
 		protected SrdMonster(string monsterId)
-			: base(GetData(monsterId).Aggression)
+			: base(GetDataList(monsterId)[Utility.Random(GetDataList(monsterId).Count)].Aggression)
 		{
 			m_MonsterId = monsterId;
 
-			SrdMonsterData data = GetData(monsterId);
+			List<SrdMonsterData> list = GetDataList(monsterId);
+			m_VariantIndex = Utility.Random(list.Count);
+
+			SrdMonsterData data = list[m_VariantIndex];
 
 			Name = data.DisplayName;
 			Body = data.Body;
@@ -241,7 +270,7 @@ namespace Server.Mobiles
 		{
 		}
 
-		public DnDMonsterTraits Traits { get { return GetData(m_MonsterId).Traits; } }
+		public DnDMonsterTraits Traits { get { return GetDataList(m_MonsterId)[m_VariantIndex].Traits; } }
 
 		/// <summary>
 		/// Adds the creature's one sentence of character under its name.
@@ -263,18 +292,19 @@ namespace Server.Mobiles
 			}
 		}
 
-		public override int ArmorClass { get { return GetData(m_MonsterId).ArmorClass; } }
-		public override int AttackBonus { get { return GetData(m_MonsterId).AttackBonus; } }
-		public override string DamageDiceExpression { get { return GetData(m_MonsterId).DamageDice; } }
-		public override int HitPointsMaxDnD { get { return GetData(m_MonsterId).HitPoints; } }
-		public override double ChallengeRating { get { return GetData(m_MonsterId).ChallengeRating; } }
+		public override int ArmorClass { get { return GetDataList(m_MonsterId)[m_VariantIndex].ArmorClass; } }
+		public override int AttackBonus { get { return GetDataList(m_MonsterId)[m_VariantIndex].AttackBonus; } }
+		public override string DamageDiceExpression { get { return GetDataList(m_MonsterId)[m_VariantIndex].DamageDice; } }
+		public override int HitPointsMaxDnD { get { return GetDataList(m_MonsterId)[m_VariantIndex].HitPoints; } }
+		public override double ChallengeRating { get { return GetDataList(m_MonsterId)[m_VariantIndex].ChallengeRating; } }
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(1); // version
 			writer.Write(m_MonsterId);
+			writer.Write(m_VariantIndex);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -283,6 +313,22 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 			m_MonsterId = reader.ReadString();
+
+			if (version >= 1)
+			{
+				m_VariantIndex = reader.ReadInt();
+			}
+			else
+			{
+				m_VariantIndex = 0;
+			}
+			
+			// Bound check just in case the XML was changed to have fewer variants
+			List<SrdMonsterData> list;
+			if (m_Data.TryGetValue(m_MonsterId, out list) && m_VariantIndex >= list.Count)
+			{
+				m_VariantIndex = 0;
+			}
 		}
 	}
 }

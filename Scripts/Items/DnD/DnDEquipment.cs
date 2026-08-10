@@ -27,6 +27,20 @@ namespace Server.Items
 
 		public bool IsFinesse { get { return Data.Has(WeaponProperty.Finesse); } }
 
+		public DnDDamageType DamageTypeDnD
+		{
+			get
+			{
+				switch (Data.DamageType)
+				{
+					case Server.DamageType.Bludgeoning: return DnDDamageType.Bludgeoning;
+					case Server.DamageType.Piercing: return DnDDamageType.Piercing;
+					case Server.DamageType.Slashing: return DnDDamageType.Slashing;
+					default: return DnDDamageType.None;
+				}
+			}
+		}
+
 		public bool IsRanged
 		{
 			get
@@ -197,6 +211,7 @@ namespace Server.Items
 		public WeaponCategory WeaponCategory { get { return WeaponCategory.None; } }
 		public string DamageDiceExpression { get { return null; } }
 		public bool IsFinesse { get { return false; } }
+		public DnDDamageType DamageTypeDnD { get { return DnDDamageType.None; } }
 
 		protected DnDArmor(string id)
 			: base(DnDEquipmentTable.GetArmor(id).ItemID)
